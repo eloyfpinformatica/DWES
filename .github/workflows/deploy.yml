@@ -40,9 +40,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # Si tu carpeta de código fuente es src/, el output por defecto está en src/.vitepress/dist
-          # Si no usas la carpeta src/, cámbialo a .vitepress/dist
-          path: src/.vitepress/dist
+          path: .vitepress/dist
 
   deploy:
     environment:
