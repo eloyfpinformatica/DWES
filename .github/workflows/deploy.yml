@@ -40,7 +40,8 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .vitepress/dist
+          # Apuntamos a la carpeta docs que acabamos de definir
+          path: docs
 
   deploy:
     environment:
