@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        h2 {
+            color: #333;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+        }
+        .checkbox-group input {
+            width: auto;
+            margin-right: 10px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .error {
+            color: red;
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+        .error.mostrar {
+            display: block;
+        }
+        #resumen {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #e8f5e9;
+            border-left: 4px solid #4CAF50;
+            border-radius: 4px;
+            display: none;
+        }
+        #resumen.mostrar {
+            display: block;
+        }
+        #resumen h3 {
+            margin-top: 0;
+            color: #2e7d32;
+        }
+        #resumen p {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <h2>Formulario de Registro</h2>
+    
+    <form id="formularioRegistro">
+        <div class="form-group">
+            <label for="nombre">Nombre:</label>
+            <input type="text" id="nombre" placeholder="Tu nombre completo">
+            <span class="error" id="errorNombre"></span>
+        </div>
+
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" id="email" placeholder="tu@email.com">
+            <span class="error" id="errorEmail"></span>
+        </div>
+
+        <div class="form-group">
+            <label for="edad">Edad:</label>
+            <input type="number" id="edad" placeholder="Tu edad" min="1">
+            <span class="error" id="errorEdad"></span>
+        </div>
+
+        <div class="form-group">
+            <label for="pais">País:</label>
+            <select id="pais">
+                <option value="">Selecciona un país</option>
+                <option value="España">España</option>
+                <option value="Francia">Francia</option>
+                <option value="Italia">Italia</option>
+                <option value="Portugal">Portugal</option>
+                <option value="Alemania">Alemania</option>
+            </select>
+            <span class="error" id="errorPais"></span>
+        </div>
+
+        <div class="form-group checkbox-group">
+            <input type="checkbox" id="terminos">
+            <label for="terminos">Acepto los términos y condiciones</label>
+        </div>
+        <span class="error" id="errorTerminos"></span>
+
+        <button type="submit">Registrarse</button>
+    </form>
+
+    <div id="resumen">
+        <h3>✓ Registro Exitoso</h3>
+        <p><strong>Nombre:</strong> <span id="resumenNombre"></span></p>
+        <p><strong>Email:</strong> <span id="resumenEmail"></span></p>
+        <p><strong>Edad:</strong> <span id="resumenEdad"></span></p>
+        <p><strong>País:</strong> <span id="resumenPais"></span></p>
+    </div>
+
+    <script>
+        document.getElementById("formularioRegistro").addEventListener("submit", function(e) {
+            e.preventDefault();
+
+            let mensajesError = document.querySelectorAll('.error');
+
+            mensajesError.forEach( function (elemento){
+                elemento.textContent = '';
+                elemento.classList.remove('mostrar');
+            });
+
+            let hayError = false;
+            //lectura de valores
+            let nombre = document.getElementById('nombre').value;
+            let email = document.getElementById('email').value;
+            let edad = document.getElementById('edad').value;
+            let pais = document.getElementById('pais').value;
+            let terminos = document.getElementById('terminos').checked;
+
+            //validar datos
+            if(nombre === ''){
+                document.getElementById('errorNombre').textContent = 'Debes insertar un nombre válido';
+                document.getElementById('errorNombre').classList.add('mostrar');
+                hayError = true;
+            }
+
+            if(email === ''){
+                document.getElementById('errorEmail').textContent = 'Debes insertar un email válido';
+                document.getElementById('errorEmail').classList.add('mostrar');
+                hayError = true;
+            }
+
+
+            if(edad === ''){
+                document.getElementById('errorEdad').textContent = 'Debes insertar un edad válido';
+                document.getElementById('errorEdad').classList.add('mostrar');
+                hayError = true;
+            }
+
+
+            if(pais === ''){
+                document.getElementById('errorPais').textContent = 'Debes insertar un pais válido';
+                document.getElementById('errorPais').classList.add('mostrar');
+                hayError = true;
+            }
+
+
+
+            //terminos
+            if(!terminos) {
+                document.getElementById('errorTerminos').textContent = 'Debes aceptar los términos';
+                document.getElementById('errorTerminos').classList.add('mostrar');
+                hayError = true;
+            }
+
+            if(!hayError){
+                document.getElementById('resumenNombre').textContent = nombre;
+                document.getElementById('resumenEmail').textContent = email;
+                document.getElementById('resumenEdad').textContent = edad;
+                document.getElementById('resumenPais').textContent = pais;
+                document.getElementById('resumen').classList.add('mostrar');
+            }
+
+        });
+            
+        
+    </script>
+</body>
+</html>

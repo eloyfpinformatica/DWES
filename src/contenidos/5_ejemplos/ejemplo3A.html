@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>5.3A — El problema de la asincronía</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: sans-serif;
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 0 20px;
+            background: #f5f5f5;
+        }
+
+        h1 { font-size: 1.2rem; color: #555; margin-bottom: 10px; }
+
+        .intro {
+            font-size: 0.9rem;
+            color: #777;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        /* Contador */
+        .contador-box {
+            background: white;
+            border-radius: 10px;
+            padding: 20px 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .contador-label { color: #888; font-size: 0.9rem; }
+
+        #contador {
+            font-size: 2rem;
+            font-weight: bold;
+            font-family: monospace;
+            color: #2c3e50;
+        }
+
+        .pulso {
+            width: 12px;
+            height: 12px;
+            background: #2ecc71;
+            border-radius: 50%;
+            animation: pulso 1s infinite;
+        }
+
+        @keyframes pulso {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50%       { opacity: 0.4; transform: scale(0.8); }
+        }
+
+        /* Experimentos */
+        .experimentos {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .experimento {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+
+        .experimento h2 {
+            font-size: 0.95rem;
+            margin-bottom: 8px;
+        }
+
+        .experimento p {
+            font-size: 0.8rem;
+            color: #888;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: white;
+            transition: opacity 0.2s;
+        }
+
+        button:hover    { opacity: 0.85; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .btn-malo   { background: #e74c3c; }
+        .btn-bueno  { background: #2ecc71; }
+
+        .resultado {
+            margin-top: 12px;
+            min-height: 24px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        /* Explicación */
+        .explicacion {
+            background: white;
+            border-radius: 10px;
+            padding: 20px 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            font-size: 0.85rem;
+            color: #555;
+            line-height: 1.7;
+        }
+
+        .explicacion strong { color: #2c3e50; }
+    </style>
+</head>
+<body>
+
+    <h1>El problema de la asincronía</h1>
+    <p class="intro">
+        El contador de abajo suma un número cada segundo mientras la página está activa.
+        Prueba los dos botones y observa qué le pasa al contador en cada caso.
+    </p>
+
+    <!-- Contador visible -->
+    <div class="contador-box">
+        <div class="pulso"></div>
+        <span class="contador-label">Página activa hace</span>
+        <span id="contador">0</span>
+        <span class="contador-label">segundos</span>
+    </div>
+
+    <!-- Los dos experimentos -->
+    <div class="experimentos">
+
+        <div class="experimento">
+            <h2>❌ Código síncrono (bloqueante)</h2>
+            <p>Simula una operación lenta ocupando el hilo principal durante 3 segundos.</p>
+            <button class="btn-malo" onclick="operacionSincrona()">
+                Ejecutar (síncrono)
+            </button>
+            <p class="resultado" id="resultado-sincrono"></p>
+        </div>
+
+        <div class="experimento">
+            <h2>✅ Código asíncrono</h2>
+            <p>Hace la misma espera de 3 segundos sin bloquear el hilo principal.</p>
+            <button class="btn-bueno" onclick="operacionAsincrona()">
+                Ejecutar (asíncrono)
+            </button>
+            <p class="resultado" id="resultado-asincrono"></p>
+        </div>
+
+    </div>
+
+    <!-- Explicación -->
+    <div class="explicacion">
+        <strong>¿Qué ha pasado?</strong><br><br>
+        Con el código <strong>síncrono</strong>, JavaScript ocupó el hilo principal durante 3 segundos.
+        Durante ese tiempo la página dejó de responder: el contador se congeló, no podías hacer clic
+        en nada y el navegador posiblemente mostró un aviso de "página no responde".<br><br>
+        Con el código <strong>asíncrono</strong>, JavaScript inició la espera y siguió ejecutando
+        el resto del programa. El contador no se interrumpió en ningún momento.
+        Cuando pasaron los 3 segundos, se ejecutó el código pendiente.<br><br>
+        Las peticiones a APIs pueden tardar entre 100ms y varios segundos.
+        Si bloquearan el hilo principal, ninguna web sería usable.
+        Por eso <strong>todas las peticiones de red en JavaScript son asíncronas</strong>.
+    </div>
+
+    <script>
+        // --- Contador ---
+        let segundos = 0;
+        setInterval(() => {
+            segundos++;
+            document.getElementById('contador').textContent = segundos;
+        }, 1000);
+
+
+        // --- Experimento 1: código síncrono (bloqueante) ---
+        function operacionSincrona() {
+            document.getElementById('resultado-sincrono').textContent = 'Trabajando...';
+
+            // Bucle que ocupa el hilo durante 3 segundos
+            // Mientras este bucle corre, NADA más puede ejecutarse
+            const fin = Date.now() + 3000;
+            while (Date.now() < fin) {
+                // bucle vacío — bloquea el hilo principal
+            }
+
+            document.getElementById('resultado-sincrono').textContent = '✅ Terminado (pero la página se congeló)';
+        }
+
+
+        // --- Experimento 2: código asíncrono ---
+        async function operacionAsincrona() {
+            document.getElementById('resultado-asincrono').textContent = 'Trabajando...';
+
+            // setTimeout dentro de una Promise: espera 3 segundos
+            // sin bloquear el hilo principal
+            await new Promise(resolve => setTimeout(resolve, 3000));
+
+            document.getElementById('resultado-asincrono').textContent = '✅ Terminado (el contador no se detuvo)';
+        }
+    </script>
+
+</body>
+</html>

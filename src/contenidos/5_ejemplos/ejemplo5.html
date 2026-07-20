@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>5.5 — Transformación de datos JSON</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #1e1e2e;
+            color: white;
+            padding: 30px 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 8px;
+            color: #00b5cc;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 35px;
+            font-size: 0.9rem;
+        }
+
+        /* Panel de controles */
+        .panel {
+            background: #2a2a3e;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        .panel h2 {
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            color: #00b5cc;
+        }
+
+        .filtros {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .filtros button {
+            padding: 10px 18px;
+            border: 2px solid #444;
+            background: transparent;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .filtros button:hover {
+            border-color: #00b5cc;
+            background: rgba(0, 181, 204, 0.1);
+        }
+
+        .filtros button.active {
+            background: #00b5cc;
+            border-color: #00b5cc;
+            font-weight: bold;
+        }
+
+        /* Estadísticas */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Grid de personajes */
+        #loading {
+            text-align: center;
+            padding: 60px;
+            color: #888;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #444;
+            border-top-color: #00b5cc;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        #personajes {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 20px;
+        }
+
+        .personaje-card {
+            background: #2a2a3e;
+            border-radius: 10px;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+        .personaje-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0,181,204,0.3);
+            border-color: #00b5cc;
+        }
+
+        .personaje-card img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .personaje-info {
+            padding: 12px;
+        }
+
+        .personaje-nombre {
+            font-size: 0.95rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .personaje-detalles {
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        .personaje-detalles span {
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .estado {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+
+        .estado.alive { background: #55cc44; }
+        .estado.dead { background: #d63d2e; }
+        .estado.unknown { background: #9e9e9e; }
+
+        /* Código de ejemplo */
+        .code-section {
+            background: #1a1a2a;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 25px;
+        }
+
+        .code-section h3 {
+            color: #00b5cc;
+            margin-bottom: 12px;
+            font-size: 1rem;
+        }
+
+        pre {
+            background: #0d0d15;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: #e0e0e0;
+        }
+
+        .keyword { color: #c678dd; }
+        .function { color: #61afef; }
+        .string { color: #98c379; }
+        .comment { color: #5c6370; font-style: italic; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>🛸 Rick and Morty — Transformación de Datos</h1>
+        <p class="subtitle">Ejemplo práctico de map(), filter() y reduce()</p>
+
+        <!-- Panel de filtros -->
+        <div class="panel">
+            <h2>🎛️ Filtros</h2>
+            <div class="filtros">
+                <button class="active" onclick="aplicarFiltro('all')">Todos</button>
+                <button onclick="aplicarFiltro('alive')">Vivos</button>
+                <button onclick="aplicarFiltro('dead')">Muertos</button>
+                <button onclick="aplicarFiltro('unknown')">Desconocido</button>
+                <button onclick="aplicarFiltro('human')">Solo humanos</button>
+            </div>
+        </div>
+
+        <!-- Estadísticas -->
+        <div class="stats" id="stats"></div>
+
+        <!-- Estado de carga -->
+        <div id="loading">
+            <div class="spinner"></div>
+            <p>Cargando personajes...</p>
+        </div>
+
+        <!-- Grid de personajes -->
+        <div id="personajes"></div>
+
+        <!-- Código de ejemplo -->
+        <div class="code-section">
+            <h3>💡 Código en acción</h3>
+            <pre id="codeExample"></pre>
+        </div>
+    </div>
+
+    <script>
+
+        // Variable global con todos los personajes
+        let todosLosPersonajes = [];
+
+
+        // -------------------------------------------------------
+        // CARGAR DATOS DE LA API
+        // -------------------------------------------------------
+
+        async function cargarPersonajes() {
+            try {
+                // La API tiene paginación, vamos a cargar las primeras 2 páginas
+                const [pagina1, pagina2] = await Promise.all([
+                    fetch('https://rickandmortyapi.com/api/character?page=1').then(r => r.json()),
+                    fetch('https://rickandmortyapi.com/api/character?page=2').then(r => r.json())
+                ]);
+
+                // Combinar resultados
+                const personajesCrudos = [...pagina1.results, ...pagina2.results];
+
+                // TRANSFORMACIÓN: simplificar la estructura
+                todosLosPersonajes = personajesCrudos.map(transformarPersonaje);
+
+                // Mostrar todos inicialmente
+                renderizar(todosLosPersonajes);
+                calcularEstadisticas(todosLosPersonajes);
+                document.getElementById('loading').style.display = 'none';
+
+            } catch (error) {
+                console.error('Error al cargar personajes:', error);
+                document.getElementById('loading').innerHTML = 
+                    '<p style="color: #d63d2e;">❌ Error al cargar datos de la API</p>';
+            }
+        }
+
+
+        // -------------------------------------------------------
+        // TRANSFORMACIÓN DE DATOS
+        // Convertimos el JSON complejo de la API a una estructura simple
+        // -------------------------------------------------------
+
+        function transformarPersonaje(personaje) {
+            return {
+                id: personaje.id,
+                nombre: personaje.name,
+                estado: personaje.status.toLowerCase(),  // "Alive" → "alive"
+                especie: personaje.species,
+                genero: personaje.gender,
+                origen: personaje.origin.name,
+                imagen: personaje.image,
+                // Campos calculados
+                esHumano: personaje.species === 'Human',
+                estaVivo: personaje.status === 'Alive'
+            };
+        }
+
+
+        // -------------------------------------------------------
+        // FILTRADO CON filter()
+        // -------------------------------------------------------
+
+        function aplicarFiltro(tipo) {
+            // Actualizar botones activos
+            document.querySelectorAll('.filtros button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            let personajesFiltrados;
+            let codigoEjemplo;
+
+            switch(tipo) {
+                case 'alive':
+                    personajesFiltrados = todosLosPersonajes.filter(p => p.estado === 'alive');
+                    codigoEjemplo = `<span class="comment">// Filtrar solo personajes vivos</span>
+<span class="keyword">const</span> vivos = personajes.<span class="function">filter</span>(p => p.estado === <span class="string">'alive'</span>);
+<span class="comment">// Resultado: ${personajesFiltrados.length} personajes</span>`;
+                    break;
+
+                case 'dead':
+                    personajesFiltrados = todosLosPersonajes.filter(p => p.estado === 'dead');
+                    codigoEjemplo = `<span class="comment">// Filtrar solo personajes muertos</span>
+<span class="keyword">const</span> muertos = personajes.<span class="function">filter</span>(p => p.estado === <span class="string">'dead'</span>);
+<span class="comment">// Resultado: ${personajesFiltrados.length} personajes</span>`;
+                    break;
+
+                case 'unknown':
+                    personajesFiltrados = todosLosPersonajes.filter(p => p.estado === 'unknown');
+                    codigoEjemplo = `<span class="comment">// Filtrar personajes con estado desconocido</span>
+<span class="keyword">const</span> desconocidos = personajes.<span class="function">filter</span>(p => p.estado === <span class="string">'unknown'</span>);
+<span class="comment">// Resultado: ${personajesFiltrados.length} personajes</span>`;
+                    break;
+
+                case 'human':
+                    personajesFiltrados = todosLosPersonajes.filter(p => p.esHumano);
+                    codigoEjemplo = `<span class="comment">// Filtrar solo humanos</span>
+<span class="keyword">const</span> humanos = personajes.<span class="function">filter</span>(p => p.especie === <span class="string">'Human'</span>);
+<span class="comment">// Resultado: ${personajesFiltrados.length} personajes</span>`;
+                    break;
+
+                default:
+                    personajesFiltrados = todosLosPersonajes;
+                    codigoEjemplo = `<span class="comment">// Mostrar todos los personajes</span>
+<span class="keyword">const</span> todos = personajes;
+<span class="comment">// Total: ${personajesFiltrados.length} personajes</span>`;
+            }
+
+            renderizar(personajesFiltrados);
+            calcularEstadisticas(personajesFiltrados);
+            document.getElementById('codeExample').innerHTML = codigoEjemplo;
+        }
+
+
+        // -------------------------------------------------------
+        // ESTADÍSTICAS CON reduce()
+        // -------------------------------------------------------
+
+        function calcularEstadisticas(personajes) {
+            // 1. Contar por estado usando reduce()
+            const porEstado = personajes.reduce((acumulador, personaje) => {
+                acumulador[personaje.estado] = (acumulador[personaje.estado] || 0) + 1;
+                return acumulador;
+            }, {});
+
+            // 2. Contar especies únicas
+            const especies = personajes.reduce((acum, p) => {
+                if (!acum.includes(p.especie)) acum.push(p.especie);
+                return acum;
+            }, []);
+
+            // 3. Porcentaje de humanos
+            const humanos = personajes.filter(p => p.esHumano).length;
+            const porcentajeHumanos = ((humanos / personajes.length) * 100).toFixed(1);
+
+            // Renderizar stats
+            const statsHTML = `
+                <div class="stat-card">
+                    <div class="stat-value">${personajes.length}</div>
+                    <div class="stat-label">Total</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${porEstado.alive || 0}</div>
+                    <div class="stat-label">Vivos</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${porEstado.dead || 0}</div>
+                    <div class="stat-label">Muertos</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${especies.length}</div>
+                    <div class="stat-label">Especies</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${porcentajeHumanos}%</div>
+                    <div class="stat-label">Humanos</div>
+                </div>
+            `;
+
+            document.getElementById('stats').innerHTML = statsHTML;
+        }
+
+
+        // -------------------------------------------------------
+        // RENDERIZADO CON map()
+        // -------------------------------------------------------
+
+        function renderizar(personajes) {
+            const container = document.getElementById('personajes');
+
+            // Usamos map() para convertir cada personaje en HTML
+            const html = personajes.map(personaje => `
+                <div class="personaje-card">
+                    <img src="${personaje.imagen}" alt="${personaje.nombre}">
+                    <div class="personaje-info">
+                        <div class="personaje-nombre">${personaje.nombre}</div>
+                        <div class="personaje-detalles">
+                            <span>
+                                <span class="estado ${personaje.estado}"></span>
+                                ${traducirEstado(personaje.estado)}
+                            </span>
+                            <span>${personaje.especie}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            container.innerHTML = html;
+        }
+
+
+        // -------------------------------------------------------
+        // UTILIDADES
+        // -------------------------------------------------------
+
+        function traducirEstado(estado) {
+            const traducciones = {
+                'alive': 'Vivo',
+                'dead': 'Muerto',
+                'unknown': 'Desconocido'
+            };
+            return traducciones[estado] || estado;
+        }
+
+
+        // -------------------------------------------------------
+        // INICIO
+        // -------------------------------------------------------
+
+        cargarPersonajes();
+
+        // Código inicial de ejemplo
+        document.getElementById('codeExample').innerHTML = `<span class="comment">// Cargando datos...</span>`;
+
+    </script>
+
+</body>
+</html>

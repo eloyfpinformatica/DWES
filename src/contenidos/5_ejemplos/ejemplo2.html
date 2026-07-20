@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>5.2 — Verbos HTTP y códigos de estado</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: sans-serif;
+            max-width: 750px;
+            margin: 40px auto;
+            padding: 0 20px;
+            background: #f5f5f5;
+        }
+
+        h1 { font-size: 1.2rem; color: #555; margin-bottom: 25px; }
+
+        .botones {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+        }
+
+        button {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: white;
+            transition: opacity 0.2s;
+        }
+
+        button:hover { opacity: 0.85; }
+
+        .btn-get    { background: #2ecc71; }
+        .btn-post   { background: #3498db; }
+        .btn-put    { background: #f39c12; }
+        .btn-patch  { background: #9b59b6; }
+        .btn-delete { background: #e74c3c; }
+
+        #resultado {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            display: none;
+        }
+
+        .meta {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .verbo {
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.85rem;
+            color: white;
+        }
+
+        .url   { font-family: monospace; font-size: 0.85rem; color: #555; }
+
+        .codigo {
+            font-weight: bold;
+            font-size: 1rem;
+            padding: 4px 12px;
+            border-radius: 4px;
+        }
+
+        .codigo.ok    { background: #d4edda; color: #155724; }
+        .codigo.error { background: #f8d7da; color: #721c24; }
+
+        pre {
+            background: #f8f8f8;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 15px;
+            font-size: 0.85rem;
+            overflow-x: auto;
+            line-height: 1.5;
+        }
+
+        .descripcion {
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            color: #666;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Ejemplo 5.2 — Los cinco verbos HTTP en acción</h1>
+
+    <div class="botones">
+        <button class="btn-get"    onclick="hacerPeticion('GET')">GET</button>
+        <button class="btn-post"   onclick="hacerPeticion('POST')">POST</button>
+        <button class="btn-put"    onclick="hacerPeticion('PUT')">PUT</button>
+        <button class="btn-patch"  onclick="hacerPeticion('PATCH')">PATCH</button>
+        <button class="btn-delete" onclick="hacerPeticion('DELETE')">DELETE</button>
+    </div>
+
+    <div id="resultado">
+        <div class="meta">
+            <span id="verboEl"  class="verbo"></span>
+            <span id="urlEl"    class="url"></span>
+            <span id="codigoEl" class="codigo"></span>
+        </div>
+        <p id="descripcionEl" class="descripcion"></p>
+        <pre id="jsonEl"></pre>
+    </div>
+
+    <script>
+        const BASE_URL = 'https://jsonplaceholder.typicode.com/posts';
+
+        // Configuración de cada verbo: URL, opciones fetch y descripción
+        const configuraciones = {
+            GET: {
+                url: `${BASE_URL}/1`,
+                opciones: { method: 'GET' },
+                descripcion: 'Leemos el post con ID 1. No modificamos nada en el servidor.'
+            },
+            POST: {
+                url: BASE_URL,
+                opciones: {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        title: 'Mi nuevo post',
+                        body:  'Contenido del post',
+                        userId: 1
+                    })
+                },
+                descripcion: 'Creamos un nuevo post. El servidor responde con el recurso creado y su nuevo ID.'
+            },
+            PUT: {
+                url: `${BASE_URL}/1`,
+                opciones: {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        id:     1,
+                        title:  'Título completamente nuevo',
+                        body:   'Cuerpo completamente nuevo',
+                        userId: 1
+                    })
+                },
+                descripcion: 'Reemplazamos el post 1 por completo. Hay que enviar todos los campos.'
+            },
+            PATCH: {
+                url: `${BASE_URL}/1`,
+                opciones: {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        title: 'Solo cambio el título'
+                    })
+                },
+                descripcion: 'Modificamos solo el título del post 1. El resto de campos no cambia.'
+            },
+            DELETE: {
+                url: `${BASE_URL}/1`,
+                opciones: { method: 'DELETE' },
+                descripcion: 'Eliminamos el post 1. El servidor devuelve un objeto vacío y código 200.'
+            }
+        };
+
+        // Colores asociados a cada verbo (para la etiqueta)
+        const coloresVerbo = {
+            GET:    '#2ecc71',
+            POST:   '#3498db',
+            PUT:    '#f39c12',
+            PATCH:  '#9b59b6',
+            DELETE: '#e74c3c'
+        };
+
+        async function hacerPeticion(verbo) {
+            const { url, opciones, descripcion } = configuraciones[verbo];
+
+            try {
+                const respuesta = await fetch(url, opciones);
+                const datos     = await respuesta.json();
+                const codigo    = respuesta.status;
+
+                // Rellenamos la sección de resultado
+                const verboEl      = document.getElementById('verboEl');
+                const urlEl        = document.getElementById('urlEl');
+                const codigoEl     = document.getElementById('codigoEl');
+                const descripcionEl = document.getElementById('descripcionEl');
+                const jsonEl       = document.getElementById('jsonEl');
+
+                verboEl.textContent            = verbo;
+                verboEl.style.background       = coloresVerbo[verbo];
+                urlEl.textContent              = `${opciones.method}  ${url}`;
+                codigoEl.textContent           = `${codigo} ${respuesta.statusText}`;
+                codigoEl.className             = `codigo ${codigo < 400 ? 'ok' : 'error'}`;
+                descripcionEl.textContent      = descripcion;
+                jsonEl.textContent             = JSON.stringify(datos, null, 2);
+
+                document.getElementById('resultado').style.display = 'block';
+
+            } catch (error) {
+                console.error('Error en la petición:', error);
+            }
+        }
+    </script>
+
+</body>
+</html>
