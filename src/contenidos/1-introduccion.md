@@ -1,782 +1,683 @@
-Unidad 1. Introducción a los lenguajes de marcas
+# Unitat 1. Introducció a la part del servidor de les aplicacions web
 
-# Unidad Didáctica 1. Introducción a los lenguajes de marcas
+## Resultats d'aprenentatge i criteris d'avaluació
 
-**Duració**n: 4 sesiones de 1 hora  
-**Resultado de aprendizaje**:  
-RA1. Reconoce las características de lenguajes de marcas analizando e interpretando fragmentos de código.
+**RA1. Selecciona les arquitectures i tecnologies de programació Web en entorn servidor, analitzant les seues capacitats i característiques pròpies.**
 
-**Criterios de evaluación asociados**:
-
-a) Se han identificado las características generales de los lenguajes de marcas.
-
-b) Se han reconocido las ventajas que proporcionan en el tratamiento de la información.
-
-c) Se han clasificado los lenguajes de marcas e identificado los más relevantes.
-
-d) Se han diferenciado sus ámbitos de aplicación.
-
-e) Se han reconocido la necesidad y los ámbitos específicos de aplicación de un lenguaje de marcas de propósito general.
-
-f) Se han analizado las características propias de diferentes lenguajes de marcas.
-
-g) Se ha identificado la estructura de un documento y sus reglas sintácticas.
-
-h) Se ha contrastado la necesidad de crear documentos bien formados y la influencia en su procesamiento.
-
-i) Se han identificado las ventajas que aportan los espacios de nombres.
+* **Criteris d'avaluació:**
+    * **a)** S'han caracteritzat i diferenciat els models d'execució de codi en el servidor i en el client Web.
+    * **b)** S'han reconegut els avantatges que proporciona la generació dinàmica de pàgines Web i les seues diferències amb la inclusió de sentències de guions a l'interior de les pàgines Web.
+    * **c)** S'han identificat els mecanismes d'execució de codi en els servidors Web.
+    * **d)** S'han reconegut les funcionalitats que aporten els servidors d'aplicacions i la seua integració amb els servidors Web.
+    * **e)** S'han identificat i caracteritzat els principals llenguatges i tecnologies relacionats amb la programació Web en entorn servidor.
+    * **f)** S'han verificat els mecanismes d'integració dels llenguatges de marques amb els llenguatges de programació en entorn servidor.
+    * **g)** S'han reconegut i avaluat les eines de programació en entorn servidor.
 
 ---
 
-## Índice
+## Temporalització
 
-1. ¿Qué es un lenguaje de marcas?
-2. Clasificación
-3. Estructura y sintaxis: HTML, JSON y XML
-4. El propósito de cada lenguaje
-5. Documentos bien formardos vs mal formados
-6. Ampliación XML - Cómo funcionan los espacios de nombres
-7. Lenguajes de marcas en el mundo real
-8. Revisión de errores frecuentes
+* **Durada estimada:** 4 hores
 
-## 1. ¿Qué es un lenguaje de marcas?
+---
 
-**¿Qué tienen en común una página web, una factura electrónica y una app meteorológica?**
+## Índex
 
-Todas estas situaciones (una página web, una factura electrónica, una app del tiempo...) implican lo mismo: la **transmisión estructurada de información**.
+1. [Arquitectura d'una aplicació web](#1-arquitectura-duna-aplicacio-web)
+    1.1. [Aplicacions d'escriptori vs Aplicacions web](#11-aplicacions-descriptori-vs-aplicacions-web)  
+    1.2. [El model client/servidor](#12-el-model-clientservidor)
+2. [El protocol HTTP](#2-el-protocol-http)
+    2.1. [Funcionament i característiques](#21-funcionament-i-caracteristiques)  
+    2.2. [Manteniment de l'estat: Galetes (Cookies) i Sessions](#22-manteniment-de-lestat-galetes-cookies-i-sessions)  
+    2.3. [Anatomia d'una transacció HTTP](#23-anatomia-duna-transaccio-http)  
+    2.4. [Format de les URL / URI](#24-format-de-les-url-uri)
+3. [Servidor Web vs Servidor d'Aplicacions](#3-servidor-web-vs-servidor-daplicacions)
+    3.1. [Diferències principals](#31-diferencies-principals)  
+    3.2. [Exemples de servidors web (Apache, NGINX)](#32-exemples-de-servidors-web-apache-nginx)  
+    3.3. [Exemples de servidors d'aplicacions (Tomcat, JBoss, IIS)](#33-exemples-de-servidors-daplicacions-tomcat-jboss-iis)
+4. [Pàgines web estàtiques i dinàmiques](#4-pagines-web-estatiques-i-dinamiques)
+    4.1. [Execució de codi en el client vs Servidor](#41-execucio-de-codi-en-el-client-vs-servidor)
+5. [Model de desenvolupament en 3 capes](#5-model-de-desenvolupament-en-3-capes)
+    5.1. [Capa de presentació, procés/negoci i dades](#51-capa-de-presentacio-procesnegoci-i-dades)  
+    5.2. [Exemples de tecnologies per capa](#52-exemples-de-tecnologies-per-capa)
+6. [Perfils professionals en el desenvolupament web](#6-perfils-professionals-en-el-desenvolupament-web)
+    6.1. [Front-end, Back-end i Full Stack](#61-front-end-back-end-i-full-stack)
+7. [Tipologia de les aplicacions web](#7-tipologia-de-les-aplicacions-web)
+    7.1. [MPA, PEMPA i SPA](#71-mpa-pempa-i-spa)
+8. [Llenguatges de programació en entorn servidor](#8-llenguatges-de-programacio-en-entorn-servidor)
+    8.1. [PHP (LAMP)](#81-php-lamp)  
+    8.2. [JSP / Servlets](#82-jsp-servlets)  
+    8.3. [Python (Django)](#83-python-django)  
+    8.4. [ASP.NET](#84-aspnet)
+9. [Bibliografia i Recursos](#9-bibliografia-i-recursos)
 
-Los lenguajes de marcas **permiten**:
+# 1. Arquitectura d'una aplicació web
 
-- **Describir** la información (qué representa).
-- **Estructurarla** para que sea comprensible.
-- **Transmitirla** entre personas o entre sistemas informáticos.
-- **Automatizar** su tratamiento (leer, transformar, visualizar, almacenar).
+L'arquitectura d'una aplicació web defineix com es distribueixen les diferents responsabilitats i tasques entre els components del sistema. A diferència del software tradicional de sobretaula, les aplicacions web es basen en una estructura distribuïda que depén d'una xarxa (com Internet o una intranet) per a funcionar.
 
-Son **esenciales** para el** intercambio de datos** en el mundo digital.
+---
 
-::: tip **📄 Factura electrónica: caso real de uso de XML**
-Una factura electrónica no es simplemente un PDF. Es un documento estructurado que contiene la misma información que una factura tradicional, pero en un formato estándar y legible por ordenadores.
+## 1.1. Aplicacions d'escriptori vs Aplicacions web
 
-En España y en la Unión Europea, el formato más habitual es:
+Per a comprendre la importància de la programació en entorn servidor, és fonamental comparar el model d'aplicació d'escriptori tradicional amb el model d'aplicació web:
 
-- 🧾 Formato: Facturae (formato XML)
-- 📥 Finalidad: ser enviado a organismos públicos o empresas y leído automáticamente por programas de gestión.
-- 🛠️ Contenido típico:
-  - Datos del emisor y receptor
-  - Detalles de productos o servicios
-  - Impuestos
-  - Totales
-  - Firma electrónica
+| Característica                  | Aplicació d'escriptori                                       | Aplicació web                                                |
+| :------------------------------ | :----------------------------------------------------------- | :----------------------------------------------------------- |
+| **Instal·lació**                | Requereix instal·lació local en cada equip client.           | No requereix instal·lació local; s'executa a través del navegador web. |
+| **Manteniment i Actualització** | Complex. Cal actualitzar cada equip individualment.          | Senzill. Es modifica el codi al servidor i tots els usuaris accedeixen directament a la nova versió. |
+| **Execució de codi**            | Tota la lògica i el processament s'executen a la màquina local. | La lògica principal es processa al **servidor**, i el **client** mostra la interfície (HTML/CSS/JS). |
+| **Dependència de la xarxa**     | Generalment no requereix connexió a Internet per a funcionar. | Depén d'una connexió a la xarxa per a comunicar-se amb el servidor. |
+| **Portabilitat i Plataforma**   | Depén del sistema operatiu (Windows, macOS, Linux).          | Multiplataforma per naturalesa, només requereix un navegador web compatible. |
+| **Consum de recursos locals**   | Utilitza la CPU, RAM i disc de la màquina local.             | El consum en el client és reduït; l'esforç de càlcul principal recau en el servidor. |
 
-Ejemplo (simplificado):
+---
 
-```XML
-<Factura>
-  <Emisor>
-    <Nombre>Distribuciones Pérez</Nombre>
-    <NIF>B12345678</NIF>
-  </Emisor>
-  <Receptor>
-    <Nombre>Ayuntamiento de Valencia</Nombre>
-    <NIF>Q2816002D</NIF>
-  </Receptor>
-  <Total>452.60</Total>
-</Factura>
+## 1.2. El model client/servidor
+
+L'arquitectura fonamental sobre la qual es construeix la web és el **model client/servidor**. Aquest és un model de comunicació distribuït on les tasques es reparteixen entre els proveïdors de recursos o serveis (**servidors**) i els demandants d'aquests serveis (**clients**).# 1. Arquitectura d'una aplicació web
+
+L'arquitectura d'una aplicació web defineix com es distribueixen les diferents responsabilitats i tasques entre els components del sistema. A diferència del software tradicional de sobretaula, les aplicacions web es basen en una estructura distribuïda que depén d'una xarxa (com Internet o una intranet) per a funcionar.
+
+---
+
+## 1.1. Aplicacions d'escriptori vs Aplicacions web
+
+Per a comprendre la importància de la programació en entorn servidor, és fonamental comparar el model d'aplicació d'escriptori tradicional amb el model d'aplicació web:
+
+| Característica | Aplicació d'escriptori | Aplicació web |
+| :--- | :--- | :--- |
+| **Instal·lació** | Requereix instal·lació local en cada equip client. | No requereix instal·lació local; s'executa a través del navegador web. |
+| **Manteniment i Actualització** | Complex. Cal actualitzar cada equip individualment. | Senzill. Es modifica el codi al servidor i tots els usuaris accedeixen directament a la nova versió. |
+| **Execució de codi** | Tota la lògica i el processament s'executen a la màquina local. | La lògica principal es processa al **servidor**, i el **client** mostra la interfície (HTML/CSS/JS). |
+| **Dependència de la xarxa** | Generalment no requereix connexió a Internet per a funcionar. | Depén d'una connexió a la xarxa per a comunicar-se amb el servidor. |
+| **Portabilitat i Plataforma** | Depén del sistema operatiu (Windows, macOS, Linux). | Multiplataforma per naturalesa, només requereix un navegador web compatible. |
+| **Consum de recursos locals** | Utilitza la CPU, RAM i disc de la màquina local. | El consum en el client és reduït; l'esforç de càlcul principal recau en el servidor. |
+
+---
+
+## 1.2. El model client/servidor
+
+L'arquitectura fonamental sobre la qual es construeix la web és el **model client/servidor**. Aquest és un model de comunicació distribuït on les tasques es reparteixen entre els proveïdors de recursos o serveis (**servidors**) i els demandants d'aquests serveis (**clients**).
+
+```text
++-----------------+                      +-----------------+
+|                 | ---- 1. Petició ---> |                 |
+|     CLIENT      |     (Request)        |    SERVIDOR     |
+| (Navegador Web) |                      |   (Web Server)  |
+|                 | <--- 2. Resposta --- |                 |
++-----------------+     (Response)       +-----------------+
+```
+### El Client
+* És l'entitat que **inicia la interacció** sol·licitant un recurs o servei.
+* En l'entorn web, el client sol ser un **navegador web** (Chrome, Firefox, Edge, Safari), tot i que també pot ser una aplicació mòbil, una CLI o un altre servei integrat.
+* **Funció principal:** Interpretació i representació de la interfície d'usuari (UI) utilitzant HTML, CSS i JavaScript, així com la gestió d'esdeveniments d'usuari en el costat del client.
+
+### El Servidor
+* És un sistema (programari i maquinari) que **espera peticions de manera contínua** i les processa per a retornar un resultat.
+* En el context de la programació en entorn servidor, rep les sol·licituds HTTP del client, executa la lògica de negoci necessària, interactua amb les bases de dades i genera la resposta adequada.
+* **Funció principal:** Processar les peticions d'un o molts clients de forma simultània, garantint la seguretat, la persistència de dades i l'accés centralitzat a la informació.
+
+### Dinàmica de funcionament
+1. **Petició (*Request*):** El client envia una sol·licitud a una adreça específica (URL) del servidor utilitzant el protocol HTTP/HTTPS.
+2. **Processament:** El servidor rep la petició, executa el codi en el servidor (PHP, Java, Python, Node.js, etc.) i realitza les consultes necessàries a la base de dades.
+3. **Resposta (*Response*):** El servidor construeix una resposta (habitualment codi HTML, dades en format JSON o fitxers multimèdia) i la retorna al client, tancant o mantenint la connexió segons el cas.
+
+### Analogia de la vida real: Un restaurant
+
+Per a entendre fàcilment aquest model, podem pensar en com funciona un **restaurant**:
+
+- **El Client (El comensal):** Se senta a la taula, mira la carta i decideix què vol demanar. No entra a la cuina ni cuina el seu propi menjar. Només fa la comanda (petició).
+- **El Cambrer / Protocol (HTTP):** És el mitjà de transport i comunicació. Agafa la petició del comensal, la porta a la cuina i, quan el plat està llest, el torna a la taula (resposta).
+- **El Servidor (La cuina):** Rep la comanda, comprova si té els ingredients a la meua despensa/nevera (base de dades), cuina el plat seguint la recepta (lògica de negoci/programació) i el prepara per a ser servit.
+
+
+
+Ací tens el desenvolupament del **Punt 2: El protocol HTTP**, adaptat per a ser un repàs teòric de nivell d'introducció i formatat directament en Markdown per a MkDocs.
+
+# 2. El protocol HTTP
+
+El protocol **HTTP** (*HyperText Transfer Protocol*) és el protocol de la capa d'aplicació sobre el qual es fonamenta la comunicació a la Web. Defineix les regles i formats per a l'intercanvi d'informació entre el client (navegador) i el servidor.
+
+## 2.1. Funcionament i característiques
+
+HTTP és un protocol que presenta les següents característiques clau:
+
+- **Basat en petició-resposta (\*Request-Response\*):** La comunicació sempre la inicia el client enviant una petició (*Request*), i el servidor respon amb el recurs sol·licitat o un missatge d'error (*Response*).
+- **Sense estat (\*Stateless\*):** HTTP no manté informació sobre les peticions anteriors. Cada petició és independent i el servidor no "recorda" si un client ja l'ha visitat abans.
+- **Sense connexió persistent (per defecte en orígens):** Tradicionalment obria una connexió TCP per a cada petició/resposta i la tancava. Des d'HTTP/1.1 s'utilitzen connexions persistents (*Keep-Alive*) per a millorar el rendiment, però conceptualment les transaccions continuen sent independents.
+- **Seguretat (HTTPS):** La versió segura d'HTTP utilitza xifrat mitjançant TLS/SSL (port 443 per defecte en comptes del port 80) per a garantir la confidencialitat i la integritat de les dades.
+
+## 2.2. Manteniment de l'estat: Galetes (Cookies) i Sessions
+
+Com que HTTP és un protocol **sense estat**, es requereixen mecanismes addicionals per a aconseguir que una aplicació web "recorde" a un usuari (per exemple, per a mantindre la sessió iniciada o el carret de la compra).
+
+Plaintext
+
+```
+                  +-----------------------------------+
+                  |   Mecanismes de control d'estat   |
+                  +-----------------------------------+
+                                    |
+          +-------------------------+-------------------------+
+          |                                                   |
+          v                                                   v
++-------------------+                               +-------------------+
+|      GALETES      |                               |     SESSIONS      |
+|    (Cookies)      |                               |    (Sessions)     |
++-------------------+                               +-------------------+
+| Dades guardades   |                               | Dades guardades   |
+| al CLIENT         |                               | al SERVIDOR       |
+| (Navegador Web)   |                               |                   |
++-------------------+                               +-------------------+
+```
+
+### Galetes (*Cookies*)
+
+- **Ubicació:** S'emmagatzemen al **client** (en el navegador).
+- **Funcionament:** El servidor envia una galeta en la capçalera de la resposta HTTP (`Set-Cookie`) i el navegador la torna a enviar automàticament en cada petició posterior cap a eix mateix domini (`Cookie`).
+- **Ús típic:** Preferències d'usuari, identificadors de seguiment, recordar l'idioma.
+
+### Sessions (*Sessions*)
+
+- **Ubicació:** S'emmagatzemen al **servidor**.
+- **Funcionament:** El servidor guarda la informació de l'usuari en la seua memòria o base de dades i genera un identificador únic de sessió (*Session ID*). Aquest *ID* s'envia al client (habitualment en una *cookie*) perquè l'incloga en les seues peticions.
+- **Ús típic:** Autenticació d'usuaris (login), carret de la compra, dades sensibles.
+
+## 2.3. Anatomia d'una transacció HTTP
+
+Una transacció HTTP es compon d'una **Petició** (*Request*) i una **Resposta** (*Response*).
+
+### A) La Petició HTTP (*Request*)
+
+Es compon de:
+
+1. **Línia de petició:** Conté el mètode HTTP, la ruta del recurs i la versió del protocol.
+2. **Capçaleres (\*Headers\*):** Informació addicional sobre el client, la petició o el tipus de contingut acceptat (p. ex., `Host`, `User-Agent`, `Accept`).
+3. **Cos (\*Body\*):** Opcional. Conté les dades enviades al servidor (p. ex., dades d'un formulari o un objecte JSON).
+
+#### Principals mètodes HTTP:
+
+- **`GET`:** Sol·licita un recurs al servidor. Les dades s'envien en la mateixa URL (com a paràmetres de cerca). No ha de tindre efectes secundaris al servidor.
+- **`POST`:** Envia dades al servidor per a ser processades (p. ex., crear un nou recurs). Les dades viatgen en el cos (*body*) de la petició.
+- **`PUT` / `PATCH`:** S'utilitzen per a actualitzar un recurs existent al servidor.
+- **`DELETE`:** Sol·licita l'eliminació d'un recurs del servidor.
+
+### B) La Resposta HTTP (*Response*)
+
+Es compon de:
+
+1. **Línia d'estat:** Versió del protocol i el **codi d'estat** (amb el seu text explicatiu).
+2. **Capçaleres (\*Headers\*):** Metadades sobre el servidor i la resposta (p. ex., `Content-Type`, `Content-Length`, `Set-Cookie`).
+3. **Cos (\*Body\*):** El contingut retornat (HTML, JSON, imatge, etc.).
+
+#### Codis d'estat HTTP principals (Classes):
+
+| **Rang** | **Categoria**       | **Descripció i Exemples**                                    |
+| -------- | ------------------- | ------------------------------------------------------------ |
+| **1xx**  | Informatius         | La petició ha sigut rebuda i continua el procés (p. ex., `100 Continue`). |
+| **2xx**  | Èxit (*OK*)         | La petició s'ha rebut, entés i acceptat correctament (p. ex., `200 OK`, `201 Created`). |
+| **3xx**  | Redireccions        | Cal fer accions addicionals per a completar la petició (p. ex., `301 Moved Permanently`, `302 Found`). |
+| **4xx**  | Errors del Client   | La petició conté una sintaxi errònia o no es pot processar (p. ex., `400 Bad Request`, `403 Forbidden`, `404 Not Found`). |
+| **5xx**  | Errors del Servidor | El servidor ha fallat en intentar processar una petició vàlida (p. ex., `500 Internal Server Error`, `503 Service Unavailable`). |
+
+## 2.4. Format de les URL / URI
+
+Per a accedir a qualsevol recurs a la web, s'utilitza un identificador anomenat **URI** (*Uniform Resource Identifier*), sent el tipus més comú la **URL** (*Uniform Resource Locator*).
+
+### Estructura d'una URL:
+
+Plaintext
+
+```
+  esquema://usuari:contrasenya@host:port/ruta?consulta#fragment
+  \____/   \_________________/ \__/ \__/ \__/ \______/ \______/
+    |               |            |    |    |      |        |
+ Protocol        Usuari/Pass    Domini Port Ruta Paràmetres Àncora
+```
+
+- **Esquema (\*Scheme\*):** El protocol utilitzat (`http`, `https`, `ftp`).
+- **Host / Domini:** El nom de domini o adreça IP del servidor (`[www.example.com](https://www.example.com)`).
+- **Port:** El port de xarxa pel qual escolta el servei (`:80` per a HTTP, `:443` per a HTTPS, opcional si s'utilitzen els ports per defecte).
+- **Ruta (\*Path\*):** La ruta absoluta al recurs dins del servidor (`/productes/detall`).
+- **Paràmetres de consulta (\*Query string\*):** Paràmetres clau-valor separats per `&` que comencen amb un signe `?` (`?id=15&categoria=electronica`).
+- **Fragment (\*Anchor\*):** Apunta a una secció específica dins de la pàgina (`#caracteristiques`).
+
+
+
+Ací tens el desenvolupament del **Punt 3: Servidor Web vs Servidor d'Aplicacions**, estructurat per a MkDocs com un repàs teòric introductori i sense contingut extres.
+
+# 3. Servidor Web vs Servidor d’Aplicacions
+
+En el desenvolupament i desplegament d'aplicacions web és comú trobar dos tipus de servidors que treballen conjuntament: el **servidor web** i el **servidor d'aplicacions**. Encara que la frontera entre ambdós s'ha anat difuminant amb el temps, compleixen rols diferents i complementaris en l'arquitectura del sistema.
+
+## 3.1. Diferències principals
+
+La diferència principal rau en el **tipus de contingut** que gestionen i en la seua capacitat per a **executar lògica de negoci**.
+
+Plaintext
+
+```
+               +-------------------------------------------------------+
+               |                    SERVIDORS WEB                      |
+               |                                                       |
+               |  - Atén peticions HTTP/HTTPS.                         |
+               |  - Serveix contingut ESTÀTIC (HTML, CSS, JS, imatges). |
+               |  - Alta eficiència i rendiment en transferència.      |
+               +-------------------------------------------------------+
+                                           |
+                                           v (Delega peticions dinàmiques)
+               +-------------------------------------------------------+
+               |               SERVIDORS D'APLICACIONS                 |
+               |                                                       |
+               |  - Executa LÒGICA DE NEGOCI (codi en entorn servidor).|
+               |  - Genera contingut DINÀMIC (HTML, JSON, XML).        |
+               |  - Ofereix serveis complexos (transaccions, seguretat)|
+               +-------------------------------------------------------+
+```
+
+| **Característica**      | **Servidor Web**                                            | **Servidor d'Aplicacions**                                   |
+| ----------------------- | ----------------------------------------------------------- | ------------------------------------------------------------ |
+| **Funció principal**    | Servir contingut estàtic i gestionar la comunicació HTTP.   | Executar lògica de negoci i generar contingut dinàmic.       |
+| **Tipus de recursos**   | Fitxers HTML, CSS, JavaScript, imatges, vídeos, PDF.        | Codi executable (PHP, Java Servlets/JSP, Python, C#, etc.).  |
+| **Consum de recursos**  | Baix consum de CPU i memòria (molt optimitzat per a I/O).   | Major consum de CPU i memòria a causa del processament de dades. |
+| **Serveis addicionals** | Compressió, SSL/TLS, *caching*, redireccions, proxy invers. | Gestió de transaccions, connexió a bases de dades, seguretat de negoci. |
+
+## 3.2. Exemples de servidors web
+
+Els servidors web estan dissenyats principalment per a respondre a peticions HTTP de manera ràpida i eficient.
+
+- **Apache HTTP Server:** Un dels servidors web més populars i històrics. És modular, molt configurable i extensible mitjançant mòduls (com `mod_php` per a interpretar PHP directament).
+
+- **NGINX:** Destaca pel seu alt rendiment, baix consum de memòria i arquitectura orientada a esdeveniments. S'utilitza habitualment com a servidor de recursos estàtics, **proxy invers** i **balancejador de càrrega**.
+
+                  +---------------------------------------+
+                  |            PROXY INVERS               |
+                  |           (p. ex. NGINX)              |
+                  +---------------------------------------+
+                               /      |      \
+                              /       |       \
+                             v        v        v
+                      +---------+ +---------+ +---------+
+                      |Servidor1| |Servidor2| |Servidor3|
+                      +---------+ +---------+ +---------+
+
+- **Caddy:** Servidor web modern escrit en Go, conegut per la seua facilitat de configuració i la gestió automàtica de certificats HTTPS (Let's Encrypt).
+
+## 3.3. Exemples de servidors d'aplicacions
+
+Els servidors d'aplicacions proporcionen l'entorn d'execució (*runtime*) necessari perquè el codi en el servidor s'execute, interactue amb la base de dades i genere una resposta.
+
+- **Apache Tomcat / Jetty:** Servidors/contenidors d'aplicacions per a l'ecosistema Java (específicament per a executar Servlets i JSP).
+- **Red Hat WildFly (abans JBoss) / GlassFish:** Servidors d'aplicacions Java EE / Jakarta EE complets, que ofereixen suport per a transaccions complexes, missatgeria enterprise, etc.
+- **Microsoft IIS (Internet Information Services):** Servidor de Microsoft que actua tant de servidor web com de servidor d'aplicacions per al *stack* de tecnologies .NET (ASP.NET).
+- **Gunicorn / uWSGI:** Servidors d'aplicacions utilitzats en l'ecosistema Python per a executar aplicacions desenvolupades amb *frameworks* com Django o Flask.
+- **Node.js (com a runtime):** Permet crear tant el servidor web com la lògica de l'aplicació en un mateix entorn utilitzant JavaScript.
+
+Ací tens el desenvolupament del **Punt 4: Pàgines web estàtiques i dinàmiques**, preparat en format Markdown per a MkDocs i enfocat com a repàs teòric d'un curs de desenvolupament web.
+
+---
+
+# 4. Pàgines web estàtiques i dinàmiques
+
+La diferència fonamental entre una pàgina web estàtica i una dinàmica rau en **quan i on es genera el contingut** que rep el navegador de l'usuari.
+
+* **Pàgines estàtiques:** El contingut està predefinit i emmagatzemat en el servidor en fitxers (HTML, CSS, imatges). La resposta és idèntica per a tots els usuaris i no canvia a menys que el desenvolupador modifique manualment el fitxer font.
+* **Pàgines dinàmiques:** El contingut es genera de manera personalitzada i en temps real (al vol) en funció de les peticions de l'usuari, les dades emmagatzemades en una base de dades o l'estat de la sessió.
+
+---
+
+## 4.1. Execució de codi en el client vs Servidor
+
+En la creació de pàgines web dinàmiques, el codi es pot executar en dues localitzacions diferents, cadascuna amb un propòsit i un entorn d'execució clarament diferenciats.
+
+```text
+  CLIENT (Navegador)                               SERVIDORS (Web / Aplicacions)
++-----------------------+                       +-------------------------------+
+|                       |  ---- 1. Request ---> |                               |
+| - Interfície d'usuari |                       | - Lògica de negoci principal  |
+| - Validació bàsica    |                       | - Consultes a Base de Dades   |
+| - Executa JavaScript  |  <--- 2. Response --- | - Executa PHP, Java, Python...|
+|                       |    (HTML/JSON/etc.)   |                               |
++-----------------------+                       +-------------------------------+
 
 ```
 
-:::
+### Execució de codi en el Client (*Front-end*)
 
-—
+* **On s'executa:** En el navegador web de l'usuari final.
+* **Tecnologies principals:** HTML5, CSS3, JavaScript (i *frameworks* com React, Vue, Angular).
+* **Funció principal:** Millorar l'experiència d'usuari (UX), gestionar la interactivitat visual, manipular el DOM, realitzar validacions en formularis abans de l'enviament i realitzar peticions asíncrones (AJAX/Fetch).
+* **Característiques:**
+* Depén del navegador de l'usuari i de la potència de la seua màquina.
+* El codi font és **públic i visible** per a qualsevol usuari (mitjançant la funció "Veure codi font").
+* **No és segur** per a processar lògica crítica o dades sensibles (autenticació, pagaments).
 
-**¿Qué es un lenguaje de marcas?**
 
-Un lenguaje de marcas es un sistema de codificación que permite estructurar, describir y presentar información.
 
-Características generales:
+---
 
-- Utiliza etiquetas para marcar partes del contenido.
-- Tiene una estructura jerárquica (anidamiento).
-- Separa el contenido de su presentación visual.
-- Es legible tanto por humanos como por máquinas.
+### Execució de codi en el Servidor (*Back-end*)
 
-—
+* **On s'executa:** En el servidor web o d'aplicacions.
+* **Tecnologies principals:** PHP, Java (Servlets/Spring), Python (Django/Flask), Node.js, C# (.NET), Ruby, etc.
+* **Funció principal:** Accés i coordinació de bases de dades, control d'accés i seguretat, processament de transaccions, gestió de sessions i generació de la resposta final.
+* **Característiques:**
+* L'execució és independent de l'equip de l'usuari.
+* El codi font és **privat i inaccessible** per als usuaris externs.
+* És l'entorn on es garanteix la **seguretat i la integritat de les dades**.
 
-**¿Por qué se utilizan?**
 
-Ventajas de los lenguajes de marcas:
 
-✅ Estructuran la información  
-✅ Son fáciles de procesar automáticamente  
-✅ Permiten reutilizar contenido  
-✅ Separan contenido de formato  
-✅ Se adaptan a diferentes contextos (web, móvil, escritorio, datos)
+---
 
-—
+### Taula comparativa: Execució Client vs Servidor
 
-## 2. Clasificación
+| Criteri | Execució en el Client (*Front-end*) | Execució en el Servidor (*Back-end*) |
+| --- | --- | --- |
+| **Lloc d'execució** | Navegador de l'usuari. | Servidor remot. |
+| **Visibilitat del codi** | Codi visible directament per l'usuari. | Codi privat i protegit al servidor. |
+| **Principal avantatge** | Resposta immediata en la interfície sense recarregar la pàgina. | Seguretat, accés centralitzat a dades i gran capacitat de procés. |
+| **Seguretat** | Baixa. No es pot confiar en les dades validades només en el client. | Alta. És l'encarregat de validar i protegir les dades realment. |
+| **Accés a bases de dades** | Indirecte (mitjançant peticions a una API del servidor). | Directe (mitjançant connectors i orígens de dades). |
 
-Tipos de lenguajes de marcas:
+Ací tens un parell d'exemples clars per a veure la diferència a la pràctica:
 
-| Tipo                     | Ejemplo | Uso principal                           |
-| ------------------------ | ------- | --------------------------------------- |
-| Propósito general        | XML     | Intercambio estructurado entre sistemas |
-| Propósito específico web | HTML    | Estructura y presentación web           |
-| Datos / intercambio      | JSON    | Envío y recepción de datos (APIs)       |
+### Exemples d'una Pàgina Web Estàtica
 
-—
+1. **El menú d'un restaurant local en format PDF o HTML simple:**
 
-### Ejemplos
+   El propietari del restaurant penja un fitxer `.html` amb el text de la carta i els preus. Totes les persones que entren a la web veuen exactament el mateix menú, a la mateixa hora, sense cap variació. Si el xef canvia un preu, el programador ha d'obrir el fitxer, editar el codi i tornar a pujar-lo al servidor.
 
-Fragmentos de código representativos:
+2. **Un portafoli personal senzill d'un dissenyador:**
 
-🔹 HTML
+   Consisteix en fitxers HTML, CSS i imatges fixes. L'únic que fa el servidor quan rep la petició és enviar eixos fitxers tal com estan guardats al disc dur.
 
-```html
-<h1>Bienvenidos</h1>
+### Exemples d'una Pàgina Web Dinàmica
+
+1. **L'alimentació (\*feed\*) de la xarxa social Instagram o X (Twitter):**
+
+   Encara que dos usuaris entren a la mateixa adreça URL (`instagram.com`), el servidor executa codi en el servidor, comprova quina sessió està iniciada, consulta la base de dades i construeix al vol una pàgina única per a cadascun, mostrant només les fotos dels comptes que eix usuari segueix.
+
+2. **Una botiga online com Amazon o Pccomponentes:**
+
+   Quan busques un "teclat mecànic", el servidor no té una pàgina HTML feta prèviament per a eixa cerca. El servidor d'aplicacions pren la paraula "teclat mecànic", consulta la base de dades de productes, comprova l'stock en temps real, calcula els descomptes de la teua xarxa i **genera dinàmicament l'HTML** (o les dades JSON) amb els resultats directament per a tu.
+
+
+
+# 5. Model de desenvolupament en 3 capes
+
+El **model de desenvolupament en 3 capes** (o arquitectura en tres nivells) és un patró d'arquitectura de software que separa l'aplicació en tres components lògics independents. Aquesta divisió facilita el manteniment, la reusabilitat del codi i la l'escalabilitat del sistema.
+
+## 5.1. Capa de presentació, procés/negoci i dades
+
+Plaintext
+
+```
++-------------------------------------------------------+
+|                1. CAPA DE PRESENTACIÓ                 |
+|                   (Interfície / UI)                   |
++-------------------------------------------------------+
+                            |
+                            v (Peticions / Dades)
++-------------------------------------------------------+
+|               2. CAPA DE PROCÉS / NEGOCI              |
+|                 (Lògica de l'aplicació)               |
++-------------------------------------------------------+
+                            |
+                            v (Consultes / Persistència)
++-------------------------------------------------------+
+|                   3. CAPA DE DADES                    |
+|             (Base de Dades / Persistència)            |
++-------------------------------------------------------+
 ```
 
-🔹 XML
+### 1. Capa de Presentació (*Presentation Layer*)
 
-```xml
-<libro><titulo>1984</titulo></libro>
+- **Funció:** És la interfície amb la qual interactua l'usuari final. S'encarrega de capturar les accions de l'usuari (fets, clics, formularis) i de mostrar-li els resultats enviats per la capa inferior.
+- **On resideix:** Principalment en el **client** (navegador web o aplicació mòbil).
+- **Responsabilitats:** Mostrar la informació, formatar el contingut visual i realitzar validacions primàries d'entrada.
+
+### 2. Capa de Procés / Negoci (*Business Logic Layer*)
+
+- **Funció:** És el "cervell" de l'aplicació. Implementa les regles de negoci, processa les dades rebudes de la capa de presentació i realitza els càlculs o transformacions necessàries.
+- **On resideix:** S'executa al **servidor d'aplicacions** (*Back-end*).
+- **Responsabilitats:** Validar l'autenticitat dels usuaris, coordinar el flux de l'aplicació, aplicar regles de negoci (com ara aplicar un descompte o validar un pagament) i sol·licitar o emmagatzemar dades en la capa inferior.
+
+### 3. Capa de Dades (*Data Access Layer*)
+
+- **Funció:** S'encarrega d'emmagatzemar, gestionar i recuperar la informació de manera persistent.
+- **On resideix:** En el **servidor de bases de dades**.
+- **Responsabilitats:** Guardar la informació en taules o documents, executar consultes d'alta velocitat (SQL o NoSQL) i mantindre la integritat i consistència de les dades.
+
+## 5.2. Exemples de tecnologies per capa
+
+A continuació es mostren les tecnologies més habituals utilitzades en cadascuna de les capes en el desenvolupament web actual:
+
+| **Capa**                         | **Funció principal**                      | **Tecnologies / Eines**                                      |
+| -------------------------------- | ----------------------------------------- | ------------------------------------------------------------ |
+| **Presentació** (*Front-end*)    | Interfície d'usuari i experiència visual. | HTML5, CSS3, JavaScript, TypeScript, React, Angular, Vue.js, Bootstrap, Tailwind CSS. |
+| **Procés / Negoci** (*Back-end*) | Lògica, seguretat i coordinació.          | PHP (Laravel, Symfony), Java (Spring Boot), Python (Django, FastAPI), Node.js (Express), C# (.NET Core). |
+| **Dades** (*Database*)           | Persistència i gestió de la informació.   | **Relacionals:** PostgreSQL, MySQL, MariaDB, Oracle. **No relacionals:** MongoDB, Redis, Cassandra. |
+
+# 6. Perfils professionals en el desenvolupament web
+
+El desenvolupament d'aplicacions web modernes implica diferents tecnologies, eines i competències. Per aquest motiu, el sector professional s'ha especialitzat en diferents perfils segons la capa o la part de l'arquitectura en què es focalitza cada desenvolupador.
+
+## 6.1. Front-end, Back-end i Full Stack
+
+Plaintext
+
+```
++-----------------------------------------------------------------------+
+|                              FULL STACK                               |
+|                  (Domina el Front-end i el Back-end)                  |
++-----------------------------------------------------------------------+
+                |                                       |
+                v                                       v
++-------------------------------+       +-------------------------------+
+|           FRONT-END           |       |            BACK-END           |
+|      (Costat del Client)      |       |      (Costat del Servidor)     |
++-------------------------------+       +-------------------------------+
+| - HTML, CSS, JavaScript       |       | - PHP, Java, Python, Node.js  |
+| - Frameworks (React, Vue)     |       | - Gestió de Bases de Dades    |
+| - Disseny adaptable (RWD)     |       | - Disseny d'APIs i Seguretat  |
+| - Experiència d'usuari (UX)   |       | - Rendiment i arquitectura    |
++-------------------------------+       +-------------------------------+
 ```
 
-🔹 JSON
+### 1. Desenvolupador/a Front-end
 
-```json
-{ "titulo": "1984" }
+- **Enfocament:** Es centra en la **interfície d'usuari** (UI) i en l'**experiència d'usuari** (UX). S'encarrega de tot allò que l'usuari veu i amb què interactua directament en el navegador web.
+- **Responsabilitats:**
+  - Maquetació de dissenys web adaptables a diferents dispositius (*Responsive Web Design*).
+  - Programació de la interactivitat de la pàgina.
+  - Consum d'APIs creades pel Back-end per a mostrar informació dinàmica.
+  - Optimització del rendiment de càrrega en el client.
+- **Tecnologies principals:** HTML5, CSS3, JavaScript/TypeScript, *frameworks* i llibreries com React, Angular, Vue.js, i eines de maquetació com Tailwind CSS o Bootstrap.
+
+### 2. Desenvolupador/a Back-end
+
+- **Enfocament:** Es centra en la **lògica interna**, l'estructura de dades i els processos que tenen lloc al **servidor**. L'usuari no veu directament aquest codi, però en pateix les conseqüències si no està ben optimitzat o segur.
+- **Responsabilitats:**
+  - Disseny i manteniment de la lògica de negoci de l'aplicació.
+  - Disseny i gestió de la base de dades (modelatge, consultes, optimització).
+  - Creació d'APIs (REST, GraphQL) per a comunicar-se amb el Front-end o amb aplicacions terceres.
+  - Gestió de la seguretat, autenticació, autorització i protecció de dades sensibles.
+- **Tecnologies principals:** PHP, Java, Python, Node.js, C# (.NET), bases de dades relacionals (MySQL, PostgreSQL) i no relacionals (MongoDB, Redis).
+
+### 3. Desenvolupador/a Full Stack
+
+- **Enfocament:** És un perfil versàtil que posseeix coneixements i habilitats tant en el desenvolupament **Front-end** com en el **Back-end**.
+- **Responsabilitats:**
+  - Capaç de dissenyar i desenvolupar una aplicació web completa des de zero, des de la base de dades fins a la interfície d'usuari.
+  - Comprén la totalitat del flux de dades i l'arquitectura de l'aplicació.
+  - Facilita la comunicació i la coordinació entre equips especialitzats de Front-end i Back-end.
+- **Nota:** Ser Full Stack no implica ser un expert absolut en totes les tecnologies, sinó tindre la capacitat de treballar de manera eficaç en qualsevol de les capes del projecte.
+
+
+
+# 7. Tipologia de les aplicacions web
+
+Segons com es gestió la navegació, la càrrega de dades i la generació del contingut entre el client i el servidor, les aplicacions web es classifiquen en diferents tipus d'arquitectura.
+
+## 7.1. MPA, PEMPA i SPA
+
+Plaintext
+
+```
+  MPA (Multi-Page App)           SPA (Single-Page App)
++----------------------+        +----------------------+
+|  Navegador           |        |  Navegador           |
+|  [Pàgina 1]          |        |  [Pàgina única]      |
+|      |               |        |      | (AJAX/Fetch)  |
+|      v               |        |      v               |
+|  Recàrrega completa  |        |  Actualitza només    |
+|      |               |        |  el DOM necessari    |
+|      v               |        |                      |
+|  [Pàgina 2]          |        |                      |
++----------------------+        +----------------------+
 ```
 
-**¿Qué tienen en común estos fragmentos? ¿Qué diferencias observas?**
+### 1. MPA (*Multi-Page Application*) - Aplicació Multi-pàgina
 
-—
+És l'arquitectura tradicional de la web.
 
-::: info ✏️ **Para practicar:**
-Actividad: Analiza fragmentos de código y rellena la siguiente tabla.
+- **Funcionament:** Cada vegada que l'usuari fa clic en un enllaç o envia un formulari, el navegador fa una nova petició HTTP al servidor. El servidor processa la petició, genera una pàgina HTML nova per complet i la torna al navegador, provocant una **recàrrega completa** de la pàgina.
+- **Avantatges:**
+  - Molt bon posicionament en cercadors (**SEO**), ja que cada recurs té la seua pròpia URL i l'HTML ve complet des del servidor.
+  - Senzilla d'implementar en projectes tradicionals.
+- **Inconvenients:** Experiència d'usuari més lenta i menys fluida a causa de la recàrrega constant de tota la pàgina.
+- **Exemples:** Viquipèdia, la majoria de diaris digitals, blogs tradicionals.
 
-| Fragmento de código                                           | ¿Qué lenguaje es? | ¿Qué representa? | ¿Qué ventajas ves? | ¿Dónde lo usarías? |
-| ------------------------------------------------------------- | ----------------- | ---------------- | ------------------ | ------------------ |
-| &lt;title&gt;Batman&lt;/title&gt;                             |                   |                  |                    |                    |
-| /{ "autor": "Orwell" /}                                       |                   |                  |                    |                    |
-| &lt;alumno&gt;&lt;nombre&gt;Ana&lt;/nombre&gt;&lt;/alumno&gt; |                   |                  |                    |                    |
+### 2. SPA (*Single-Page Application*) - Aplicació de Pàgina Única
 
-:::
+És l'arquitectura moderna habitual per a aplicacions web interactives.
 
-### Comparativa actual – XML vs JSON
+- **Funcionament:** El servidor envia al client un sol document HTML inicial juntament amb el JavaScript necessari. A partir d'eixe moment, la navegació i les accions de l'usuari no recarreguen la pàgina: JavaScript intercepta les accions, demana només les dades necessàries al servidor (mitjançant **AJAX** o l'API `fetch`, habitualment en format JSON) i **actualitza dinàmicament el DOM** de la pàgina.
+- **Avantatges:**
+  - Experiència d'usuari molt fluida i ràpida (similar a una aplicació nativa d'escriptori o mòbil).
+  - Reducció del tràfic de xarxa, ja que només s'intercanvien dades i no estructures HTML completes en cada acció.
+- **Inconvenients:**
+  - Càrrega inicial potencialment més lenta.
+  - Més complexitat en el posicionament SEO (cal utilitzar tècniques addicionals com *Server-Side Rendering* o SSR).
+- **Exemples:** Gmail, Spotify Web, Trello, Google Maps.
 
-¿XML o JSON? ¿Cuál se usa más hoy en día? Depende del contexto:
+### 3. PEMPA / MAPA (*Progressive Enhancement Multi-Page Application*)
 
-| Aspecto                    | XML                                                 | JSON                                                  |
-| -------------------------- | --------------------------------------------------- | ----------------------------------------------------- |
-| Origen                     | 1998 – W3C                                          | 2001 – Derivado de JavaScript                         |
-| Sintaxis                   | Verbosa, basada en etiquetas                        | Más ligera, basada en pares clave-valor               |
-| Estructura jerárquica      | Sí (etiquetas anidadas)                             | Sí (objetos anidados y arrays)                        |
-| Legibilidad para humanos   | Media                                               | Alta                                                  |
-| Facilidad de procesamiento | Requiere parser XML                                 | Muy fácil en lenguajes modernos (JavaScript, Python…) |
-| Uso actual                 | Documentación formal, estándares, interoperabilidad | APIs, aplicaciones web, apps móviles                  |
-| Validación con esquemas    | Muy robusta (XSD, DTD)                              | Limitada (JSON Schema opcional)                       |
-| Soporte para firma digital | Alto (XMLDSig)                                      | Bajo o no estándar                                    |
-| Tamaño de los archivos     | Mayor                                               | Menor                                                 |
+Una solució híbrida o d'evolució progressiva.
 
-—
+- **Funcionament:** Parteix de la base d'una aplicació multi-pàgina tradicional (MPA) per a garantir que funcione en qualsevol entorn o navegador. A continuació, utilitza tècniques de **millora progressiva** (*Progressive Enhancement*), afegint capes de JavaScript per a dur a terme actualitzacions parcials de la pàgina sense recarregar-la quan el navegador ho permet.
+- **Avantatges:** Manté l'accessibilitat, la robustesa i el SEO d'una MPA, millorant l'experiència d'usuari allà on és possible.
+- **Tecnologies relacionades:** *Frameworks* moderns com htmx, Hotwire (Stimulus/Turbo) o Phoenix LiveView s'alineen amb aquesta filosofia.
 
-En resumen:
+### Taula comparativa
 
-- XML se sigue usando en ámbitos formales o normativos (administración, facturación, estándares industriales).
-- JSON es el formato más utilizado hoy en día para el intercambio de datos entre aplicaciones modernas.
+| **Característica**        | **MPA (Multi-Page)**                        | **SPA (Single-Page)**                                    |
+| ------------------------- | ------------------------------------------- | -------------------------------------------------------- |
+| **Càrrega de pàgina**     | Recàrrega completa en cada navegació.       | Càrrega inicial única; posteriorment només dades.        |
+| **Generació d'HTML**      | Principalment en el **Servidor**.           | Principalment en el **Client** (via JavaScript).         |
+| **Experiència d'usuari**  | Tradicional, amb breus pauses de recàrrega. | Fluida i ràpida, similar a una aplicació nativa.         |
+| **SEO (Cercadors)**       | Excel·lent de manera nativa.                | Requereix configuracions addicionals (SSR/Prerendering). |
+| **Complexitat Front-end** | Baixa / Mitjana.                            | Alta (requereix gestió d'estat, rutes en client, etc.).  |
 
-En este módulo, aprenderás ambos:
+# 8. Llenguatges de programació en entorn servidor
 
-- XML para comprender su estructura, validación y presencia en contextos formales.
-- JSON para trabajar con APIs, aplicaciones web y manipulación de datos en JavaScript.
+Per a desenvolupar la lògica de negoci en el costat del servidor (*Back-end*), existeixen diversos llenguatges i ecosistemes de programació. La selecció de la tecnologia depén de factors com el rendiment requerit, la complexitat del projecte, l'equip de desenvolupament o l'arquitectura existent.
 
-## 3. Estructura y sintaxis de HTML, JSON y XML
+## 8.1. PHP (LAMP)
 
-### Anatomía de un documento HTML5
+**PHP** (*Hypertext Preprocessor*) és un dels llenguatges més populars i utilitzats en la història de la Web, dissenyat específicament per al desenvolupament web en entorn servidor.
 
-Ejemplo:
+- **Stack LAMP:** Històricament s'associa a l'arquitectura **L**inux (sistema operatiu), **A**pache (servidor web), **M**ySQL (base de dades) i **P**HP (llenguatge).
+- **Característiques:**
+  - S'executa integrat en el servidor web o mitjançant PHP-FPM.
+  - Facilita la creació ràpida de prototips i té una basca d'aprenentatge molt accessible.
+  - Molt utilitzat en sistemes de gestió de continguts (CMS) com WordPress, Drupal o Joomla.
+- **Frameworks moderns:** Laravel, Symfony.
 
-```html
-<!DOCTYPE html>
-<html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Mi primera página</title>
-  </head>
-  <body>
-    <h1>Hola mundo</h1>
-    <p>Esta es una web sencilla.</p>
-  </body>
-</html>
-```
+## 8.2. JSP / Servlets (Java)
 
-Observa:
+L'ecosistema **Java** és l'estàndard corporatiu per a aplicacions web d'alta escala, robustesa i seguretat.
 
-- Apertura y cierre de etiquetas
-- Estructura jerárquica
-- Separación entre estructura (), presentación () y configuración ()
+- **Servlets:** Classes Java que s'executen en un servidor d'aplicacions (com Tomcat) per a processar peticions HTTP i generar respostes.
+- **JSP (\*JavaServer Pages\*):** Tecnologia que permet barrejar codi HTML amb etiquetes Java per a facilitar la creació de pàgines dinàmiques (que després es recompilen internament com a Servlets).
+- **Característiques:**
+  - Tipat fort, alt rendiment i suport per a multithreading avançat.
+  - Utilitzat principalment en entorns bancaris, grans empreses i administracions públiques.
+- **Frameworks moderns:** Spring Boot, Jakarta EE.
 
-### Estructura de un objeto JSON
+## 8.3. Python (Django / Flask)
 
-JSON representa datos como objetos o arrays.
+**Python** és un llenguatge de propòsit general reconegut per la seua sintaxi neta, llegibilitat i gran versatilitat.
 
-Características clave:
+- **Característiques:**
+  - Destaca en projectes que integren intelligència artificial, ciència de dades, *machine learning* o automatització juntament amb l'aplicació web.
+  - Execució en servidor mitjançant interfícies com WSGI o ASGI (utilitzant servidors com Gunicorn o Uvicorn).
+- **Frameworks principals:**
+  - **Django:** Framework "*batteries-included*" molt complet, amb ORM, panell d'administració i seguretat integrats de sèrie.
+  - **Flask / FastAPI:** Microframeworks lleugers i modulars, ideals per a la creació d'APIs REST ràpides.
 
-- Basado en pares clave:valor
-- Utiliza llaves {} para objetos, corchetes \[\] para arrays
-- No usa etiquetas, sino comillas y signos de puntuación
+## 8.4. ASP.NET (C#)
 
-Ejemplo:
+**ASP.NET** (i la seua evolució moderna **.NET Core / .NET**) és el marc de desenvolupament creat per Microsoft per a la construcció d'aplicacions web i APIs.
 
-```json
-{
-  "titulo": "Batman Begins",
-  "año": 2005,
-  "géneros": ["acción", "superhéroes"],
-  "director": {
-    "nombre": "Christopher Nolan",
-    "edad": 55
-  }
-}
-```
+- **Característiques:**
+  - Utilitza principalment el llenguatge **C#**, oferint un entorn de desenvolupament molt estructurat, de tipat fort i alt rendiment.
+  - Originalment integrat només en sistemes Windows amb IIS, actualment és totalment **multiplataforma** (Linux, macOS, Windows).
+  - Integra mecanismes d'autenticació, optimització de memòria i eines d'alt nivell.
+- **Frameworks/Patrons:** ASP.NET Core MVC, Razor Pages, Blazor.
 
-Observa:
 
-- Las claves siempre entre comillas
-- Los valores pueden ser texto, número, booleano, array u objeto
-- Muy utilizado en aplicaciones web y móviles
 
-—
+### 8.5. Node.js (JavaScript / TypeScript)
 
-### Sintaxis básica de XML
+**Node.js** no és un llenguatge en si mateix, sinó un entorn d'execució per a **JavaScript** construït sobre el motor V8 de Google Chrome.
 
-XML estructura datos mediante etiquetas personalizadas.
+- **Característiques:**
+  - **Model E/S no bloquejant i orientat a esdeveniments (\*Event Loop\*):** Permet gestionar milers de connexions de manera simultània amb un consum molt baix de recursos.
+  - **Llenguatge únic (\*Full Stack JS\*):** Permet utilitzar el mateix llenguatge (JavaScript o TypeScript) tant al client (*Front-end*) com al servidor (*Back-end*).
+  - **Ecosistema NPM:** Compta amb el repositori de llibreries i mòduls més gran del món.
+- **Frameworks principals:** Express.js, NestJS (molt utilitzat en entorns enterprise amb TypeScript), Fastify, Koa.
 
-Características:
+### Taula comparativa
 
-- Se definen etiquetas personalizadas según el contexto
-- Requiere una estructura bien formada (cada apertura debe cerrarse)
-- Puede tener atributos y anidamiento complejo
+| **Llenguatge / Entorn**  | **Framework principal** | **Tipat**                | **Casos d'ús típics**                                        |
+| ------------------------ | ----------------------- | ------------------------ | ------------------------------------------------------------ |
+| **PHP**                  | Laravel, Symfony        | Dinàmic                  | Webs corporatives, CMS, e-Commerce, pimes.                   |
+| **Java**                 | Spring Boot, Jakarta EE | Estàtic (fort)           | Sistemes bancaris, aplicacions enterprise.                   |
+| **Python**               | Django, FastAPI         | Dinàmic                  | Data Science, IA, APIs ràpides.                              |
+| **C#**                   | ASP.NET Core            | Estàtic (fort)           | Entorns corporatius, serveis cloud escalables.               |
+| **Node.js (JavaScript)** | Express, NestJS         | Dinàmic (Estàtic amb TS) | Aplicacions en temps real (xats, streaming), APIs REST, microserveis. |
 
-Ejemplo:
+# 9. Bibliografia i Recursos
 
-```xml
-<videojuego plataforma="PS5">
-  <titulo>Spider-Man 2</titulo>
-  <genero>Acción</genero>
-  <precio>59.99</precio>
-</videojuego>
-```
+Per a aprofundir en els conceptes teòrics i pràctics introduïts en aquesta unitat, es recomana la consulta de la següent documentació oficial, estàndards web i recursos educatius:
 
-Observa:
+## 9.1. Documentació Oficial i Estàndards Web
 
-- Las etiquetas tienen nombre libre pero coherente
-- Se pueden usar atributos (como plataforma="PS5")
-- No admite errores de anidamiento o cierre
+- **Mozilla Developer Network (MDN Web Docs):**
+  - *HTTP Reference & Guides:* Documentació de referència sobre el protocol HTTP, capçaleres, codis d'estat i cookies.
+  - URL: https://developer.mozilla.org/es/docs/Web/HTTP
+- **World Wide Web Consortium (W3C):**
+  - Estàndards i especificacions de la web (HTML5, arquitectura d'Internet).
+  - URL: https://www.w3.org/
+- **IETF (Internet Engineering Task Force):**
+  - Especificació de les RFCs del protocol HTTP (RFC 7230, RFC 9110).
+  - URL: https://www.ietf.org/
 
-🔸 En XML, puedes representar la misma información de varias formas. Por ejemplo:
+## 9.2. Documentació de Servidors i Entorns d'Execució
 
-Opción A – plataforma como atributo:
+- **Apache HTTP Server Documentation:** https://httpd.apache.org/docs/
+- **NGINX Documentation:** https://nginx.org/en/docs/
+- **PHP Documentation:** https://www.php.net/docs.php
+- **Node.js Documentation:** https://nodejs.org/en/docs/
 
-```xml
-<videojuego plataforma="PS5">
-  <titulo>Spider-Man 2</titulo>
-  <genero>Acción</genero>
-  <precio>59.99</precio>
-</videojuego>
-```
+## 9.3. Recursos i Guies d'Arquitectura
 
-Opción B – plataforma como subelemento:
+- **OWASP (Open Web Application Security Project):**
+  - Guia de seguretat en aplicacions web i bones pràctiques per a desenvolupadors.
+  - URL: https://owasp.org/
+- **Web.dev (Google Developers):**
+  - Articles i guies sobre rendiment web, arquitectures modernes (SPA, SSR, MPA) i bones pràctiques de desenvolupament.
+  - URL: https://web.dev/
 
-```xml
-<videojuego>
-  <plataforma>PS5</plataforma>
-  <titulo>Spider-Man 2</titulo>
-  <genero>Acción</genero>
-  <precio>59.99</precio>
-</videojuego>
-```
-
-Ambas son sintácticamente válidas. La diferencia está en lo semántico.
-
-—
-
-¿Cuándo se usa cada una?
-
-| Caso                                        | Mejor como atributo | Mejor como subelemento |
-| ------------------------------------------- | ------------------- | ---------------------- |
-| Información que identifica o clasifica      | ✅                  |                        |
-| Información que puede tener estructura      |                     | ✅                     |
-| Información opcional pero con datos ricos   |                     | ✅                     |
-| Información “meta” (de control, tipo, etc.) | ✅                  |                        |
-| Información compleja o con unidades         |                     | ✅                     |
-
-—
-
-📌 En nuestro ejemplo:
-
-- plataforma="PS5" es una información que clasifica el videojuego, que no necesita más estructura y no se espera que tenga subcampos (por ejemplo: fabricante, modelo, año…).
-- Por eso, es habitual representarlo como atributo.
-- Además, los atributos no pueden tener hijos, solo valores simples (texto sin etiquetas internas).
-
-🔁 Pero si quisiéramos ampliar la plataforma, lo cambiaríamos a subelemento:
-
-```xml
-<plataforma>
-  <nombre>PS5</nombre>
-  <fabricante>Sony</fabricante>
-</plataforma>
-```
-
-::: info ✏️ **Para practicar:**
-
-En parejas, lee los siguientes tres fragmentos.
-
-Por cada uno:
-
-1.  ¿Qué representa el documento?
-2.  ¿Cómo está estructurado?
-3.  ¿Qué elementos o símbolos llaman la atención?
-
-Fragmento 1 – HTML
-
-```html
-<body>
-  <h2>Contacto</h2>
-  <ul>
-    <li>Email: info@ejemplo.com</li>
-    <li>Teléfono: 123456789</li>
-  </ul>
-</body>
-```
-
-Fragmento 2 – JSON
-
-```json
-{
-  "usuario": "juan87",
-  "activo": true,
-  "rol": "editor"
-}
-```
-
-Fragmento 3 – XML
-
-```xml
-<pedido>
-  <producto>Ratón inalámbrico</producto>
-  <cantidad>2</cantidad>
-</pedido>
-```
-
-:::
-
-## 4. El propósito de cada lenguaje
-
-### ¿Para qué sirve cada lenguaje?
-
-📚 HTML  
-→ Diseñado para presentar contenido en la web.  
-Ej.: páginas web, estructuras de documentos visuales.  
-🔗 Contiene enlaces, encabezados, listas, párrafos…
-
-📦 JSON  
-→ Diseñado para el intercambio de datos entre aplicaciones.  
-Ej.: comunicación entre frontend y backend, APIs, apps móviles.  
-🔗 Representa objetos, arrays, estructuras anidadas…
-
-🧩 XML  
-→ Diseñado como lenguaje de marcas de propósito general.  
-Ej.: facturas electrónicas, configuraciones, interoperabilidad.  
-🔗 Define estructura personalizable, con posibilidad de validación.
-
-—
-
-### Comparativa: ¿cuándo usar qué?
-
-| Situación                                       | Lenguaje más adecuado | ¿Por qué?                                  |
-| ----------------------------------------------- | --------------------- | ------------------------------------------ |
-| Crear una página web                            | HTML                  | Se interpreta directamente por navegadores |
-| Enviar datos de una app móvil al servidor       | JSON                  | Ligero, fácil de procesar por JavaScript   |
-| Generar una factura estructurada para Hacienda  | XML                   | Estandarizado, validable, interoperable    |
-| Consultar el tiempo en una app                  | JSON                  | Usado en APIs de datos meteorológicos      |
-| Crear un RSS para suscribirse a noticias        | XML                   | Requiere estructura, estándar formal       |
-| Mostrar un artículo con texto, imágenes y vídeo | HTML                  | Orientado a presentación multimedia        |
-
-—
-::: info ✏️ **Para practicar:**
-Actividad 1 : ¿Qué lenguaje usarías para…?
-
-1.  Mostrar una receta de cocina en una página web
-2.  Sincronizar datos entre dos apps móviles
-3.  Guardar configuraciones de una app para abrirlas más tarde
-4.  Publicar un catálogo online de películas con fichas detalladas
-5.  Enviar un formulario desde una web a un servidor
-
-Actividad 2: Clasifica las situaciones
-
-- Indicar qué lenguaje usaría en cada caso (HTML, XML, JSON).
-- Justificar brevemente por qué ese lenguaje es el adecuado.
-
-📎 Ejemplos de situaciones para la plantilla:
-
-| Nº  | Situación                                                                      | Lenguaje | Justificación breve |
-| --- | ------------------------------------------------------------------------------ | -------- | ------------------- |
-| 1   | Un videojuego guarda tu partida y luego la recupera                            |          |                     |
-| 2   | Una empresa factura a otra empresa pública                                     |          |                     |
-| 3   | Una web muestra noticias con titulares, imágenes y enlaces                     |          |                     |
-| 4   | Una app meteorológica consulta la temperatura y la lluvia esperada para mañana |          |                     |
-| 5   | Una app necesita almacenar preferencias del usuario entre sesiones             |          |                     |
-| 6   | Una API de películas devuelve título, director, año, géneros y puntuación      |          |                     |
-| 7   | Una administración pública crea un modelo de documento interoperable           |          |                     |
-
-:::
-
-## 5. Documentos bien formados vs mal formados
-
-### ¿Qué significa que un documento esté “bien formado”?
-
-Un documento está bien formado cuando respeta las reglas sintácticas del lenguaje.  
- Si no lo hace, no podrá ser interpretado por programas o navegadores.
-
-📍 En XML:
-
-- Todas las etiquetas deben cerrarse.
-- Las etiquetas deben estar correctamente anidadas.
-- Solo puede haber un único elemento raíz.
-- Los atributos deben estar entre comillas.
-
-📍 En JSON:
-
-- Las claves deben estar entre comillas dobles.
-- Las comas deben colocarse correctamente (sin dejar una al final).
-- No puede haber comentarios.
-- Las estructuras deben estar cerradas correctamente con } o \].
-
-—
-
-Ejemplo de XML bien vs mal formado
-
-❌ Mal formado:
-
-```xml
-<persona>
-  <nombre>Elena</nombre>
-  <edad>34
-</persona>
-```
-
-Errores:
-
-- Falta etiqueta de cierre para
-- El contenido no se puede procesar automáticamente
-
-✅ Bien formado:
-
-```xml
-<persona>
-  <nombre>Elena</nombre>
-  <edad>34</edad>
-</persona>
-```
-
-Ejemplo de JSON bien vs mal formado
-
-❌ Mal formado:
-
-```json
-{
-  "usuario": "paco",
-  "edad": 28,
-  "activo": true
-}
-```
-
-Errores:
-
-- Coma final después del último elemento → no permitida
-
-✅ Bien formado:
-
-```json
-{
-  "usuario": "paco",
-  "edad": 28,
-  "activo": true
-}
-```
-
-¿Por qué es tan importante?
-
-Los lenguajes de marcas suelen ser procesados por máquinas.  
-Si un documento está mal formado:
-
-- No puede ser leído o procesado
-- Se produce un error o fallo en la carga
-- Puede corromper procesos automáticos (facturación, apps, APIs…)
-
-📌 En la web:  
-Una etiqueta mal cerrada puede romper toda la página.  
-📌 En una factura electrónica:  
-Un XML mal formado la invalida para su envío o firma.
-
-::: info ✏️ **Para practicar:**
-
-Detectar y corregir errores en fragmentos de XML y JSON.
-
-1.  Leer el fragmento
-2.  Detectar errores sintácticos
-3.  Reescribir el fragmento corregido
-4.  Justificar el error y su corrección
-
-🧩 Ejemplo de actividad:
-
-❌ XML con errores:
-
-```xml
-<curso>
-  <nombre>LMISGI</nombre>
-  <horas>70
-  <modulo>0373</modulo>
-</curso>
-```
-
-✅ Corrección esperada:
-
-```xml
-<curso>
-  <nombre>LMISGI</nombre>
-  <horas>70</horas>
-  <modulo>0373</modulo>
-</curso>
-```
-
-:::
-
-## 6. Ampliación - Introducción a los nombres de espacio (namespaces) en XML
-
-### ¿Qué son los nombres de espacio en XML?
-
-Los **nombres de espacio (namespaces)** son un mecanismo que permite evitar **conflictos de nombres** cuando un documento XML mezcla etiquetas que pueden tener el mismo nombre pero distinto significado o procedencia.
-
-Por ejemplo, imagina que tienes dos vocabularios XML diferentes: uno para datos bibliográficos y otro para datos técnicos, ambos usan la etiqueta `<titulo>`, pero con significados distintos. Sin namespaces, el parser no puede diferenciar entre ambos.
-
-### ¿Cómo funcionan?
-
-Un namespace se define asociando un **prefijo** con una **URI** (Identificador Uniforme de Recursos, que actúa como un identificador único, no tiene que ser una URL real). Luego se usan esos prefijos para calificar las etiquetas.
-
-### Ejemplo simple sin namespace (problema):
-
-```xml
-<pelicula>
-  <titulo>Matrix</titulo>
-  <titulo>Título técnico</titulo>
-</pelicula>
-```
-
-Aquí hay dos `<titulo>`, pero no sabemos cuál es cuál.
-
-### Ejemplo con namespaces (solución):
-
-```xml
-<pelicula xmlns:info="http://www.ejemplo.com/info" xmlns:tecn="http://www.ejemplo.com/tecnico">
-  <info:titulo>Matrix</info:titulo>
-  <tecn:titulo>Título técnico</tecn:titulo>
-</pelicula>
-```
-
-- `xmlns:info="..."` define el espacio de nombres con prefijo `info`.
-- `xmlns:tecn="..."` define otro espacio con prefijo `tecn`.
-- Cada etiqueta `<info:titulo>` y `<tecn:titulo>` pertenece a un espacio distinto.
-
-### Ventajas
-
-- Evita ambigüedades al combinar vocabularios o esquemas diferentes.
-- Permite que un documento sea extensible y interoperable.
-- Es fundamental en estándares XML complejos (SOAP, XHTML, SVG, etc.).
-
-### ¿Cuándo usar namespaces?
-
-- Cuando trabajas con documentos XML que combinan varios esquemas o estándares.
-- Cuando necesitas evitar colisiones en nombres de etiquetas.
-- En documentos simples, no siempre es obligatorio, pero es buena práctica conocerlo.
-
-### ¿Cómo se declara un namespace?
-
-- Se declara en la etiqueta raíz (o en cualquier etiqueta) con `xmlns:prefijo="URI"`
-- Luego se usa el prefijo para calificar las etiquetas que pertenecen a ese espacio.
-
-### Ejemplo extendido de un fragmento con namespace:
-
-```xml
-<peliculas xmlns:info="http://www.ejemplo.com/info" xmlns:desc="http://www.ejemplo.com/desc">
-  <pelicula>
-    <info:titulo>Matrix</info:titulo>
-    <desc:sinopsis>Una realidad simulada...</desc:sinopsis>
-  </pelicula>
-</peliculas>
-```
-
-https://es.wikipedia.org/wiki/Espacio_de_nombres_XML
-
-&nbsp;
-
-## 7. Lenguajes de marcas en el mundo real
-
-### XML en RSS, SVG y XSL
-
-- **RSS** (Really Simple Syndication): feed de noticias basado en XML.
-- **SVG** (Scalable Vector Graphics): imágenes vectoriales definidas con XML.
-- **XSL/XSLT** (Extensible Stylesheet Language): transformación de XML a otros formatos (HTML, texto,…).
-
-**Ejemplo breve de RSS:**
-
-```xml
-<rss version="2.0">
-  <channel>
-    <title>Noticias DAM</title>
-    <item>
-      <title>Convocatoria examen</title>
-      <link>https://centro.edu/examen</link>
-      <pubDate>Thu, 10 Jul 2025 12:00:00 +0200</pubDate>
-    </item>
-  </channel>
-</rss>
-```
-
-### JSON en APIs y Open Data
-
-**Contenido teórico:**
-
-- **APIs RESTful:** intercambio de datos con JSON.
-- **Portales Open Data:** catálogos de datos públicos en JSON.
-
-**Ejemplo breve de respuesta API (curl en consola):**
-
-```bash
-curl -s https://api.ejemplo.com/peliculas/123 | jq .
-```
-
-```json
-{
-  "id": 123,
-  "titulo": "Amélie",
-  "director": "Jean-Pierre Jeunet",
-  "año": 2001
-}
-```
-
-### HTML como base de páginas web
-
-**Contenido teórico:**
-
-- **Estructura semántica** con etiquetas `<header>`, `<nav>`, `<main>`, `<footer>`.
-- **Accesibilidad** y SEO: uso correcto de `<h1>…<h6>`, `<alt>` en imágenes.
-
-**Ejemplo de fragmento real de GitHub Pages:**
-
-```html
-<header>
-  <h1>Mi portafolio</h1>
-  <nav>
-    <ul>
-      <li><a href="#sobre-mi">Sobre mí</a></li>
-      <li><a href="#proyectos">Proyectos</a></li>
-    </ul>
-  </nav>
-</header>
-```
-
-::: info ✏️ **Para practicar:**
-Actividad: Exploración guiada
-
-**Instrucciones:**
-
-1.  **HTML real**: Abrir la consola de desarrollador en una web (ej. https://ejemplo.com) y localizar la sección `<nav>` o el `<header>`.
-2.  **JSON en consola**: Ejecutar un `curl` o usar las DevTools → pestaña “Network” para ver una respuesta JSON de una API pública (p. ej. https://pokeapi.co).
-3.  **XML en un feed**: Suscribirse al RSS de un blog (p. ej. https://blog.ejemplo.com/rss) y abrirlo en un navegador o editor.
-
-:::
-
-## 8. Revisión de errores frecuentes (con ejemplos)
-
-1.  **Etiqueta sin cierre en HTML**
-
-    ```html
-    <!-- Error: falta cierre de <p> -->
-    <section>
-      <h2>Películas favoritas</h2>
-      <p>Lista de películas más vistas</p>
-      <ul>
-        <li>El viaje de Chihiro</li>
-        <li>Amélie</li>
-      </ul>
-    </section>
-    ```
-
-    _Corrección:_ añadir `</p>` justo antes de `<ul>`.
-
-2.  **Coma de más / falta en JSON**
-
-    ```json
-    {
-      "titulo": "Matrix",
-      "director": "Wachowski",    <-- aquí sobra la coma
-      "año": 1999
-    }
-    ```
-
-    _Corrección:_ eliminar la coma tras `"Wachowski"`.
-
-    ```json
-    {
-      "titulo": "Matrix"
-      "director": "Wachowski",    <-- aquí falta la coma
-      "año": 1999
-    }
-    ```
-
-    _Corrección:_ añadir la coma después de `"Matrix"`.
-
-3.  **Namespace mal declarado en XML**
-
-    ```xml
-    <!-- Error: xmlns:info mal escrito como xmlsn -->
-    <peliculas xmlsn:info="http://ejemplo.com/info">
-      <info:pelicula>
-        <info:titulo>Matrix</info:titulo>
-      </info:pelicula>
-    </peliculas>
-    ```
-
-    _Corrección:_
-
-    ```xml
-    <peliculas xmlns:info="http://ejemplo.com/info">
-      <info:pelicula>
-        <info:titulo>Matrix</info:titulo>
-      </info:pelicula>
-    </peliculas>
-    ```
-
-4.  **Etiqueta mal anidada en XML**
-
-    ```xml
-    <!-- Error: <director> se cierra antes de cerrar <pelicula> -->
-    <pelicula>
-      <titulo>Amélie</titulo>
-      <director>Jean-Pierre Jeunet</pelicula>
-    </director>
-    ```
-
-    _Corrección:_
-
-    ```xml
-    <pelicula>
-      <titulo>Amélie</titulo>
-      <director>Jean-Pierre Jeunet</director>
-    </pelicula>
-    ```
-
-&nbsp;

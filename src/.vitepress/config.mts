@@ -30,7 +30,8 @@ export default defineConfig({
           {
             text: '📚 Unitats',
             items: [
-              { text: '1. Introducció', link: '#' },
+              { text: '1. Introducció', link: '/contenidos/1-introduccion' },
+              { text: '2. PHP Bàsic', link: '/contenidos/2-php-basic' },
 
             ]
           },
@@ -50,8 +51,10 @@ export default defineConfig({
           text: '📚 Unitats',
           collapsed: false,
           items: [
-            { text: '1. Introducció', link: '#' },
-          ]
+              { text: '1. Introducció', link: '/contenidos/1-introduccion' },
+              { text: '2. PHP Bàsic', link: '/contenidos/2-php-basic' },
+
+            ]
         },
         /* {
                text: '🗂️ Ejercicios',
