@@ -14,11 +14,7 @@
 ### **Temporalització:**
 1 sessió
 
-### **Lliurament:**
 
-* En un document en **PDF** han d’estar les activitats de les dos parts.  
-
-* Atenció a les faltes d’ortografia i a la presentació.
 
 
 
@@ -207,5 +203,3 @@ A continuació es detallen les ordres bàsiques i avançades per a gestionar el 
 ### **Lliurament Part 1:**
 
 Quan ho tingues, fes una captura de pantalla de la teua **pàgina de test** i una altra amb l’accés a **phpMyAdmin**.
-
-```
