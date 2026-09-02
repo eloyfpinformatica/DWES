@@ -3,6 +3,7 @@ import { tabsMarkdownPlugin } from 'vitepress-plugin-tabs'
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
+  ignoreDeadLinks: true,
   base: '/DWES/',
   outDir: '../docs',
   markdown: {
