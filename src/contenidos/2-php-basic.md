@@ -1711,9 +1711,7 @@ techleads/
 
 *(Utilitzem **Tailwind CSS via CDN** en totes les plantilles per a mantindre un disseny modern i clar sense necessitat de fitxers CSS addicionals).*
 
-
-
-#### 1. `src/index.php` (Landing page i formulari públic)
+::: details `src/index.php` (Landing page i formulari públic)
 
 ```php
 <!DOCTYPE html>
@@ -1871,9 +1869,9 @@ techleads/
 </html>
 
 ```
+:::
 
-
-#### 2. `src/confirmacio.php` (Pàgina de confirmació)
+::: details `src/confirmacio.php` (Pàgina de confirmació)
 
 ```php
 <!DOCTYPE html>
@@ -1926,9 +1924,9 @@ techleads/
 </html>
 
 ```
+:::
 
-
-#### 3. `src/admin.php` (Panell privat d'administració)
+::: details `src/admin.php` (Panell privat d'administració)
 
 ```php
 <!DOCTYPE html>
@@ -2116,8 +2114,9 @@ techleads/
 </html>
 
 ```
+:::
 
-#### 4. `src/detall.php` (Detall privat d'un lead)
+::: details `src/detall.php` (Detall privat d'un lead)
 
 ```php
 <!DOCTYPE html>
@@ -2184,7 +2183,7 @@ techleads/
 </html>
 
 ```
-
+:::
 
 ### Activitats a realitzar
 
@@ -2214,10 +2213,11 @@ Realitza el mateix procés en `detall.php`: defineix les variables necessàries 
 Defineix variables a l'inici d'’`admin.php` per a emmagatzemar el número de visites i el número de leads.
 * Utilitza la funció `random_int()` per a generar valors aleatoris.
 * Calcula de manera dinàmica la **taxa de conversió** mitjançant la fórmula:
-$$\text{Taxa de Conversió} = \left(\frac{\text{Número de Leads}}{\text{Número de Visites}}\right) \times 100$$
+`taxa_conversio = (leads / visites)* 100`
 
 
 * Imprimeix aquests valors i el resultat del càlcul en les targetes de mètriques corresponents.
+* Utilitza la funció `number_format` per mostrar la taxa de conversió amb 2 decimals.
 
 
 **Activitat 2.5 — Refactorització a constant:** Modifica la variable `$autor` creada en el Bloc 1 perquè siga una **constant** (mitjançant `define()` o `const`). Actualitza el *footer* de totes les pàgines per a imprimir la nova constant.
