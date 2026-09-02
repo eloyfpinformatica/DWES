@@ -1,6 +1,4 @@
 # Unitat 1. Introducció a la part del servidor de les aplicacions web
-<img src="./media/image1.png" alt="Logo IES" style="zoom:25%;" />
-
 ## Resultats d'aprenentatge i criteris d'avaluació
 
 ::: details 📋 Resultats d'aprenentatge i criteris d'avaluació
@@ -21,12 +19,7 @@
 
 ![u1_estructura](./media/u1_estructura.png)
 
-## Què anem a fer en aquesta unitat?
 
-- Analitzarem quina és l'estructura d'una aplicació web
-- Preparació entorn de treball que utilitzarem en les pròximes unitats.
-
----
 
 ## 1. Arquitectura d'una aplicació web
 
@@ -46,9 +39,9 @@ Això fa que totes les gestions que es realitzen es concentren en el servidor, q
 
 ### Funcionament general:
 - El dispositiu que sol·licita informació es denomina **client** i el dispositiu que respon la sol·licitud es denomina **servidor**. Els processos de client i servidor es consideren una part de la capa d'aplicació.
-- El client comença l'intercanvi sol·licitant les dades al servidor, que respon enviant un o més blocs de dades al client.
-- Els protocols de capa d'aplicació descriuen el format de les sol·licituds i respostes entre clients i servidor. A més de la transferència real de dades, aquest intercanvi pot requerir informació addicional, com l'autentificació de l'usuari o la identificació d'un arxiu de dades per transferir.
-- Encara que les dades generalment es descriuen com un flux del servidor al client, algunes dades sempre flueixen del client al servidor (pujada/upload vs baixada/download).
+- El **client comença l'intercanvi sol·licitant les dades** al servidor, que respon enviant un o més blocs de dades al client.
+- Els **protocols de capa d'aplicació descriuen el format** de les sol·licituds i respostes entre clients i servidor. A més de la transferència real de dades, aquest intercanvi pot requerir informació addicional, com l'autentificació de l'usuari o la identificació d'un arxiu de dades per transferir.
+- Encara que les dades generalment es descriuen com un flux del servidor al client, algunes dades sempre flueixen del client al servidor (**pujada/upload vs baixada/download**).
 
 
 
@@ -72,23 +65,25 @@ El desenvolupament d'aplicacions web freqüentment necessita mantenir estat. Per
 
 ### Transacció HTTP
 
-Cada vegada que un client fa una petició a un servidor, s'executen un seguit d'accions:
+Cada vegada que un client fa una petició a un servidor, s'executen una sèrie d'accions:
 
-1. Un usuari accedeix a una adreça d'Internet (URL) separant-ne les diferents parts: protocol d'accés, el node (nom de domini o adreça IP), el port opcional (per defecte 80 per a HTTP i 443 per a HTTPS) i l'objecte del servidor requerit.
+1. Un usuari **accedeix a una adreça d'Internet** (URL) separant-ne les diferents parts: protocol d'accés, el node (nom de domini o adreça IP), el port opcional (per defecte 80 per a HTTP i 443 per a HTTPS) i l'objecte del servidor requerit.
 
    ![u1_url](./media/u1_url.png)
 
-2. S'obre una connexió TCP/IP amb el servidor i es fa la petició enviant l'ordre necessària (`GET`, `POST`, `HEAD`, etc.), l'adreça de l'objecte requerit, la versió del protocol HTTP (normalment HTTP/1.1 o HTTP/2) i capçaleres amb dades sobre el navegador, etc.
+2. S'obre una connexió TCP/IP amb el servidor i es fa la **petició enviant l'ordre necessària** (`GET`, `POST`, `HEAD`, etc.), l'adreça de l'objecte requerit, la versió del protocol HTTP (normalment HTTP/1.1 o HTTP/2) i capçaleres amb dades sobre el navegador, etc.
 
-3. El servidor localitza el recurs sol·licitat i torna la resposta al client.
+3. El **servidor localitza el recurs** sol·licitat i torna la resposta al client.
 
-4. Aquesta resposta consisteix en un codi d'estat i el tipus de dada (**MIME**, *Multipurpose Internet Mail Extension*) de la informació de tornada, seguit de la mateixa informació.
+4. Aquesta **resposta** consisteix en un **codi d'estat i el tipus de dada** (**MIME**, *Multipurpose Internet Mail Extension*) de la informació de tornada, seguit de la mateixa informació.
 
-5. El client formata i mostra el recurs rebut.
+5. El **client formata** i mostra el recurs rebut.
 
-6. Es tanca la connexió TCP.
+6. Es **tanca la connexió** TCP.
 
-:::warning ⚠️ **IMPORTANT:** Aquest procés es repeteix en cada accés que es faça al servidor HTTP. Per exemple, si es recull un document HTML que conté quatre imatges, el procés de transició es repeteix cinc vegades (una pel document HTML i quatre per les imatges).
+:::warning ⚠️ **IMPORTANT**
+
+Aquest procés es repeteix en cada accés que es faça al servidor HTTP. Per exemple, si es recull un document HTML que conté quatre imatges, el procés de transició es repeteix cinc vegades (una pel document HTML i quatre per les imatges).
 
 :::
 
@@ -137,7 +132,7 @@ authority = [userinfo@]host[:port]
 - **Servidor web:** Ofereix arxius bàsics com HTML, imatges, CSS... (pàgines web estàtiques).
 - **Servidor d'aplicacions web:** Requereix execució de codi en el servidor per posteriorment enviar l'HTML processat al client (p. ex., accés a bases de dades, pàgines web dinàmiques).
 
----
+
 
 ### Exemples de Servidors
 
@@ -183,7 +178,7 @@ El model de 3 capes estructura l'arquitectura del programari en:
 - **Back-end:** S'encarrega del costat servidor utilitzant tecnologies com PHP, Java, Python, C#, Node.js. També s'encarrega de l'administració del servidor d'aplicacions i de la base de dades.
 - **Full stack:** Perfil que engloba els dos anteriors. Té amplis coneixements de tot el conjunt i és capaç de col·laborar en qualsevol de les parts del desenvolupament.
 
-​	
+​		
 
 ### Tipologia de les Aplicacions Web
 
