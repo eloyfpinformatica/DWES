@@ -20,10 +20,10 @@
 
 ## Estructura de la unitat
 
-1. **01. Arquitectura Web:** Models client-servidor, comunicació HTTP/HTTPS, galetes i transaccions.
-2. **02. Servidors:** Diferències entre servidor web i d'aplicacions. Exemples: Apache, Nginx, Tomcat, IIS.
-3. **03. Model de 3 Capes:** Capes de presentació, lògica de negoci i dades. Perfils professionals Front-End i Back-End.
-4. **04. Tecnologies:** Introducció pràctica a llenguatges de servidor: PHP, JSP/Servlets, Python (Django) i ASP.NET.
+1. **Arquitectura Web:** Models client-servidor, comunicació HTTP/HTTPS, galetes i transaccions.
+2. **Servidors:** Diferències entre servidor web i d'aplicacions. Exemples: Apache, Nginx, Tomcat, IIS.
+3. **Model de 3 Capes:** Capes de presentació, lògica de negoci i dades. Perfils professionals Front-End i Back-End.
+4. **Tecnologies:** Introducció pràctica a llenguatges de servidor: PHP, JSP/Servlets, Python (Django) i ASP.NET.
 
 ---
 
@@ -31,9 +31,6 @@
 
 - Estructura d'una aplicació web
 - Preparació entorn de treball
-
-![Estructura d'una aplicació web](media/input_file_0.png)
-![Preparació entorn de treball](media/input_file_1.png)
 
 ---
 
@@ -45,7 +42,7 @@ A diferència de les aplicacions d'escriptori, que utilitzen els recursos d'un �
 
 La comunicació es du a terme mitjançant el **protocol HTTP**, base de la World Wide Web.
 
-![Protocol HTTP](media/input_file_2.png)
+
 
 ---
 
@@ -55,7 +52,7 @@ En el model client-servidor, tots els clients estan connectats a un servidor on 
 
 Això fa que totes les gestions que es realitzen es concentren en el servidor, que disposa dels requeriments dels clients amb prioritat: els arxius que són d'ús públic i els restringits, els arxius de només lectura, els que poden ser modificats, etc.
 
-![Modelo Cliente-Servidor en Desarrollo Web](media/input_file_3.png)
+
 
 ### Funcionament general:
 - El dispositiu que sol·licita informació es denomina **client** i el dispositiu que respon la sol·licitud es denomina **servidor**. Els processos de client i servidor es consideren una part de la capa d'aplicació.
@@ -93,13 +90,7 @@ Cada vegada que un client fa una petició a un servidor, s'executen un seguit d'
 
 > **IMPORTANT:** Aquest procés es repeteix en cada accés que es faça al servidor HTTP. Per exemple, si es recull un document HTML que conté quatre imatges, el procés de transició es repeteix cinc vegades (una pel document HTML i quatre per les imatges).
 
-![Inspector Firefox Network](media/input_file_4.png)
-![Web Document Requests](media/input_file_5.png)
-![Uso del Protocolo HTTP](media/input_file_6.png)
-
 Si el recurs sol·licitat és un programa (CGI, ASP.NET, PHP, etc.), el servidor HTTP redirigirà la petició a la llibreria o intèrpret adequat que executarà el programa i tornarà el control al servidor web.
-
-![Server-side vs Client-side Execution](media/input_file_7.png)
 
 ---
 
@@ -117,7 +108,7 @@ On el component `authority` es divideix en tres subcomponents:
 authority = [userinfo@]host[:port]
 ```
 
-![Estructura URL Diagrama](media/input_file_8.png)
+
 
 ---
 
@@ -150,21 +141,10 @@ authority = [userinfo@]host[:port]
 - **Apache:** És un dels servidors web més coneguts. Programari lliure i multiplataforma (el ~90% s'executa en entorns Linux). Molt modular i flexible, permet donar servei a webs escrites en diversos llenguatges (PHP, Python, ASP...) a través de mòduls.
 - **NGINX:** Servidor web / proxy invers lleuger d'alt rendiment i proxy per a protocols de correu electrònic (IMAP/POP3).
 
-![Apache logo](media/input_file_9.png)
-![Nginx logo](media/input_file_10.png)
-
 ### Servidors d'Aplicacions
 - **Apache Tomcat:** Aplicacions web basades en Java que no necessiten la funcionalitat completa de Java EE, serveis RESTful a Java, aplicacions basades en JSP/Servlet.
 - **Red Hat JBoss:** Aplicacions empresarials basades en Java que necessiten transaccions distribuïdes, integració amb bases de dades, serveis web SOAP i RESTful, i aplicacions de gran escala amb alta disponibilitat.
-- **Microsoft IIS (Internet Information Services):** Aplicacions empresarials en entorns Windows, aplicacions basades en ASP.NET, ASP.NET Core, serveis web i aplicacions de comerç electrònic.
-
-![Apache Tomcat logo](media/input_file_11.png)
-![JBoss logo](media/input_file_12.png)
-![Microsoft IIS logo](media/input_file_13.png)
-
----
-
-## Pàgines Web Estàtiques i Dinàmiques
+- **Microsoft IIS (Internet Information Services):** Aplicacions empresarials en entorns Windows, aplicacions basades en ASP.NET, ASP.NET Core, serveis web i aplicacions de comerç electrònic.Pàgines Web Estàtiques i Dinàmiques
 
 ### Pàgines web estàtiques
 Són aquelles en què el seu contingut no varia, per la qual cosa mostraran sempre la mateixa informació cada vegada que es carreguen. Es creen en HTML, CSS i JavaScript. Només canvien si el programador web modifica l'arxiu.
@@ -179,8 +159,6 @@ El contingut varia a partir de certa informació: base de dades, identificació 
 En una aplicació web podem distingir entre:
 - **Client-side / Front-end:** Tecnologies que s'executen en el navegador.
 - **Server-side / Back-end:** Tecnologies que s'executen en el servidor.
-
-![Execució Client vs Servidor](media/input_file_14.png)
 
 ---
 
@@ -242,7 +220,10 @@ public class HelloController {
 }
 ```
 
+
+
 ### Python (Django / Flask)
+
 Llenguatge dissenyat per Guido van Rossum, de codi obert i amplament utilitzat en desenvolupament web gràcies a frameworks com **Django** (model MVT - Model View Template) o **Flask**.
 
 ```python
@@ -252,7 +233,10 @@ def index(request):
     return HttpResponse("Hello, world. You're at the polls index.")
 ```
 
+
+
 ### ASP.NET Core (.NET / C#)
+
 Framework modern de codi obert i multiplataforma creat per Microsoft per al desenvolupament d'aplicacions web d'alt rendiment, APIs REST i serveis web.
 - **Llenguatges:** Utilitza principalment **C#**.
 - **Execució:** Multiplataforma (Linux, Windows, Docker) utilitzant servidors d'alta velocitat integrats (Kestrel) o proxies inversos com Nginx.
@@ -266,7 +250,10 @@ app.MapGet("/", () => "Hello World!");
 app.Run();
 ```
 
+
+
 ### Node.js (JavaScript en Servidor)
+
 No és un llenguatge nou, sinó un **entorn d'execució** per a JavaScript al costat del servidor basat en el motor V8 de Google Chrome.
 - **Característiques:** Funciona de manera asíncrona i orientada a esdeveniments (*non-blocking I/O*), ràpid i eficient per a peticions concurrents.
 - **Ecosistema:** S'acompanya de frameworks lleugers com **Express.js**.
