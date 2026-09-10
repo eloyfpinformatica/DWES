@@ -103,8 +103,6 @@
     6.3. [Validació bàsica al costat del servidor](#63-validacio-basica-al-costat-del-servidor)
 
 
-7. [Bibliografia i Recursos](#7-bibliografia-i-recursos)
-
 
 ## Bloc 1: Introducció i Entorn de Desenvolupament
 
@@ -1674,10 +1672,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ?>
 
 ```
-
-## Bloc 7. Bibliografia i Recursos
-
-Pendent completar
 
 
 ## Projecte final: TechLeads App

