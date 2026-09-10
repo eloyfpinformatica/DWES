@@ -1,0 +1,10 @@
+services:
+  web:
+    build: .
+    container_name: techleads_web
+    ports:
+      - "8080:80"
+    volumes:
+      - ./src:/var/www/html
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
