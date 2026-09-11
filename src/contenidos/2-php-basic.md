@@ -1682,7 +1682,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 #### Exercici 1.1 — La teua primera pàgina PHP
 
 **Fitxer de partida:** `exercici1.1.php`
-::: details exercici1.1.php
+::: details 📄 exercici1.1.php
 ```php
 <?php
     // TODO 1: Declara ací les variables $nomEmpresa, $eslogan i $anyFundacio
@@ -1727,7 +1727,7 @@ Tasques a fer dins del fitxer:
 
 **Fitxer de partida:** `exercici2.1.php`
 
-::: details exercici2.1.php
+::: details 📄 exercici2.1.php
 ```php
 <?php
     // TODO 1: Declara $nom (string), $pressupost (float), $contactat (boolean) i $notes (null)
@@ -1791,7 +1791,7 @@ Tasques a fer dins del fitxer:
 
 **Fitxer de partida:** `exercici2.php`
 
-::: details exercici2.2.php
+::: details 📄 exercici2.2.php
 ```php
 <?php
     // TODO 1: Declara la variable global $percentatgeComissio amb el valor 10
@@ -1849,7 +1849,7 @@ Tasques a fer dins del fitxer:
 
 **Fitxer de partida:** `exercici2.3.php`
 
-::: details exercici2.3.php
+::: details 📄 exercici2.3.php
 ```php
 <?php
     // TODO 1: Defineix la constant NOM_EMPRESA = "TechLeads" amb define()
@@ -1900,3 +1900,214 @@ Tasques a fer dins del fitxer:
 7. A `TODO 7`, `TODO 8` i `TODO 9`, imprimeix dins de la targeta ja preparada el nom de l'empresa (constant), el preu base i el preu final.
 
 **Pista:** Les constants no porten el símbol `$` i, per conveni, s'escriuen en `UPPER_SNAKE_CASE`.
+
+
+### 7.3. Estructures de control
+
+#### Exercici 3.1 — Classificació de pressupostos
+
+**Fitxer de partida:** `exercici3.1.php`
+
+::: details 📄 exercici3.1.php
+```php
+<?php
+    // TODO 1: Declara $pressupost = 2500
+
+
+    // TODO 2: Amb if/elseif/else, assigna $categoria segons el pressupost
+    // >= 5000 -> "Client Prioritari (Enterprise)"
+    // >= 1500 -> "Client Estàndard"
+    // altrament -> "Projecte Menor / A revisar"
+
+
+    // TODO 3: Declara $estat = "nou"
+
+
+    // TODO 4: Amb l'operador ternari, assigna $etiqueta:
+    // "Pendent de revisar" si $estat === 'nou', altrament "Atés"
+
+?>
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercici 3.1 - Classificació de pressupostos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+
+    <div class="bg-white p-8 rounded-lg shadow-md max-w-md w-full">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">Fitxa del lead</h2>
+        <p class="text-gray-600 mb-2">Categoria: <span class="font-semibold text-blue-700"><?= /* TODO 5: $categoria */ ?></span></p>
+        <p class="text-gray-600">Estat de seguiment: <span class="font-semibold text-purple-700"><?= /* TODO 6: $etiqueta */ ?></span></p>
+    </div>
+
+</body>
+</html>
+```
+:::
+
+**Objectiu:** Practicar l'estructura `if` / `elseif` / `else` i l'operador ternari.
+
+Tasques a fer dins del fitxer:
+
+1. A `TODO 1`, declara `$pressupost` amb el valor `2500`.
+2. A `TODO 2`, amb una estructura `if` / `elseif` / `else`, assigna a la variable `$categoria` un text segons aquestes regles:
+   - Si `$pressupost >= 5000` → `"Client Prioritari (Enterprise)"`
+   - Si `$pressupost >= 1500` → `"Client Estàndard"`
+   - En qualsevol altre cas → `"Projecte Menor / A revisar"`
+3. A `TODO 3`, declara `$estat` amb el valor `"nou"`.
+4. A `TODO 4`, utilitza l'**operador ternari** per a assignar a `$etiqueta`:
+   - `"Pendent de revisar"` si `$estat === 'nou'`
+   - `"Atés"` en cas contrari
+5. A `TODO 5` i `TODO 6`, imprimeix `$categoria` i `$etiqueta` dins de la targeta ja preparada.
+
+**Pista:** Recorda utilitzar sempre l'operador d'igualtat estricta `===` per a comparar.
+
+---
+
+#### Exercici 3.2 — Estat del lead: `switch` vs `match`
+
+**Fitxer de partida:** `exercici3.2.php`
+
+::: details 📄 exercici3.2.php
+```php
+<?php
+    // TODO 1: Declara $estatLead = "contactat"
+
+
+    // TODO 2: Completa l'estructura switch perquè assigne $missatgeSwitch
+    switch ($estatLead) {
+        // Escriu ací els case necessaris, amb el seu break;
+    }
+
+
+    // TODO 3: Escriu una expressió match($estatLead) equivalent
+    // i assigna el resultat a $missatgeMatch
+
+?>
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercici 3.2 - Switch vs Match</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center gap-4 p-8">
+
+    <div class="bg-white p-6 rounded-lg shadow-md max-w-md w-full">
+        <h3 class="text-lg font-semibold text-gray-800 mb-2">Resultat amb <code>switch</code></h3>
+        <p class="text-gray-700"><?= /* TODO 4: $missatgeSwitch */ ?></p>
+    </div>
+
+    <div class="bg-white p-6 rounded-lg shadow-md max-w-md w-full">
+        <h3 class="text-lg font-semibold text-gray-800 mb-2">Resultat amb <code>match</code></h3>
+        <p class="text-gray-700"><?= /* TODO 5: $missatgeMatch */ ?></p>
+    </div>
+
+</body>
+</html>
+```
+:::
+
+**Objectiu:** Comparar dues formes de fer selecció múltiple: l'estructura clàssica `switch` i l'expressió moderna `match` (PHP 8+).
+
+Tasques a fer dins del fitxer:
+
+1. A `TODO 1`, declara `$estatLead` amb el valor `"contactat"`.
+2. A `TODO 2`, completa l'estructura `switch($estatLead)` (ja iniciada) perquè assigne a `$missatgeSwitch` un text diferent segons el cas (no oblides el `break;` en cada `case`):
+   - `'nou'` → `"Tens un nou lead pendent d'assignar."`
+   - `'contactat'` → `"S'ha enviat un correu al client."`
+   - `'convertit'` o `'guanyat'` (mateix missatge per a tots dos) → `"El projecte s'ha acceptat!"`
+   - `default` → `"Estat no reconegut."`
+3. A `TODO 3`, escriu una expressió `match($estatLead)` equivalent que assigne el mateix resultat a la variable `$missatgeMatch` (recorda: `match` no necessita `break` i retorna el valor directament).
+4. A `TODO 4` i `TODO 5`, imprimeix `$missatgeSwitch` i `$missatgeMatch` en les dues targetes ja preparades, per a comprovar que donen el mateix resultat.
+
+**Pista:** Amb `match`, cada línia té la forma `valor => resultat,` i els diversos casos que comparteixen resultat es separen amb comes (`'convertit', 'guanyat' => ...`).
+
+---
+
+#### Exercici 3.3 — Bucles: pàgines, intents i serveis
+
+**Fitxer de partida:** `exercici3.3.php`
+
+::: details 📄 exercici3.3.php
+```php
+<?php
+    // TODO 7 (repte opcional): activa ací la visualització d'errors
+    // amb ini_set('display_errors', '1') i error_reporting(E_ALL)
+
+
+    // TODO 1: Declara $totalPagines = 5 i, amb un bucle for,
+    // construeix $llistaPagines concatenant "<li>Pàgina X</li>" per cada pàgina
+    $llistaPagines = '';
+
+
+    // TODO 2: Declara $intents = 0 i $maxIntents = 3. Amb un bucle while,
+    // construeix $llistaIntents concatenant "<li>Intent número: X</li>"
+    // (no oblides incrementar $intents dins del bucle)
+    $llistaIntents = '';
+
+
+    // Array ja proporcionat, no cal que el toques
+    $serveis = ["Web Corporativa", "Botiga Online", "App Mòbil"];
+
+    // TODO 3: Amb un foreach, construeix $llistaServeis concatenant
+    // "<li>Servei</li>" per cada servei de l'array $serveis
+    $llistaServeis = '';
+
+?>
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercici 3.3 - Bucles</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-8">
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h3 class="text-lg font-semibold text-gray-800 mb-2">Pàgines (for)</h3>
+            <ul class="list-disc list-inside text-gray-700">
+                <?= /* TODO 4: $llistaPagines */ ?>
+            </ul>
+        </div>
+
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h3 class="text-lg font-semibold text-gray-800 mb-2">Intents (while)</h3>
+            <ul class="list-disc list-inside text-gray-700">
+                <?= /* TODO 5: $llistaIntents */ ?>
+            </ul>
+        </div>
+
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h3 class="text-lg font-semibold text-gray-800 mb-2">Serveis (foreach)</h3>
+            <ul class="list-disc list-inside text-gray-700">
+                <?= /* TODO 6: $llistaServeis */ ?>
+            </ul>
+        </div>
+
+    </div>
+
+</body>
+</html>
+```
+:::
+
+**Objectiu:** Practicar els tres tipus de bucle (`for`, `while` i `foreach`) construint llistes d'elements `<li>` mitjançant concatenació de cadenes.
+
+Tasques a fer dins del fitxer:
+
+1. **Bucle `for`** (`TODO 1`): declara `$totalPagines = 5` i, amb un bucle `for`, construeix la variable `$llistaPagines` concatenant (`.=`) un `<li>Pàgina X</li>` per cada pàgina, des de l'1 fins a `$totalPagines`.
+2. **Bucle `while`** (`TODO 2`): declara `$intents = 0` i `$maxIntents = 3`. Amb un bucle `while`, construeix `$llistaIntents` concatenant un `<li>Intent número: X</li>` per cada volta, i recorda incrementar `$intents` dins del bucle perquè no siga infinit.
+3. **Bucle `foreach`** (`TODO 3`): ja tens declarat l'array `$serveis` (no cal que el toques). Amb un `foreach`, construeix `$llistaServeis` concatenant un `<li>` per cada servei de l'array.
+4. A `TODO 4`, `TODO 5` i `TODO 6`, imprimeix `$llistaPagines`, `$llistaIntents` i `$llistaServeis` dins de les etiquetes `<ul>` ja preparades.
+5. **Repte opcional — Depuració (`TODO 7`):** al començament absolut del fitxer, activa la visualització d'errors afegint `ini_set('display_errors', '1')` i `error_reporting(E_ALL)`. Encara que en aquest exercici no hi haja errors, és una bona pràctica activar-ho sempre en entorn de desenvolupament.
+
+**Pista:** Si el bucle `while` no acaba mai (es queda "penjat" carregant), és que has oblidat incrementar `$intents` dins del bucle.
+
