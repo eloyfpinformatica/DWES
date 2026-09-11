@@ -2119,7 +2119,53 @@ Tasques a fer dins del fitxer:
 
 ::: details 📄 exercici4.1.
 ```php
+<?php
+    // TODO 1: Declara $tecnologies com a array indexat amb "PHP", "MySQL", "TailwindCSS", "JavaScript"
 
+
+    // TODO 2: Declara $primera accedint a la primera posició (índex 0)
+
+
+    // TODO 3: Declara $ultima accedint a l'última posició, usant count($tecnologies) - 1
+
+
+    // TODO 4: Afig "Docker" al final de l'array amb $tecnologies[] = ...
+
+
+    // TODO 5: Amb foreach ($tecnologies as $index => $tecnologia), construeix $llistaTec
+    // concatenant "<li>Llenguatge {index}: {tecnologia}</li>" per cada element
+    $llistaTec = '';
+
+?>
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercici 4.1 - Tecnologies del stack</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-8">
+
+    <div class="max-w-2xl mx-auto">
+
+        <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+            <p class="text-gray-700">Primera tecnologia: <span class="font-semibold"><?= /* TODO 6: $primera */ ?></span></p>
+            <p class="text-gray-700">Última tecnologia (abans d'afegir Docker): <span class="font-semibold"><?= /* TODO 7: $ultima */ ?></span></p>
+            <p class="text-gray-700">Total de tecnologies (després d'afegir Docker): <span class="font-semibold"><?= /* TODO 8: count($tecnologies) */ ?></span></p>
+        </div>
+
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h3 class="text-lg font-semibold text-gray-800 mb-2">Stack complet</h3>
+            <ul class="list-disc list-inside text-gray-700">
+                <?= /* TODO 9: $llistaTec */ ?>
+            </ul>
+        </div>
+
+    </div>
+
+</body>
+</html>
 ```
 :::
 
@@ -2144,7 +2190,44 @@ Tasques a fer dins del fitxer:
 
 ::: details 📄 exercici4.2.
 ```php
+<?php
+    // TODO 1: Declara l'array associatiu $lead amb 'id', 'nom', 'email', 'pressupost' i 'actiu'
 
+
+    // TODO 2: Afig la clau 'telefon' => "600112233"
+
+
+    // TODO 3: Modifica la clau 'actiu' i posa-la a false
+
+
+    // TODO 4: Comprova amb isset($lead['nom']) si la clau existeix.
+    // Si existeix, $nomMostrat = $lead['nom']; si no, $nomMostrat = "Sense nom"
+
+
+    // TODO 5: Amb foreach ($lead as $clau => $valor), construeix $llistaLead
+    // concatenant "<li><strong>{clau}:</strong> {valor}</li>" per cada parella
+    $llistaLead = '';
+
+?>
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercici 4.2 - Fitxa d'un lead</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+
+    <div class="bg-white p-8 rounded-lg shadow-md max-w-md w-full">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">Lead: <?= /* TODO 6: $nomMostrat */ ?></h2>
+        <ul class="text-gray-700 space-y-1">
+            <?= /* TODO 7: $llistaLead */ ?>
+        </ul>
+    </div>
+
+</body>
+</html>
 ```
 :::
 
@@ -2170,7 +2253,89 @@ Tasques a fer dins del fitxer:
 
 ::: details 📄 exercici4.3.
 ```php
+<?php
+    // Array ja proporcionat, no cal que el toques
+    $llistatLeads = [
+        [
+            'id'         => 1,
+            'nom'        => 'Joan Garcia',
+            'empresa'    => 'Textils S.L.',
+            'pressupost' => 4500.00,
+            'estat'      => 'nou'
+        ],
+        [
+            'id'         => 2,
+            'nom'        => 'Laura Sanchis',
+            'empresa'    => 'Innovació Tech',
+            'pressupost' => 12000.00,
+            'estat'      => 'convertit'
+        ],
+        [
+            'id'         => 3,
+            'nom'        => 'Marc Climent',
+            'empresa'    => 'Econova',
+            'pressupost' => 800.00,
+            'estat'      => 'descartat'
+        ]
+    ];
 
+    // TODO 1: Amb foreach ($llistatLeads as $lead), construeix $filesTaula concatenant
+    // "<tr><td>id</td><td>nom</td><td>empresa</td><td>pressupost €</td></tr>" per cada lead
+    $filesTaula = '';
+
+
+    // TODO 2: Calcula $totalLeads amb count($llistatLeads)
+
+
+    // TODO 3: Amb array_filter(), obtín en $leadsEnterprise els leads amb pressupost >= 1500
+
+
+    // TODO 4: Calcula $totalEnterprise amb count($leadsEnterprise)
+
+?>
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercici 4.3 - Llistat de leads</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-8">
+
+    <div class="max-w-3xl mx-auto">
+
+        <h1 class="text-2xl font-bold text-gray-800 mb-4">Llistat de Leads</h1>
+
+        <table class="w-full bg-white rounded-lg shadow-md overflow-hidden mb-6">
+            <thead class="bg-gray-800 text-white">
+                <tr>
+                    <th class="p-2 text-left">ID</th>
+                    <th class="p-2 text-left">Nom</th>
+                    <th class="p-2 text-left">Empresa</th>
+                    <th class="p-2 text-left">Pressupost</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?= /* TODO 5: $filesTaula */ ?>
+            </tbody>
+        </table>
+
+        <div class="bg-white p-6 rounded-lg shadow-md flex justify-around text-center">
+            <div>
+                <p class="text-gray-500 text-sm">Total de leads</p>
+                <p class="text-2xl font-bold text-blue-700"><?= /* TODO 6: $totalLeads */ ?></p>
+            </div>
+            <div>
+                <p class="text-gray-500 text-sm">Leads Enterprise (&ge; 1500 €)</p>
+                <p class="text-2xl font-bold text-green-700"><?= /* TODO 7: $totalEnterprise */ ?></p>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>
 ```
 :::
 
@@ -2186,3 +2351,240 @@ Tasques a fer dins del fitxer:
 6. A `TODO 5`, `TODO 6` i `TODO 7`, imprimeix `$filesTaula`, `$totalLeads` i `$totalEnterprise` als llocs indicats de la plantilla.
 
 **Pista:** `array_filter()` no reindexa l'array resultant, així que si vols que `count()` funcione correctament no cal fer res especial: `count()` compta els elements encara que els índexs no siguen consecutius.
+
+
+### 7.5. Modularització i Funcions
+
+#### Exercici 5.1 — Funcions i pas de paràmetres
+
+**Fitxer de partida:** `exercici5.1.php`
+
+::: details 📄 exercici5.1.php
+```php
+<?php
+    function calcularIVA(float $import, float $tipus = 21.0): float {
+        // TODO 1: Calcula i retorna el preu final amb IVA
+        // Fórmula: $import + ($import * $tipus / 100)
+    }
+
+    function aplicarDescompte(float &$preu, float $percentatge) {
+        // TODO 2: Modifica directament $preu restant-li el percentatge indicat
+        // Fórmula: $preu -= $preu * $percentatge / 100
+        // Fixa't que $preu es passa per referència (&): no cal fer return
+    }
+
+    // TODO 3: Declara $preuBase = 1000 i crida calcularIVA($preuBase)
+    // guardant el resultat en $preuAmbIvaDefecte
+
+
+    // TODO 4: Crida calcularIVA($preuBase, 10.0)
+    // guardant el resultat en $preuAmbIvaReduit
+
+
+    // TODO 5: Declara $pressupostFinal = 2000.0 i crida
+    // aplicarDescompte($pressupostFinal, 15)
+
+?>
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercici 5.1 - Funcions i pas de paràmetres</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+
+    <div class="bg-white p-8 rounded-lg shadow-md max-w-md w-full space-y-3">
+        <p class="text-gray-700">Preu amb IVA (21% per defecte): <span class="font-semibold"><?= /* TODO 6: $preuAmbIvaDefecte */ ?> €</span></p>
+        <p class="text-gray-700">Preu amb IVA reduït (10%): <span class="font-semibold"><?= /* TODO 7: $preuAmbIvaReduit */ ?> €</span></p>
+        <p class="text-gray-700">Pressupost amb 15% de descompte: <span class="font-semibold"><?= /* TODO 8: $pressupostFinal */ ?> €</span></p>
+    </div>
+
+</body>
+</html>
+
+
+``` 
+:::
+
+**Objectiu:** Practicar la creació de funcions, els paràmetres amb valor per defecte, el `return`, i la diferència entre pas per valor i pas per referència (`&`).
+
+Tasques a fer dins del fitxer:
+
+1. A `TODO 1`, completa la funció `calcularIVA(float $import, float $tipus = 21.0): float`, que calcule i **retorne** (`return`) el preu final amb IVA (fórmula: `$import + ($import * $tipus / 100)`).
+2. A `TODO 2`, completa la funció `aplicarDescompte(float &$preu, float $percentatge)`. Fixa't que `$preu` es passa **per referència** (amb `&`): dins de la funció has de **modificar directament** la variable `$preu` (no cal `return`), restant-li el percentatge indicat (`$preu -= $preu * $percentatge / 100`).
+3. A `TODO 3`, declara `$preuBase = 1000` i crida `calcularIVA($preuBase)` (sense segon paràmetre, per a utilitzar el 21% per defecte), guardant el resultat en `$preuAmbIvaDefecte`.
+4. A `TODO 4`, crida `calcularIVA($preuBase, 10.0)` (amb IVA reduït del 10%), guardant el resultat en `$preuAmbIvaReduit`.
+5. A `TODO 5`, declara `$pressupostFinal = 2000.0` i crida `aplicarDescompte($pressupostFinal, 15)`. **No cal** guardar cap valor de retorn: com que el paràmetre és per referència, `$pressupostFinal` quedarà modificada automàticament.
+6. A `TODO 6`, `TODO 7` i `TODO 8`, imprimeix `$preuAmbIvaDefecte`, `$preuAmbIvaReduit` i `$pressupostFinal` (ja amb el descompte aplicat) als llocs indicats.
+
+**Pista:** Si t'oblides del `&` a la definició de `aplicarDescompte`, la variable original `$pressupostFinal` no canviarà mai, per molt que la modifiques dins de la funció.
+
+---
+
+#### Exercici 5.2 — Mode estricte i declaracions de tipus
+
+**Fitxer de partida:** `exercici5.2.php`
+
+::: details 📄 exercici5.2.php
+```php
+
+<?php
+    // TODO 1: Activa el mode estricte (ha de ser la primera línia absoluta)
+
+    function formatarPressupost(float $quantitat, string $moneda = '€'): string {
+        // TODO 2: Retorna number_format($quantitat, 2, ',', '.') seguit d'un espai i la moneda
+    }
+
+    function buscarLeadPerId(array $llistat, int $id): ?array {
+        // TODO 3: Recorre $llistat amb foreach i retorna l'array del lead
+        // el 'id' del qual coincidisca amb $id. Si no el troba, retorna null.
+    }
+
+    // Array ja proporcionat, no cal que el toques
+    $llistatLeads = [
+        ['id' => 1, 'nom' => 'Joan Garcia', 'pressupost' => 4500.00],
+        ['id' => 2, 'nom' => 'Laura Sanchis', 'pressupost' => 12000.00],
+        ['id' => 3, 'nom' => 'Marc Climent', 'pressupost' => 800.00],
+    ];
+
+    // TODO 4: Declara $preuBase = 1500.0 i crida formatarPressupost($preuBase)
+    // guardant el resultat en $preuFormatat
+
+
+    // TODO 5: Crida buscarLeadPerId($llistatLeads, 2)
+    // guardant el resultat en $leadTrobat
+
+?>
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercici 5.2 - Mode estricte i tipus</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+
+    <div class="bg-white p-8 rounded-lg shadow-md max-w-md w-full space-y-3">
+        <p class="text-gray-700">Pressupost formatat: <span class="font-semibold"><?= /* TODO 6: $preuFormatat */ ?></span></p>
+        <p class="text-gray-700">Lead trobat (ID 2): <span class="font-semibold"><?= /* TODO 7: nom del $leadTrobat o "No trobat" */ ?></span></p>
+    </div>
+
+</body>
+</html>
+
+``` 
+:::
+
+**Objectiu:** Activar `strict_types`, i practicar funcions amb tipus de retorn *nullable* (`?array`) cercant dins d'un array.
+
+Tasques a fer dins del fitxer:
+
+1. A `TODO 1` (que ha de ser la **primera línia absoluta** del fitxer, just després de `<?php`), activa el mode estricte amb `declare(strict_types=1);`.
+2. A `TODO 2`, completa la funció `formatarPressupost(float $quantitat, string $moneda = '€'): string`, que retorne la quantitat formatada amb `number_format($quantitat, 2, ',', '.')` seguida d'un espai i la moneda.
+3. A `TODO 3`, completa la funció `buscarLeadPerId(array $llistat, int $id): ?array`, que recórrega l'array `$llistat` amb un `foreach` i **retorne** l'array del lead el `id` del qual coincidisca amb el paràmetre `$id`; si no el troba després de recórrer tot l'array, ha de **retornar `null`**.
+4. Ja tens declarat (no cal que el toques) l'array `$llistatLeads` amb 3 leads.
+5. A `TODO 4`, declara `$preuBase = 1500.0` i crida `formatarPressupost($preuBase)`, guardant el resultat en `$preuFormatat`.
+6. A `TODO 5`, crida `buscarLeadPerId($llistatLeads, 2)`, guardant el resultat en `$leadTrobat`.
+7. A `TODO 6`, imprimeix `$preuFormatat`.
+8. A `TODO 7`, mostra el nom del lead trobat si `$leadTrobat` no és `null` (per exemple amb `$leadTrobat['nom'] ?? "No trobat"`).
+
+**Pista:** Amb `strict_types` activat, si crides `formatarPressupost("1500")` (una cadena en lloc d'un `float`) obtindràs un error `TypeError`, encara que abans (sense mode estricte) PHP ho hauria convertit automàticament.
+
+---
+
+#### Exercici 5.3 — Inclusió de fitxers i separació de vistes/lògica
+
+**Fitxers de partida:** `helpers.php` i `exercici5.3.php` (`exercici5.3.php` és el fitxer principal; `helpers.php` és el fitxer que s'hi inclourà)
+
+::: details 📄 exercici5.3.php
+```php
+
+<?php
+    // TODO 2: Inclou helpers.php amb require_once __DIR__ . '/helpers.php'
+
+
+    // Array ja proporcionat, no cal que el toques
+    $llistatLeads = [
+        ['id' => 1, 'nom' => 'Joan Garcia', 'estat' => 'nou'],
+        ['id' => 2, 'nom' => 'Laura Sanchis', 'estat' => 'convertit'],
+        ['id' => 3, 'nom' => 'Marc Climent', 'estat' => 'nou'],
+        ['id' => 4, 'nom' => 'Aina Martínez', 'estat' => 'descartat'],
+    ];
+
+    // TODO 3: Crida comptarLeadsNous($llistatLeads)
+    // guardant el resultat en $totalNous
+
+
+    // TODO 4: Declara $hasNotificacions com a booleà (true si $totalNous > 0)
+
+?>
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercici 5.3 - Inclusió i separació de vistes</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+
+    <div class="bg-white p-8 rounded-lg shadow-md max-w-md w-full">
+
+        <!-- VISTA: no cal tocar res d'ací en avall -->
+        <?php if ($hasNotificacions): ?>
+            <div class="bg-blue-100 text-blue-800 p-4 rounded mb-4">
+                Tens <?= $totalNous ?> lead(s) nou(s) pendent(s) d'assignar.
+            </div>
+            <ul class="list-disc list-inside text-gray-700">
+                <?php foreach ($llistatLeads as $lead): ?>
+                    <?php if ($lead['estat'] === 'nou'): ?>
+                        <li><?= htmlspecialchars($lead['nom']) ?></li>
+                    <?php endif; ?>
+                <?php endforeach; ?>
+            </ul>
+        <?php else: ?>
+            <p class="text-gray-600">No tens notificacions pendents.</p>
+        <?php endif; ?>
+
+    </div>
+
+</body>
+</html>
+
+``` 
+:::
+
+::: details 📄 helpers.php
+```php
+
+<?php
+
+function comptarLeadsNous(array $llistat): int {
+    // TODO 1: Recorre $llistat amb foreach i compta quants leads
+    // tenen $lead['estat'] === 'nou'. Retorna eixe nombre.
+}
+
+``` 
+:::
+
+**Objectiu:** Practicar `require_once` per a modularitzar el codi, i entendre el patró de separació entre la **lògica** (part superior del fitxer) i la **vista** (part inferior, amb sintaxi alternativa `if:`/`endif;` i `foreach:`/`endforeach;`, ja escrita i que no cal tocar).
+
+Tasques a fer:
+
+### Dins de `helpers.php`
+
+1. A `TODO 1`, completa la funció `comptarLeadsNous(array $llistat): int`, que recórrega `$llistat` amb un `foreach` i **compte** quants leads tenen `$lead['estat'] === 'nou'`, retornant eixe nombre.
+
+### Dins de `exercici5.3.php`
+
+2. A `TODO 2`, inclou el fitxer `helpers.php` utilitzant `require_once __DIR__ . '/helpers.php'` (recorda: `require_once` perquè és una llibreria de funcions imprescindible).
+3. Ja tens declarat (no cal que el toques) l'array `$llistatLeads`.
+4. A `TODO 3`, crida `comptarLeadsNous($llistatLeads)`, guardant el resultat en `$totalNous`.
+5. A `TODO 4`, declara `$hasNotificacions` com un booleà que siga `true` si `$totalNous > 0`.
+
+La **vista** (la part HTML de davall) ja està completa: si `$hasNotificacions` és `true`, mostrarà un avís amb el nombre de leads nous; si és `false`, mostrarà el missatge "No tens notificacions pendents."
+
+**Pista:** Si obres `exercici5.3.php` directament sense haver completat el `require_once`, PHP donarà un error perquè la funció `comptarLeadsNous()` no existirà encara en eixe fitxer.
