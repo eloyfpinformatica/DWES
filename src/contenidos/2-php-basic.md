@@ -101,6 +101,10 @@
 
     6.3. [Validació bàsica al costat del servidor](#63-validacio-basica-al-costat-del-servidor)
 
+7. [Exercicis](#exercicis)
+    
+    7.1. [Part 1. Introducció i entorn](#71-part-1-introduccion-i-entorn)
+
 
 
 ## Bloc 1: Introducció i Entorn de Desenvolupament
@@ -372,7 +376,6 @@ Per a projectes ràpids, desenvolupament local o fases de prototipatge, podem in
 </html>
 
 ```
-
 
 ## Bloc 2: Fonaments del llenguatge PHP
 
@@ -1672,5 +1675,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 ```
 
+## 7. Exercicis
+
+### 7.1. Part 1: introducció i entorn
+
+#### Exercici 1.1 — La teua primera pàgina PHP
+
+**Fitxer de partida:** `exercici1.1.php`
+::: detail exercici1.1.php
+```php
+<?php
+    // TODO 1: Declara ací les variables $nomEmpresa, $eslogan i $anyFundacio
+?>
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercici 1.1 - Primera pàgina PHP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center text-center">
+
+    <h1 class="text-4xl font-bold text-blue-700"><?= /* TODO 2: nom de l'empresa */ ?></h1>
+    <p class="text-lg text-gray-700 mt-2"><?= /* TODO 3: eslogan */ ?></p>
+    <p class="text-sm text-gray-500 mt-1">Fundada l'any <?= /* TODO 4: any de fundació */ ?></p>
+
+</body>
+</html>
+```
+:::
+
+**Objectiu:** Practicar la integració bàsica de PHP en HTML (etiqueta estàndard `<?php ?>` i etiqueta curta `<?= ?>`).
+
+Tasques a fer dins del fitxer:
+
+1. Al bloc `<?php ?>` del principi (marcat amb `// TODO 1`), declara tres variables:
+   - `$nomEmpresa` amb el valor `"TechLeads"`
+   - `$eslogan` amb el valor `"Convertim leads en clients"`
+   - `$anyFundacio` amb el valor `2020`
+2. Al `<h1>` (marcat amb `TODO 2`), imprimeix `$nomEmpresa` amb `<?= ?>`.
+3. Al primer `<p>` (marcat amb `TODO 3`), imprimeix `$eslogan` amb `<?= ?>`.
+4. Al segon `<p>` (marcat amb `TODO 4`), completa la frase *"Fundada l'any ..."* imprimint `$anyFundacio` amb `<?= ?>`.
+
+**Pista:** No cal fer servir `echo` en cap moment; utilitza únicament `<?= $variable ?>`.
 
 
