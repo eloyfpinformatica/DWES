@@ -2111,3 +2111,78 @@ Tasques a fer dins del fitxer:
 
 **Pista:** Si el bucle `while` no acaba mai (es queda "penjat" carregant), és que has oblidat incrementar `$intents` dins del bucle.
 
+### 7.4. Gestió de Dades amb Arrays
+
+#### Exercici 4.1 — Tecnologies del stack de TechLeads
+
+**Fitxer de partida:** `exercici4.1.php`
+
+::: details 📄 exercici4.1.
+```php
+
+```
+:::
+
+**Objectiu:** Practicar la creació, modificació i recorregut d'un array indexat.
+
+Tasques a fer dins del fitxer:
+
+1. A `TODO 1`, declara `$tecnologies` com un array indexat (sintaxi de claudàtors `[]`) amb els valors: `"PHP"`, `"MySQL"`, `"TailwindCSS"`, `"JavaScript"`.
+2. A `TODO 2`, declara `$primera` accedint a la primera posició de l'array (índex `0`).
+3. A `TODO 3`, declara `$ultima` accedint a l'última posició de l'array, utilitzant `count($tecnologies) - 1` com a índex (no escrigues el número a mà).
+4. A `TODO 4`, afig `"Docker"` al final de l'array utilitzant la sintaxi `$tecnologies[] = ...`.
+5. A `TODO 5`, amb un bucle `foreach ($tecnologies as $index => $tecnologia)`, construeix la variable `$llistaTec` concatenant per cada element un `<li>Llenguatge {index}: {tecnologia}</li>`.
+6. A `TODO 6`, `TODO 7`, `TODO 8` i `TODO 9`, imprimeix `$primera`, `$ultima`, el nombre total d'elements (amb `count()`) i `$llistaTec` als llocs indicats de la plantilla.
+
+**Pista:** Recorda que els índexs d'un array comencen sempre en `0`, així que l'últim índex és `count($array) - 1`.
+
+---
+
+#### Exercici 4.2 — Fitxa d'un lead com a array associatiu
+
+**Fitxer de partida:** `exercici4.2.php`
+
+::: details 📄 exercici4.2.
+```php
+
+```
+:::
+
+
+**Objectiu:** Practicar la creació, modificació, comprovació i recorregut d'un array associatiu.
+
+Tasques a fer dins del fitxer:
+
+1. A `TODO 1`, declara l'array associatiu `$lead` amb les claus: `'id' => 101`, `'nom' => "Aina Martínez"`, `'email' => "aina@empresa.valencia"`, `'pressupost' => 3500.00`, `'actiu' => true`.
+2. A `TODO 2`, afig una nova clau `'telefon'` amb el valor `"600112233"`.
+3. A `TODO 3`, modifica el valor de la clau `'actiu'` i posa'l a `false` (simulem que el lead ja no està actiu).
+4. A `TODO 4`, abans d'imprimir res, comprova amb `isset($lead['nom'])` que la clau `'nom'` existeix, i només si existeix, declara `$nomMostrat = $lead['nom']`; si no existira, `$nomMostrat` hauria de valdre `"Sense nom"`.
+5. A `TODO 5`, amb un bucle `foreach ($lead as $clau => $valor)`, construeix la variable `$llistaLead` concatenant per cada parella un `<li><strong>{clau}:</strong> {valor}</li>`.
+6. A `TODO 6` i `TODO 7`, imprimeix `$nomMostrat` i `$llistaLead` als llocs indicats.
+
+**Pista:** Pots resoldre el `TODO 4` amb un `if`/`else`, o bé amb l'operador ternari: `isset($lead['nom']) ? $lead['nom'] : "Sense nom"`.
+
+---
+
+## Exercici 4.3 — Llistat de leads i filtratge
+
+**Fitxer de partida:** `exercici4.3.php`
+
+::: details 📄 exercici4.3.
+```php
+
+```
+:::
+
+**Objectiu:** Practicar arrays multidimensionals (array de leads, cadascun com a array associatiu) i l'ús de funcions predefinides (`count()`, `array_filter()`).
+
+Tasques a fer dins del fitxer:
+
+1. Ja tens declarat (no cal que el toques) l'array multidimensional `$llistatLeads`, amb 3 leads (cadascun amb `id`, `nom`, `empresa`, `pressupost` i `estat`).
+2. A `TODO 1`, amb un bucle `foreach ($llistatLeads as $lead)`, construeix la variable `$filesTaula` concatenant, per cada lead, una fila de taula HTML: `<tr><td>{id}</td><td>{nom}</td><td>{empresa}</td><td>{pressupost} €</td></tr>`.
+3. A `TODO 2`, calcula `$totalLeads` amb la funció `count()` sobre `$llistatLeads`.
+4. A `TODO 3`, utilitza `array_filter()` per a obtindre en `$leadsEnterprise` només els leads amb `pressupost >= 1500` (utilitza una funció anònima com a segon paràmetre, tal com hem vist als apunts).
+5. A `TODO 4`, calcula `$totalEnterprise` amb `count()` sobre `$leadsEnterprise`.
+6. A `TODO 5`, `TODO 6` i `TODO 7`, imprimeix `$filesTaula`, `$totalLeads` i `$totalEnterprise` als llocs indicats de la plantilla.
+
+**Pista:** `array_filter()` no reindexa l'array resultant, així que si vols que `count()` funcione correctament no cal fer res especial: `count()` compta els elements encara que els índexs no siguen consecutius.
