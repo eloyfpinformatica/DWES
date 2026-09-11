@@ -1682,7 +1682,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 #### Exercici 1.1 — La teua primera pàgina PHP
 
 **Fitxer de partida:** `exercici1.1.php`
-::: detail exercici1.1.php
+::: details exercici1.1.php
 ```php
 <?php
     // TODO 1: Declara ací les variables $nomEmpresa, $eslogan i $anyFundacio
@@ -1703,7 +1703,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 </body>
 </html>
-```
+``
 :::
 
 **Objectiu:** Practicar la integració bàsica de PHP en HTML (etiqueta estàndard `<?php ?>` i etiqueta curta `<?= ?>`).
@@ -1721,3 +1721,182 @@ Tasques a fer dins del fitxer:
 **Pista:** No cal fer servir `echo` en cap moment; utilitza únicament `<?= $variable ?>`.
 
 
+### 7.2. Fonaments del llenguatge PHP
+
+#### Exercici 2.1 — Fitxa d'un nou lead
+
+**Fitxer de partida:** `exercici2.1.php`
+
+::: details exercici2.1.php
+```php
+<?php
+    // TODO 1: Declara $nom (string), $pressupost (float), $contactat (boolean) i $notes (null)
+
+
+    // TODO 3: Crea $fraseSimple amb cometes simples, que continga literalment "Lead: $nom"
+
+
+    // TODO 4: Crea $fraseInterpolada amb cometes dobles i claus {},
+    // amb el text "El pressupost del lead és de {$pressupost} €"
+
+?>
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercici 2.1 - Fitxa d'un nou lead</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-8">
+
+    <h1 class="text-2xl font-bold text-gray-800 mb-6">Fitxa del lead</h1>
+
+    <div class="bg-white p-6 rounded-lg shadow-md max-w-xl mb-6">
+        <p class="text-gray-700 mb-2"><span class="font-semibold">Cometes simples:</span> <?= /* TODO 5: $fraseSimple */ ?></p>
+        <p class="text-gray-700"><span class="font-semibold">Cometes dobles (interpolat):</span> <?= /* TODO 6: $fraseInterpolada */ ?></p>
+    </div>
+
+    <h2 class="text-xl font-semibold text-gray-800 mb-2">Depuració de variables</h2>
+    <pre class="bg-gray-900 text-green-400 p-4 rounded-lg overflow-x-auto">
+<?php
+    // TODO 2: Crida var_dump() per a $nom, $pressupost, $contactat i $notes
+?>
+    </pre>
+
+</body>
+</html>
+```
+:::
+
+**Objectiu:** Practicar els tipus de dades primitius, la depuració amb `var_dump()`, i la diferència entre cometes simples i cometes dobles (amb interpolació avançada `{}`).
+
+Tasques a fer dins del fitxer:
+
+1. Al bloc PHP inicial (`TODO 1`), declara quatre variables per a representar un nou lead:
+   - `$nom` (string) amb el valor `"Marc Soler"`
+   - `$pressupost` (float) amb el valor `2750.50`
+   - `$contactat` (boolean) amb el valor `false`
+   - `$notes` (null) — encara no té notes, assigna-li `null`
+2. A la zona de depuració (`TODO 2`), dins de les etiquetes `<pre>` ja preparades, crida `var_dump()` per a cadascuna de les quatre variables, perquè es puga veure el seu tipus i valor.
+3. A `TODO 3`, crea una variable `$fraseSimple` utilitzant **cometes simples**, que continga literalment el text `Lead: $nom` (sense que PHP interprete la variable — ha d'eixir `$nom` tal qual, no el nom "Marc Soler").
+4. A `TODO 4`, crea una variable `$fraseInterpolada` utilitzant **cometes dobles i claus `{}`**, que continga: *"El pressupost del lead és de 2750.5 €"* (utilitzant `{$pressupost}` per a evitar ambigüitats amb el text que ve després).
+5. A `TODO 5` i `TODO 6`, imprimeix `$fraseSimple` i `$fraseInterpolada` amb `<?= ?>` per a poder comparar el resultat de totes dues.
+
+**Pista:** Recorda que `var_dump()` mostra el tipus de dada, a diferència de `echo`, que només mostra el valor.
+
+
+
+#### Exercici 2.2 — Àmbit de variables: comissió del comercial
+
+**Fitxer de partida:** `exercici2.php`
+
+::: details exercici2.2.php
+```php
+<?php
+    // TODO 1: Declara la variable global $percentatgeComissio amb el valor 10
+
+    function calcularComissio($pressupostVenda) {
+        // TODO 2: Fes accessible ací dins la variable global $percentatgeComissio
+
+        // TODO 3: Calcula la comissió ($pressupostVenda * $percentatgeComissio / 100)
+        // i retorna-la amb return
+
+    }
+
+    // TODO 4: Declara $vendaMarc = 4000 i crida calcularComissio($vendaMarc)
+    // guardant el resultat en $comissioMarc
+
+?>
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercici 2.2 - Comissió del comercial</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+
+    <div class="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">Comissió de Marc</h2>
+        <p class="text-gray-600">Venda: 4000 €</p>
+        <p class="text-3xl font-bold text-green-600 mt-4">
+            <?= /* TODO 5: $comissioMarc */ ?> €
+        </p>
+    </div>
+
+</body>
+</html>
+```
+:::
+
+**Objectiu:** Comprendre la diferència entre l'àmbit global i l'àmbit local d'una funció, i com accedir a una variable global des de dins d'una funció.
+
+Tasques a fer dins del fitxer:
+
+1. A `TODO 1` (fora de qualsevol funció), declara la variable global `$percentatgeComissio` amb el valor `10`.
+2. Dins de la funció `calcularComissio()` ja creada (`TODO 2`), utilitza la paraula clau `global` per a poder accedir des de dins a la variable `$percentatgeComissio`.
+3. Encara dins de la funció (`TODO 3`), calcula la comissió a partir del paràmetre `$pressupostVenda` que rep la funció i la variable global, i **retorna** el resultat amb `return` (la fórmula és: `$pressupostVenda * $percentatgeComissio / 100`).
+4. A `TODO 4`, fora de la funció, declara `$vendaMarc` amb el valor `4000` i crida `calcularComissio($vendaMarc)`, guardant el resultat en una variable `$comissioMarc`.
+5. A `TODO 5`, imprimeix `$comissioMarc` dins de la targeta ja preparada.
+
+**Pista:** Si no uses `global` (o `$GLOBALS`) dins de la funció, `$percentatgeComissio` no existirà en l'àmbit local i donarà error o `null`.
+
+
+
+#### Exercici 2.3 — Pressupost amb IVA i constants
+
+**Fitxer de partida:** `exercici2.3.php`
+
+::: details exercici2.3.php
+```php
+<?php
+    // TODO 1: Defineix la constant NOM_EMPRESA = "TechLeads" amb define()
+
+    // TODO 2: Defineix la constant IVA_PERCENT = 21 amb const
+
+    // TODO 3: Declara $preuBase = 1500
+
+    // TODO 6: Afig ací un comentari d'una línia explicant el càlcul següent
+    // TODO 4: Calcula $preuIva ($preuBase * IVA_PERCENT / 100)
+    // TODO 5: Calcula $preuFinal ($preuBase + $preuIva)
+
+?>
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercici 2.3 - Pressupost amb IVA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+
+    <div class="bg-white p-8 rounded-lg shadow-md max-w-md w-full">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4"><?= /* TODO 7: NOM_EMPRESA */ ?></h2>
+        <p class="text-gray-600">Preu base: <?= /* TODO 8: $preuBase */ ?> €</p>
+        <p class="text-gray-600">IVA: <?= IVA_PERCENT ?> %</p>
+        <p class="text-2xl font-bold text-blue-700 mt-4">
+            Total: <?= /* TODO 9: $preuFinal */ ?> €
+        </p>
+    </div>
+
+</body>
+</html>
+```
+:::
+
+**Objectiu:** Practicar l'ús d'operadors aritmètics, la definició de constants (amb `define()` i amb `const`) i afegir comentaris seguint les bones pràctiques.
+
+Tasques a fer dins del fitxer:
+
+1. A `TODO 1`, defineix la constant `NOM_EMPRESA` amb el valor `"TechLeads"` utilitzant `define()`.
+2. A `TODO 2`, defineix la constant `IVA_PERCENT` amb el valor `21` utilitzant la paraula clau `const`.
+3. A `TODO 3`, declara la variable `$preuBase` amb el valor `1500`.
+4. A `TODO 4`, calcula `$preuIva` (l'import corresponent a l'IVA) utilitzant l'operador `*` i la constant `IVA_PERCENT` (fórmula: `$preuBase * IVA_PERCENT / 100`).
+5. A `TODO 5`, calcula `$preuFinal` sumant `$preuBase` i `$preuIva` amb l'operador `+`.
+6. A `TODO 6`, per damunt del càlcul, afig un **comentari d'una sola línia** explicant breument què fa eixe bloc de codi (per exemple, què calcula `$preuFinal`).
+7. A `TODO 7`, `TODO 8` i `TODO 9`, imprimeix dins de la targeta ja preparada el nom de l'empresa (constant), el preu base i el preu final.
+
+**Pista:** Les constants no porten el símbol `$` i, per conveni, s'escriuen en `UPPER_SNAKE_CASE`.
