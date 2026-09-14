@@ -40,7 +40,7 @@
 
 ## Índex
 
-1. [Bloc1: Introducció i Entorn](#bloc1-introduccio-i-entorn-de-desenvolupament)
+1. [1. Introducció i Entorn](#1-introduccio-i-entorn-de-desenvolupament)
 
     1.1. [Què és PHP? Conceptes fonamentals](#_1-1-que-es-php-conceptes-fonamentals)
 
@@ -50,7 +50,7 @@
 
     1.4. [Frontend modern: Introducció a Tailwind CSS (CDN)](#_1-4-frontend-modern-introduccio-a-tailwind-css-cdn)
     
-2. [Bloc2: Fonaments del Llenguatge PHP](#bloc2-fonaments-del-llenguatge-php)
+2. [2: Fonaments del Llenguatge PHP](#2-fonaments-del-llenguatge-php)
 
     2.1. [Variables, tipat dinàmic i case sensitivity](#_2-1-variables-tipat-dinamic-i-case-sensitivity)
 
@@ -62,7 +62,7 @@
     
     2.5. [Comentaris i bones pràctiques](#_2-5-comentaris-i-bones-practiques)
 
-3. [Bloc3: Estructures de Control i Depuració](#bloc3-estructures-de-control-i-depuracio)
+3. [3: Estructures de Control i Depuració](#3-estructures-de-control-i-depuracio)
    
     3.1. [Mecanismes de decisió (if, else, switch)](#31-mecanismes-de-decisio-if-else-switch)
 
@@ -71,7 +71,7 @@
     3.3. [Tècniques de depuració (Debug)](#33-tecniques-de-depuracio-debug)
 
 
-4. [Bloc4: Gestió de Dades amb Arrays](#bloc4-gestio-de-dades-amb-arrays)
+4. [4: Gestió de Dades amb Arrays](#4-gestio-de-dades-amb-arrays)
    
     4.1. [Arrays indexats](#41-arrays-indexats)
     
@@ -82,7 +82,7 @@
     4.4. [Funcions predefinides per a arrays](#44-funcions-predefinides-per-a-arrays)
 
 
-5. [Bloc5: Modularització i Disseny de l'Aplicació](#bloc5-modularitzacio-i-disseny-de-laplicacio)
+5. [5: Modularització i Disseny de l'Aplicació](#5-modularitzacio-i-disseny-de-laplicacio)
 
     5.1. [Funcions d'usuari i pas de paràmetres](#51-funcions-dusuari-i-pas-de-parametres)
 
@@ -93,7 +93,7 @@
     5.4. [Separació bàsica de Vistes i Lògica](#54-separacio-basica-de-vistes-i-logica)
 
 
-6. [Bloc6: Formularis](#bloc6-formularis)
+6. [6: Formularis](#6-formularis)
    
     6.1. [Trameça de dades: Mètodes GET vs POST](#61-trameca-de-dades-metodes-get-vs-post)
 
@@ -102,12 +102,10 @@
     6.3. [Validació bàsica al costat del servidor](#63-validacio-basica-al-costat-del-servidor)
 
 7. [Exercicis](#exercicis)
-    
-    7.1. [Part 1. Introducció i entorn](#71-part-1-introduccion-i-entorn)
 
 
 
-## Bloc 1: Introducció i Entorn de Desenvolupament
+## 1. Introducció i Entorn de Desenvolupament
 
 En aquest primer Bloc assentarem les bases del llenguatge **PHP**, veurem com configurar un entorn de desenvolupament local de manera ràpida i aprendrem a integrar codi servidor dins de documents HTML, utilitzant **Tailwind CSS** per a la capa visual.
 
@@ -377,7 +375,7 @@ Per a projectes ràpids, desenvolupament local o fases de prototipatge, podem in
 
 ```
 
-## Bloc 2: Fonaments del llenguatge PHP
+## 2. Fonaments del llenguatge PHP
 
 En aquest bloc aprendrem la sintaxi bàsica de PHP, la gestió de memòria mitjançant variables i constants, els tipus de dades que suporta el llenguatge, el comportament de l'àmbit (*scope*) i els operadors essencials.
 
@@ -430,7 +428,7 @@ ECHO $Nom; // Mostra: Carles (ECHO funciona igual que echo)
 PHP admet diferents tipus de dades escalar o primitius. Podem comprovar el tipus de dada d'una variable utilitzant les funcions `var_dump()` (per a depuració detallada) o `gettype()`.
 
 | Tipus | Descripció | Exemple |
-| --- | --- | --- |
+|  |  |  |
 | **Integer** | Números enters (positius o negatius) | `$edat = 25;` |
 | **Float / Double** | Números de punt flotant (decimals) | `$preu = 19.99;` |
 | **String** | Cadenes de text | `$nom = "TechLeads";` |
@@ -641,7 +639,7 @@ echo "Benvingut a " . APP_NAME . " v" . VERSION;
 ```
 
 | Criteri | `define()` | `const` |
-| --- | --- | --- |
+|  |  |  |
 | **Àmbit** | Es pot definir en qualsevol lloc (dins d'un `if`, funció, etc.) | Només en el nivell superior del script o dins de classes |
 | **Execució** | Es defineix en temps d'execució | Es defineix en temps de compilació |
 | **Sintaxi** | Funció `define('NOM', valor);` | Paraula clau `const NOM = valor;` |
@@ -691,7 +689,7 @@ A la comunitat PHP existeixen els estàndards **PSR (PHP Standard Recommendation
 
 
 
-## Bloc 3: Estructures de Control i Depuració
+## 3. Estructures de Control i Depuració
 
 
 
@@ -972,7 +970,7 @@ $connexio = "Connectant a la BD...";
 
 
 
-## Bloc 4: Gestió de Dades amb Arrays
+## 4. Gestió de Dades amb Arrays
 
 
 ### 4.1. Arrays indexats
@@ -998,7 +996,6 @@ echo $estatsLead[2]; // Imprimeix: convertit
 
 ```
 
----
 
 #### 2. Afegir, Modificar i Reassignar Elements
 
@@ -1073,8 +1070,6 @@ echo "Correu electrònic: " . $lead['email'] . "<br>";
 
 ```
 
----
-
 #### 2. Manipulació d'Arrays Associatius
 
 ```php
@@ -1103,7 +1098,6 @@ if (array_key_exists('versio', $configuracioApp)) {
 
 ```
 
----
 
 #### 3. Iteració clau-valor amb `foreach`
 
@@ -1126,7 +1120,6 @@ echo "</ul>";
 
 ```
 
----
 
 ### 4.3. Arrays Multidimensionals
 
@@ -1168,7 +1161,7 @@ echo "Pressupost del tercer lead: " . $llistatLeads[2]['pressupost'] . " €<br>
 
 ```
 
----
+
 
 #### 2. Recorregut de Matrius i Arrays Multidimensionals
 
@@ -1211,7 +1204,7 @@ foreach ($llistatLeads as $index => $lead) {
 
 ```
 
----
+
 
 ### 4.4. Funcions per a arrays
 
@@ -1235,8 +1228,6 @@ if (!in_array($estatActual, $estatsValids)) {
 
 ```
 
----
-
 #### 2. Extracció de Claus i Valors
 
 * `array_keys($array)`: Extrau totes les claus d'un array associatiu i les retorna en un array indexat.
@@ -1255,7 +1246,6 @@ $valors = array_values($lead);
 
 ```
 
----
 
 #### 3. Inserció, Eliminació i Cerca
 
@@ -1280,7 +1270,6 @@ echo "S'ha atés a: " . $clientAtes;
 
 ```
 
----
 
 #### 4. Ordenació (*Sorting*)
 
@@ -1310,7 +1299,7 @@ asort($leadCategories); // Ordena pel pressupost mantenint la clau
 
 ```
 
----
+
 
 #### 5. Filtratge, Mapeig i Fusió (Avançat)
 
@@ -1342,7 +1331,7 @@ Resultat de $leadsEnterprise:
 
 ```
 
-## Bloc 5: Modularització i disseny de l'aplicació
+## 5. Modularització i disseny de l'aplicació
 
 
 ### 5.1. Funcions
@@ -1367,7 +1356,7 @@ $preuReduit = calcularIVA($preuBase, 10.0); // 1100
 
 ```
 
----
+
 
 #### 2. Pas de paràmetres: valor vs referència
 
@@ -1397,7 +1386,7 @@ echo $pressupost; // Imprimeix: 1700 (S'ha modificat l'original)
 
 ```
 
----
+
 
 #### 3. Àmbit de les variables (*Scope*)
 
@@ -1416,7 +1405,7 @@ function mostrarEmpresa() {
 
 ```
 
----
+
 
 ### 5.2. Declaracions de tipus i mode estricte
 
@@ -1473,7 +1462,7 @@ function buscarLeadPerId(array $llistat, int|string $id): ?array {
 PHP permet dividir el codi en diferents fitxers. Hi ha 4 opcions principals:
 
 | Funció | Descripció | Si el fitxer NO existeix... |
-| --- | --- | --- |
+|  |  |  |
 | `include` | Inclou el fitxer. | Llança un **Warning** i **continua** l'execució. |
 | `require` | Inclou el fitxer. | Llança un **Fatal Error** i **atura** l'execució. |
 | `include_once` | Com `include`, però només el carregarà **una vegada**. | Warning i continua. |
@@ -1496,7 +1485,7 @@ include __DIR__ . '/templates/header.php';
 
 ```
 
----
+
 
 ### 5.4. Separació bàsica de vistes i lògica
 
@@ -1509,7 +1498,7 @@ Mesclar instruccions `echo` complexes de PHP amb estructures HTML dificulta la l
 
 ```php
 <?php
-// --- 1. LÒGICA I DADES (Backend) ---
+//  1. LÒGICA I DADES (Backend) 
 declare(strict_types=1);
 
 $usuariNom = "Carles";
@@ -1517,7 +1506,7 @@ $notificacions = ["Nou lead assignat", "Pressupost aprovat"];
 $hasNotificacions = count($notificacions) > 0;
 ?>
 
-<!-- --- 2. VISTA / HTML (Frontend) --- -->
+<!--  2. VISTA / HTML (Frontend)  -->
 <!DOCTYPE html>
 <html lang="ca">
 <head><title>Tauler</title></head>
@@ -1537,9 +1526,9 @@ $hasNotificacions = count($notificacions) > 0;
 </html>
 
 ```
-## Bloc 6: Formularis
+## 6. Formularis
 
----
+
 
 ### 6.1. Trameça de Dades: Mètodes GET vs POST
 
@@ -1567,7 +1556,7 @@ Quan un formulari HTML s'envia, les dades viatgen utilitzant un mètode de petic
 
 * **Quan utilitzar-lo:** Per a creació o modificació de dades (registre d'usuaris, enviaments de formularis de contacte, pagaments, etc.).
 
----
+
 
 ### 6.2. Recuperació d'Informació amb superglobals (`$_GET`, `$_POST`)
 
@@ -1621,7 +1610,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 ```
 
----
+
 
 ### 6.3. Validació en el servidor
 
@@ -1965,7 +1954,7 @@ Tasques a fer dins del fitxer:
 
 **Pista:** Recorda utilitzar sempre l'operador d'igualtat estricta `===` per a comparar.
 
----
+
 
 #### Exercici 3.2 — Estat del lead: `switch` vs `match`
 
@@ -2027,7 +2016,7 @@ Tasques a fer dins del fitxer:
 
 **Pista:** Amb `match`, cada línia té la forma `valor => resultat,` i els diversos casos que comparteixen resultat es separen amb comes (`'convertit', 'guanyat' => ...`).
 
----
+
 
 #### Exercici 3.3 — Bucles: pàgines, intents i serveis
 
@@ -2182,7 +2171,7 @@ Tasques a fer dins del fitxer:
 
 **Pista:** Recorda que els índexs d'un array comencen sempre en `0`, així que l'últim índex és `count($array) - 1`.
 
----
+
 
 #### Exercici 4.2 — Fitxa d'un lead com a array associatiu
 
@@ -2245,7 +2234,7 @@ Tasques a fer dins del fitxer:
 
 **Pista:** Pots resoldre el `TODO 4` amb un `if`/`else`, o bé amb l'operador ternari: `isset($lead['nom']) ? $lead['nom'] : "Sense nom"`.
 
----
+
 
 #### Exercici 4.3 — Llistat de leads i filtratge
 
@@ -2421,7 +2410,7 @@ Tasques a fer dins del fitxer:
 
 **Pista:** Si t'oblides del `&` a la definició de `aplicarDescompte`, la variable original `$pressupostFinal` no canviarà mai, per molt que la modifiques dins de la funció.
 
----
+
 
 #### Exercici 5.2 — Mode estricte i declaracions de tipus
 
@@ -2493,7 +2482,7 @@ Tasques a fer dins del fitxer:
 
 **Pista:** Amb `strict_types` activat, si crides `formatarPressupost("1500")` (una cadena en lloc d'un `float`) obtindràs un error `TypeError`, encara que abans (sense mode estricte) PHP ho hauria convertit automàticament.
 
----
+
 
 #### Exercici 5.3 — Inclusió de fitxers i separació de vistes/lògica
 
@@ -2612,7 +2601,7 @@ Tasques a fer dins del fitxer:
 
 **Pista:** Fixa't com, en enviar el formulari, les dades apareixen a la barra d'adreces del navegador (`?paraula=...&pagina=...`), a diferència del que passarà amb POST als següents exercicis.
 
----
+
 
 #### Exercici 6.2 — Formulari de contacte (mètode POST)
 
@@ -2634,7 +2623,7 @@ Tasques a fer dins del fitxer:
 
 **Pista:** Amb POST, encara que envies el formulari diverses vegades, mai veuràs les dades a la barra d'adreces del navegador.
 
----
+
 
 #### Exercici 6.3 — Validació d'un formulari de contacte
 

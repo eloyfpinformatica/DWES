@@ -117,7 +117,7 @@ authority = [userinfo@]host[:port]
 
 #### Aproximació 1:
 - **Servidor Web**: Aplicació que rep una petició HTTP i retorna la pàgina web sol·licitada escrita en llenguatge HTML (podent contenir CSS i JavaScript) perquè siga interpretada i visualitzada pel navegador.
-- Servidor d'Aplicacions: Servidor que permet l'execució d'aplicacions web i lògica de negoci complexa.
+- **Servidor d'Aplicacions**: Servidor que permet l'execució d'aplicacions web i lògica de negoci complexa.
 
 #### Aproximació 2 (AWS):
 
@@ -191,7 +191,7 @@ El model de 3 capes estructura l'arquitectura del programari en:
 ## 4. Tecnologies i Llenguatges de Servidor
 
 ### PHP (PHP Hypertext Preprocessor)
-Llenguatge de programació de costat servidor dissenyat principalment per al desenvolupament web. S'utilitza com a llenguatge de script embegut en pàgines HTML i funciona, normalment, com un mòdul del servidor web (p. ex. Apache). ÉS l'element clau de l'arquitectura **LAMP** (Linux, Apache, MySQL, PHP).
+Llenguatge de programació de costat servidor dissenyat principalment per al desenvolupament web. S'utilitza com a llenguatge d'script embegut en pàgines HTML i funciona, normalment, com un mòdul del servidor web (p. ex. Apache). És l'element clau de l'arquitectura **LAMP** (Linux, Apache, MySQL, PHP).
 
 ```php
 <!DOCTYPE html>
