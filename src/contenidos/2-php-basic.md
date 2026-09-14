@@ -2247,7 +2247,7 @@ Tasques a fer dins del fitxer:
 
 ---
 
-## Exercici 4.3 — Llistat de leads i filtratge
+#### Exercici 4.3 — Llistat de leads i filtratge
 
 **Fitxer de partida:** `exercici4.3.php`
 
@@ -2574,11 +2574,11 @@ function comptarLeadsNous(array $llistat): int {
 
 Tasques a fer:
 
-### Dins de `helpers.php`
+#### Dins de `helpers.php`
 
 1. A `TODO 1`, completa la funció `comptarLeadsNous(array $llistat): int`, que recórrega `$llistat` amb un `foreach` i **compte** quants leads tenen `$lead['estat'] === 'nou'`, retornant eixe nombre.
 
-### Dins de `exercici5.3.php`
+#### Dins de `exercici5.3.php`
 
 2. A `TODO 2`, inclou el fitxer `helpers.php` utilitzant `require_once __DIR__ . '/helpers.php'` (recorda: `require_once` perquè és una llibreria de funcions imprescindible).
 3. Ja tens declarat (no cal que el toques) l'array `$llistatLeads`.
@@ -2588,3 +2588,73 @@ Tasques a fer:
 La **vista** (la part HTML de davall) ja està completa: si `$hasNotificacions` és `true`, mostrarà un avís amb el nombre de leads nous; si és `false`, mostrarà el missatge "No tens notificacions pendents."
 
 **Pista:** Si obres `exercici5.3.php` directament sense haver completat el `require_once`, PHP donarà un error perquè la funció `comptarLeadsNous()` no existirà encara en eixe fitxer.
+
+
+
+### 7.6. Formularis
+
+#### Exercici 6.1 — Cercador de leads (mètode GET)
+
+**Fitxer de partida:** `exercici6.1.php`
+::: details  📄 exercici 6.1.php
+```php
+
+```
+:::
+
+**Objectiu:** Practicar la recuperació de dades enviades per **GET** amb la superglobal `$_GET`, i el cast de tipus.
+
+Tasques a fer dins del fitxer:
+
+1. A `TODO 1`, captura el valor enviat pel camp `paraula` del formulari, utilitzant l'operador `??` amb `''` com a valor per defecte, i guarda'l en `$paraulaCercada`.
+2. A `TODO 2`, captura el valor de `pagina`, també amb `??` (per defecte `1`), i **converteix-lo a enter** utilitzant `(int)`, guardant el resultat en `$paginaActual`.
+3. La vista ja mostra, si `$paraulaCercada` no està buida, un missatge amb la paraula cercada i la pàgina actual — no cal que la toques.
+
+**Pista:** Fixa't com, en enviar el formulari, les dades apareixen a la barra d'adreces del navegador (`?paraula=...&pagina=...`), a diferència del que passarà amb POST als següents exercicis.
+
+---
+
+#### Exercici 6.2 — Formulari de contacte (mètode POST)
+
+**Fitxer de partida:** `exercici6.2.php`
+::: details  📄 exercici 6.2.php
+```php
+
+```
+:::
+
+**Objectiu:** Practicar la recuperació de dades enviades per **POST** amb la superglobal `$_POST`, i la detecció de l'enviament del formulari amb `$_SERVER['REQUEST_METHOD']`.
+
+Tasques a fer dins del fitxer:
+
+1. A `TODO 1`, declara `$nom = ''` i `$missatge = ''` (valors per defecte, per si el formulari encara no s'ha enviat).
+2. A `TODO 2`, dins del `if ($_SERVER['REQUEST_METHOD'] === 'POST')` ja iniciat, captura `$_POST['nom']` (amb `??` i per defecte `''`) i guarda'l en `$nom`.
+3. A `TODO 3`, fes el mateix amb `$_POST['missatge']`, guardant-lo en `$missatge`.
+4. La vista ja mostra, si el formulari s'ha enviat per POST, un missatge de confirmació amb el nom i el missatge rebuts — no cal que la toques.
+
+**Pista:** Amb POST, encara que envies el formulari diverses vegades, mai veuràs les dades a la barra d'adreces del navegador.
+
+---
+
+#### Exercici 6.3 — Validació d'un formulari de contacte
+
+**Fitxer de partida:** `exercici6.3.php`
+::: details  📄 exercici 6.3.php
+```php
+
+```
+:::
+
+**Objectiu:** Aplicar validació bàsica al servidor: comprovar camps buits, netejar espais amb `trim()`, i validar el format d'un correu electrònic amb `filter_var()`.
+
+Tasques a fer dins del fitxer:
+
+1. A `TODO 1`, declara `$errors = []`, `$nom = ''` i `$email = ''`.
+2. Dins del `if ($_SERVER['REQUEST_METHOD'] === 'POST')` ja iniciat:
+   - A `TODO 2`, captura i neteja `$_POST['nom']` amb `trim()` (i `??` per defecte `''`), guardant-lo en `$nom`.
+   - A `TODO 3`, fes el mateix amb `$_POST['email']`, guardant-lo en `$email`.
+   - A `TODO 4`, valida `$nom`: si `empty($nom)`, assigna `$errors['nom'] = "El camp nom és obligatori."`; si no, si `mb_strlen($nom) < 2`, assigna `$errors['nom'] = "El nom ha de tindre almenys 2 caràcters."`.
+   - A `TODO 5`, valida `$email`: si `empty($email)`, assigna `$errors['email'] = "El correu electrònic és obligatori."`; si no, si `!filter_var($email, FILTER_VALIDATE_EMAIL)`, assigna `$errors['email'] = "El format del correu no és vàlid."`.
+3. La vista ja fa la resta: torna a omplir els camps amb els valors enviats, mostra els missatges d'error davall de cada camp si n'hi ha, i mostra un missatge d'èxit si el formulari s'ha enviat i `$errors` està buit — no cal que la toques.
+
+**Pista:** Prova d'enviar el formulari buit, després amb un nom d'una sola lletra, i finalment amb un correu sense `@`, per a comprovar que cada validació funciona per separat.
