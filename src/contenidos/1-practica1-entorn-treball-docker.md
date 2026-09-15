@@ -33,19 +33,20 @@ A continuació es detalla com fer aquesta preparació sobre **Ubuntu 26**.
 
 1. **Afegir el repositori de Docker en Ubuntu 26:**
 ```bash
-# Afegir la clau GPG oficial de Docker: 
+# 1. Limpieza de configuraciones anteriores para evitar duplicados o errores
+sudo rm -f /etc/apt/sources.list.d/docker.list /etc/apt/sources.list.d/docker.sources
+
+# 2. Añadir la clave GPG oficial de Docker
 sudo apt update
-sudo apt install -y ca-certificates curl  
-sudo install -m 0755 -d /etc/apt/keyrings  
+sudo apt install -y ca-certificates curl
+sudo install -m 0755 -d /etc/apt/keyrings
 sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
 sudo chmod a+r /etc/apt/keyrings/docker.asc
 
-# Afegir el repositori a les fonts d’APT: 
-echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \  
-  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
-  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null 
+# 3. Añadir el repositorio a las fuentes de APT
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}") stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
+# 4. Actualizar el índice de paquetes
 sudo apt update
 
 ```
@@ -100,45 +101,45 @@ cd ~/el_teu_projecte
 Dins d’aquesta carpeta, crea l'arxiu `docker-compose.yml`. Utilitzem l'última versió estable de PHP disponible (`php:8.5-apache`) i el camí relatiu `./:/var/www/html`, de manera que el contenidor s'executarà directament des del directori actual.
 
 ```yaml
-services:  
-  app:  
-    image: php:8.5-apache  
-    container_name: php_app  
-    volumes:  
-      - ./:/var/www/html  
-    ports:  
-      - "8080:80"  
-    depends_on:  
-      - db  
+services:
+  app:
+    image: php:8.2-apache
+    container_name: php_app
+    volumes:
+      - ./:/var/www/html
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
     restart: always
 
-  db:  
-    image: mysql:8.0  
-    container_name: mysql_db  
-    environment:  
-      MYSQL_ROOT_PASSWORD: rootpass  
-      MYSQL_DATABASE: testdb  
-      MYSQL_USER: user  
-      MYSQL_PASSWORD: userpass  
-    volumes:  
-      - db_data:/var/lib/mysql  
+  db:
+    image: mysql:8.0
+    container_name: mysql_db
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: testdb
+      MYSQL_USER: user
+      MYSQL_PASSWORD: userpass
+    volumes:
+      - db_data:/var/lib/mysql
     restart: always
 
-  phpmyadmin:  
-    image: phpmyadmin/phpmyadmin  
-    container_name: phpmyadmin  
-    environment:  
-      PMA_HOST: db  
-      PMA_USER: root  
-      PMA_PASSWORD: rootpass  
-    ports:  
-      - "8081:80"  
-    depends_on:  
-      - db  
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    environment:
+      PMA_HOST: db
+      PMA_USER: root
+      PMA_PASSWORD: rootpass
+    ports:
+      - "8081:80"
+    depends_on:
+      - db
     restart: always
 
-volumes:  
-  db_data:  
+volumes:
+  db_data: 
 
 ```
 
