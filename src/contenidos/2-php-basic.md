@@ -638,9 +638,9 @@ echo "Benvingut a " . APP_NAME . " v" . VERSION;
 
 ```
 
-| Criteri | `define()` | `const` |
-|  |  |  |
-| **Àmbit** | Es pot definir en qualsevol lloc (dins d'un `if`, funció, etc.) | Només en el nivell superior del script o dins de classes |
+| Criteri | define() | const |
+|---|---|---|
+| **Àmbit** | Es pot definir en qualsevol lloc (dins d'un if, funció, etc.) | Només en el nivell superior del script o dins de classes |
 | **Execució** | Es defineix en temps d'execució | Es defineix en temps de compilació |
 | **Sintaxi** | Funció `define('NOM', valor);` | Paraula clau `const NOM = valor;` |
 
@@ -2587,7 +2587,47 @@ La **vista** (la part HTML de davall) ja està completa: si `$hasNotificacions` 
 **Fitxer de partida:** `exercici6.1.php`
 ::: details  📄 exercici 6.1.php
 ```php
+<?php
+    // TODO 1: Captura $_GET['paraula'] amb ?? (per defecte '') i guarda-la en $paraulaCercada
 
+
+    // TODO 2: Captura $_GET['pagina'] amb ?? (per defecte 1), converteix-la a (int)
+    // i guarda-la en $paginaActual
+
+?>
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercici 6.1 - Cercador de leads (GET)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+
+    <div class="bg-white p-8 rounded-lg shadow-md max-w-md w-full">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">Cercador de leads</h2>
+
+        <form method="GET" action="" class="flex gap-2 mb-4">
+            <input type="text" name="paraula" placeholder="Cerca un lead..."
+                   class="flex-1 border border-gray-300 rounded px-3 py-2">
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded">
+                Cercar
+            </button>
+        </form>
+
+        <!-- VISTA: no cal tocar res d'ací en avall -->
+        <?php if (!empty($paraulaCercada)): ?>
+            <p class="text-gray-700">
+                Has cercat: <strong><?= htmlspecialchars($paraulaCercada) ?></strong>
+                (pàgina <?= $paginaActual ?>)
+            </p>
+        <?php endif; ?>
+
+    </div>
+
+</body>
+</html>
 ```
 :::
 
@@ -2608,7 +2648,53 @@ Tasques a fer dins del fitxer:
 **Fitxer de partida:** `exercici6.2.php`
 ::: details  📄 exercici 6.2.php
 ```php
+<?php
+    // TODO 1: Declara $nom = '' i $missatge = ''
 
+
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        // TODO 2: Captura $_POST['nom'] amb ?? (per defecte '') i guarda-la en $nom
+
+
+        // TODO 3: Captura $_POST['missatge'] amb ?? (per defecte '') i guarda-la en $missatge
+
+    }
+?>
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercici 6.2 - Formulari de contacte (POST)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+
+    <div class="bg-white p-8 rounded-lg shadow-md max-w-md w-full">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">Contacta amb TechLeads</h2>
+
+        <form method="POST" action="" class="space-y-3 mb-4">
+            <input type="text" name="nom" placeholder="El teu nom"
+                   class="w-full border border-gray-300 rounded px-3 py-2">
+            <textarea name="missatge" placeholder="El teu missatge" rows="3"
+                      class="w-full border border-gray-300 rounded px-3 py-2"></textarea>
+            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded">
+                Enviar
+            </button>
+        </form>
+
+        <!-- VISTA: no cal tocar res d'ací en avall -->
+        <?php if ($_SERVER['REQUEST_METHOD'] === 'POST'): ?>
+            <div class="bg-green-100 text-green-800 p-4 rounded">
+                Gràcies, <strong><?= htmlspecialchars($nom) ?></strong>! Hem rebut el teu missatge:
+                "<?= htmlspecialchars($missatge) ?>"
+            </div>
+        <?php endif; ?>
+
+    </div>
+
+</body>
+</html>
 ```
 :::
 
@@ -2630,7 +2716,75 @@ Tasques a fer dins del fitxer:
 **Fitxer de partida:** `exercici6.3.php`
 ::: details  📄 exercici 6.3.php
 ```php
+<?php
+    // TODO 1: Declara $errors = [], $nom = '' i $email = ''
 
+
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+        // TODO 2: Captura i neteja $_POST['nom'] amb trim() (i ?? per defecte ''), guarda-la en $nom
+
+
+        // TODO 3: Captura i neteja $_POST['email'] amb trim() (i ?? per defecte ''), guarda-la en $email
+
+
+        // TODO 4: Valida $nom:
+        // si empty($nom) -> $errors['nom'] = "El camp nom és obligatori.";
+        // si no, si mb_strlen($nom) < 2 -> $errors['nom'] = "El nom ha de tindre almenys 2 caràcters."
+
+
+        // TODO 5: Valida $email:
+        // si empty($email) -> $errors['email'] = "El correu electrònic és obligatori.";
+        // si no, si !filter_var($email, FILTER_VALIDATE_EMAIL) -> $errors['email'] = "El format del correu no és vàlid."
+
+    }
+?>
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercici 6.3 - Validació de formulari</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+
+    <div class="bg-white p-8 rounded-lg shadow-md max-w-md w-full">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">Formulari de contacte</h2>
+
+        <!-- VISTA: no cal tocar res d'ací en avall -->
+        <?php if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($errors)): ?>
+            <div class="bg-green-100 text-green-800 p-4 rounded mb-4">
+                Formulari enviat correctament! Gràcies, <?= htmlspecialchars($nom) ?>.
+            </div>
+        <?php endif; ?>
+
+        <form method="POST" action="" class="space-y-3">
+            <div>
+                <input type="text" name="nom" value="<?= htmlspecialchars($nom) ?>" placeholder="El teu nom"
+                       class="w-full border border-gray-300 rounded px-3 py-2">
+                <?php if (isset($errors['nom'])): ?>
+                    <p class="text-red-600 text-sm mt-1"><?= $errors['nom'] ?></p>
+                <?php endif; ?>
+            </div>
+
+            <div>
+                <input type="text" name="email" value="<?= htmlspecialchars($email) ?>" placeholder="El teu correu"
+                       class="w-full border border-gray-300 rounded px-3 py-2">
+                <?php if (isset($errors['email'])): ?>
+                    <p class="text-red-600 text-sm mt-1"><?= $errors['email'] ?></p>
+                <?php endif; ?>
+            </div>
+
+            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded">
+                Enviar
+            </button>
+        </form>
+
+    </div>
+
+</body>
+</html>
 ```
 :::
 
