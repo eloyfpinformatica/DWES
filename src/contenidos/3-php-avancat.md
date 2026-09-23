@@ -32,8 +32,6 @@
 * **g)** S'han aplicat els principis de la programació orientada a objectes.
 * **h)** S'ha provat i documentat el codi.
 
-
-
 :::
 
 
@@ -51,7 +49,7 @@
   - [Índex](#índex)
   - [1. Supervariables](#1-supervariables)
     - [`$_ENV`](#_env)
-    - [`$_GET` i `$_POST` (recordatori)](#_get-i-_post-recordatori)
+    - [`$_GET` i `$_POST`](#_get-i-_post)
     - [`$_REQUEST`](#_request)
     - [`$_SERVER`](#_server)
     - [`$_COOKIE` i `$_SESSION`](#_cookie-i-_session)
@@ -63,10 +61,6 @@
       - [Tipus de contingut (`Content-Type`)](#tipus-de-contingut-content-type)
       - [Codis d'estat HTTP](#codis-destat-http)
       - [Forçar la descàrrega d'un arxiu](#forçar-la-descàrrega-dun-arxiu)
-      - [Control de caché](#control-de-caché)
-    - [Comprovar si les capçaleres ja s'han enviat](#comprovar-si-les-capçaleres-ja-shan-enviat)
-    - [Consultar les capçaleres enviades](#consultar-les-capçaleres-enviades)
-    - [Capçaleres de la petició entrant](#capçaleres-de-la-petició-entrant)
   - [3. Separació lògica i vistes amb require i include](#3-separació-lògica-i-vistes-amb-require-i-include)
     - [`include` vs `require`](#include-vs-require)
     - [`include_once` i `require_once`](#include_once-i-require_once)
@@ -103,7 +97,6 @@
       - [Validar el tipus i la grandària de l'arxiu](#validar-el-tipus-i-la-grandària-de-larxiu)
       - [Moure l'arxiu a la seua ubicació definitiva](#moure-larxiu-a-la-seua-ubicació-definitiva)
       - [Configuració rellevant al `php.ini`](#configuració-rellevant-al-phpini)
-    - [Pujar diversos arxius alhora](#pujar-diversos-arxius-alhora)
   - [5. Cookies i sessions](#5-cookies-i-sessions)
     - [Cookies](#cookies)
       - [Crear una cookie: `setcookie()`](#crear-una-cookie-setcookie)
@@ -169,17 +162,18 @@ En esta unitat en farem un ús avançat, però ací en tens una primera visió d
 | `$_ENV` | Variables d'entorn del sistema | Este punt |
 | `$_REQUEST` | Combinació de `$_GET`, `$_POST` i `$_COOKIE` | Este punt |
 
-> 📖 Documentació oficial: [PHP: Variables predefinides](https://www.php.net/manual/es/reserved.variables.php)
+::: info 📖 Documentació oficial
+ [PHP: Variables predefinides](https://www.php.net/manual/es/reserved.variables.php)
+:::
 
 ### `$_ENV`
 
 Conté les variables d'entorn del sistema operatiu o del servidor web. És habitual usar-la per a guardar dades de configuració sensibles (credencials de base de dades, claus d'API...) sense escriure-les directament al codi.
 
+Treballarem amb més detall amb variables d'entorn en unitats posteriors amb **Laravel**.
+
 ```php
 <?php
-// Cal que la directiva variables_order de php.ini incloga la 'E'
-// o bé que s'hagen definit amb putenv() / al fitxer .htaccess
-
 echo $_ENV['APP_NAME'] ?? 'No definida';
 ```
 
@@ -192,9 +186,7 @@ En molts servidors, per defecte `$_ENV` ve buida perquè la directiva `variables
 echo getenv('APP_NAME');
 ```
 
-> 📖 Documentació oficial: [PHP: getenv](https://www.php.net/manual/es/function.getenv.php)
-
-### `$_GET` i `$_POST` (recordatori)
+### `$_GET` i `$_POST`
 
 Ja les vam vore a la unitat anterior. Simple recordatori ràpid:
 
@@ -270,8 +262,6 @@ Array (
 Totes les supervariables són *arrays associatius* i, per tant, s'utilitzen exactament igual que qualsevol array de PHP que ja coneixes (accés amb claus, `isset()`, `foreach`, etc.).
 :::
 
-> 📖 Documentació oficial completa: [PHP: Variables superglobals](https://www.php.net/manual/es/language.variables.superglobals.php)
-
 
 ## 2. Encapçalaments de resposta
 
@@ -280,8 +270,6 @@ Quan un servidor respon a una petició HTTP, envia dos blocs d'informació: les 
 ::: info Nota
 En PHP, tot el que s'imprimeix amb `echo` o es genera com a HTML forma part del **cos** de la resposta. Les capçaleres es gestionen amb funcions independents i s'envien *abans* que qualsevol contingut.
 :::
-
-> 📖 Documentació oficial: [PHP: header](https://www.php.net/manual/es/function.header.php)
 
 ### La funció `header()`
 
@@ -303,10 +291,6 @@ La funció `header()` s'ha de cridar **abans que s'haja enviat cap byte de conti
  
 header('Location: index.php'); // Error!
 ```
-
-::: tip Bona pràctica
-Guarda sempre els arxius PHP en codificació **UTF-8 sense BOM** i evita deixar espais o línies en blanc abans de `<?php` o després de `?>`. De fet, és habitual **no tancar** l'etiqueta PHP (`?>`) al final de l'arxiu per a evitar este problema per complet.
-:::
 
 ### Capçaleres més habituals
 
@@ -348,8 +332,6 @@ echo "La pàgina sol·licitada no existeix";
 header('HTTP/1.1 403 Forbidden');
 ```
 
-> 📖 Documentació oficial: [PHP: http_response_code](https://www.php.net/manual/es/function.http-response-code.php)
-
 #### Forçar la descàrrega d'un arxiu
 
 ```php
@@ -362,67 +344,6 @@ header('Content-Length: ' . filesize($arxiu));
 readfile($arxiu);
 exit;
 ```
-
-#### Control de caché
-
-```php
-<?php
-// Evitar que el navegador guarde la resposta en caché
-header('Cache-Control: no-cache, no-store, must-revalidate');
-header('Pragma: no-cache');
-header('Expires: 0');
-```
-
-### Comprovar si les capçaleres ja s'han enviat
-
-```php
-<?php
-if (headers_sent()) {
-    echo "Ja no es poden enviar més capçaleres!";
-} else {
-    header('Location: index.php');
-    exit;
-}
-```
-
-### Consultar les capçaleres enviades
-
-Útil per a depurar (relacionat amb el punt 9 d'esta unitat):
-
-```php
-<?php
-print_r(headers_list());
-```
-
-### Capçaleres de la petició entrant
-
-A banda d'enviar capçaleres en la resposta, sovint interessa **llegir** les que envia el client en la petició. Es fa a través de `$_SERVER` (vist al punt 1) o amb la funció `getallheaders()`:
-
-```php
-<?php
-// Via $_SERVER
-$userAgent = $_SERVER['HTTP_USER_AGENT'] ?? 'Desconegut';
-$acceptLang = $_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? '';
-
-// Via getallheaders() (equivalent més còmode)
-$capçaleres = getallheaders();
-print_r($capçaleres);
-```
-
-::: details Veure eixida d'exemple
-Array
-(
-[Host] => localhost
-[User-Agent] => Mozilla/5.0 ...
-[Accept] => text/html,application/xhtml+xml
-[Accept-Language] => ca,es;q=0.9
-)
-
-:::
-
-📌 **A recordar:** les capçaleres es negocien *abans* que cap contingut arribe al navegador. Qualsevol eixida prèvia (encara que siga un espai en blanc) impedeix modificar-les.
-
-> 📖 Documentació oficial: [PHP: Manejo de cabeceras HTTP](https://www.php.net/manual/es/function.header.php) · [MDN: Cabeceras HTTP](https://developer.mozilla.org/es/docs/Web/HTTP/Headers)
 
 
 ## 3. Separació lògica i vistes amb require i include
@@ -569,13 +490,7 @@ require __DIR__ . '/config.php';
 `__DIR__` és una constant màgica de PHP que conté el directori de l'arxiu **on s'escriu**, no del que l'executa. És la manera fiable d'evitar errors de "arxiu no trobat" quan el projecte creix i té múltiples nivells de carpetes.
 :::
 
-> 📖 Documentació oficial: [__DIR__ i constants màgiques](https://www.php.net/manual/es/language.constants.magic.php)
-
----
-
 📌 **A recordar:** `require` per a allò imprescindible, `include` per a allò opcional; afig `_once` quan hi ha risc de redeclaració; utilitza sempre `__DIR__` per a construir rutes fiables.
-
-> 📖 Documentació oficial: [PHP: include](https://www.php.net/manual/es/function.include.php) · [PHP: require](https://www.php.net/manual/es/function.require.php) · [PHP: include_once](https://www.php.net/manual/es/function.include-once.php) · [PHP: require_once](https://www.php.net/manual/es/function.require-once.php)
 
 
 ## 4. Ús avançat de formularis
@@ -700,8 +615,6 @@ $telefon = $contacte['telefon'] ?? '';
 
 📌 **A recordar:** afig `[]` al `name` quan un mateix camp puga tindre diversos valors; comprova sempre amb `isset()` o l'operador `??` abans d'iterar, ja que els camps no enviats (com els checkboxes sense marcar) no apareixen a `$_POST`.
 
-> 📖 Documentació oficial: [PHP: Manejo de formularios HTML (arrays)](https://www.php.net/manual/es/faq.html.php#faq.html.arrays)
-
 
 ### 4.2. Validació de dades de formularis
 
@@ -721,8 +634,6 @@ if ($nom === '') {
     $errors[] = 'El nom és obligatori.';
 }
 ```
-
-> 📖 Documentació oficial: [PHP: trim](https://www.php.net/manual/es/function.trim.php)
 
 #### Funcions natives de validació de tipus
 
@@ -779,12 +690,9 @@ if ($edat === false) {
 }
 ```
 
-::: tip Bona pràctica
-`filter_var()` amb `FILTER_VALIDATE_INT` o `FILTER_VALIDATE_FLOAT` retorna `false` si el valor no és vàlid, la qual cosa permet distingir-lo fàcilment d'un `0` legítim (sempre que es compare amb `===`, mai amb `==`).
+::: info 📖 Documentació oficial
+[PHP: filter_var](https://www.php.net/manual/es/function.filter-var.php) · [PHP: Filtres disponibles](https://www.php.net/manual/es/filter.filters.php)
 :::
-
-> 📖 Documentació oficial: [PHP: filter_var](https://www.php.net/manual/es/function.filter-var.php) · [PHP: Filtres disponibles](https://www.php.net/manual/es/filter.filters.php)
-
 
 ### Acumular i mostrar errors: patró complet
 
@@ -824,11 +732,6 @@ if (empty($errors)) {
 Este patró d'acumular errors en un array és la base del que veurem al punt 4.4 (*sticky forms*), on a més de mostrar els errors, tornarem a omplir el formulari amb els valors que l'usuari ja havia introduït.
 :::
 
----
-
-📌 **A recordar:** valida sempre al servidor, encara que ja hi haja validació HTML/JavaScript; usa `filter_var()` com a primera opció per a validacions comunes (email, URL, nombres) i expressions regulars per a formats específics.
-
-> 📖 Documentació oficial: [PHP: Validating Filters](https://www.php.net/manual/es/filter.filters.validate.php) · [PHP: PCRE (expressions regulars)](https://www.php.net/manual/es/book.pcre.php)
 
 ### 4.3. Seguretat XSS
 
@@ -882,7 +785,8 @@ Amb açò, el `<script>` de l'exemple anterior es mostraria literalment com a te
 Utilitza sempre el segon paràmetre `ENT_QUOTES` perquè també escape les cometes simples i dobles (per defecte, `ENT_QUOTES` només escapava les dobles en versions antigues de PHP). Des de PHP 8.1, `ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML401` és el valor per defecte, però és recomanable indicar-lo explícitament per a claredat i compatibilitat.
 :::
 
-> 📖 Documentació oficial: [PHP: htmlspecialchars](https://www.php.net/manual/es/function.htmlspecialchars.php)
+::: info 📖 Documentació oficial: [PHP: htmlspecialchars](https://www.php.net/manual/es/function.htmlspecialchars.php)
+:::
 
 #### On aplicar `htmlspecialchars()`
 
@@ -926,8 +830,9 @@ echo '<a href="resultats.php?q=' . urlencode($cercar) . '">Cerca de nou</a>';
 
 📌 **A recordar:** mai imprimisques dades de l'usuari directament en HTML; utilitza sempre `htmlspecialchars($valor, ENT_QUOTES, 'UTF-8')` en el moment de mostrar-les.
 
-> 📖 Documentació oficial: [OWASP: Cross Site Scripting](https://owasp.org/www-community/attacks/xss/) · [PHP: htmlspecialchars](https://www.php.net/manual/es/function.htmlspecialchars.php)
-
+::: info 📖 Documentació oficial
+[OWASP: Cross Site Scripting](https://owasp.org/www-community/attacks/xss/) · [PHP: htmlspecialchars](https://www.php.net/manual/es/function.htmlspecialchars.php)
+:::
 
 ### 4.4. Sticky forms
 
@@ -1102,8 +1007,6 @@ Este patró (redirigir després d'un POST, en lloc de mostrar el resultat direct
 
 📌 **A recordar:** un sticky form reomplin sempre els valors previs de l'usuari, passats per `htmlspecialchars()`; per a `select`/`checkbox`/`radio` cal comparar el valor guardat per a decidir si s'afig `selected`/`checked`.
 
-> 📖 Documentació oficial: [PHP: $_SERVER](https://www.php.net/manual/es/reserved.variables.server.php) · [PHP: Formularios HTML](https://www.php.net/manual/es/language.variables.external.php)
-
 
 ### 4.5. Pujar arxius i imatges
 
@@ -1141,7 +1044,9 @@ Array
 */
 ```
 
-> 📖 Documentació oficial: [PHP: $_FILES](https://www.php.net/manual/es/reserved.variables.files.php)
+::: info 📖 Documentació oficial
+[PHP: $_FILES](https://www.php.net/manual/es/reserved.variables.files.php)
+:::
 
 #### Codis d'error de pujada
 
@@ -1162,7 +1067,6 @@ if ($_FILES['foto']['error'] !== UPLOAD_ERR_OK) {
 }
 ```
 
-> 📖 Documentació oficial: [PHP: Mensajes de error al subir archivos](https://www.php.net/manual/es/features.file-upload.errors.php)
 
 #### Validar el tipus i la grandària de l'arxiu
 
@@ -1175,7 +1079,7 @@ if ($_FILES['foto']['error'] !== UPLOAD_ERR_OK) {
 $arxiuTemporal = $_FILES['foto']['tmp_name'];
 $grandariaMaxima = 2 * 1024 * 1024; // 2 MB
 
-// ✅ Comprova el tipus real llegint la capçalera de l'arxiu (finfo)
+// Comprova el tipus real llegint la capçalera de l'arxiu (finfo)
 $finfo = new finfo(FILEINFO_MIME_TYPE);
 $tipusReal = $finfo->file($arxiuTemporal);
 
@@ -1190,8 +1094,6 @@ if ($_FILES['foto']['size'] > $grandariaMaxima) {
 }
 ```
 
-> 📖 Documentació oficial: [PHP: fileinfo](https://www.php.net/manual/es/book.fileinfo.php)
-
 ::: tip Bona pràctica
 Per a validar específicament que un arxiu és una imatge vàlida (i no, per exemple, un arxiu PHP disfressat amb extensió `.jpg`), la funció `getimagesize()` és encara més fiable: si l'arxiu no és una imatge real, retorna `false`.
 :::
@@ -1202,9 +1104,6 @@ if (getimagesize($arxiuTemporal) === false) {
     die('L\'arxiu no és una imatge vàlida.');
 }
 ```
-
-> 📖 Documentació oficial: [PHP: getimagesize](https://www.php.net/manual/es/function.getimagesize.php)
-
 #### Moure l'arxiu a la seua ubicació definitiva
 
 L'arxiu pujat es guarda inicialment en una carpeta temporal del sistema i **s'elimina automàticament** en acabar l'script si no es mou. Cal usar sempre `move_uploaded_file()` (mai `copy()` ni `rename()`) per motius de seguretat: esta funció comprova que l'arxiu prové realment d'una pujada HTTP.
@@ -1230,7 +1129,6 @@ if (move_uploaded_file($arxiuTemporal, $rutaDesti)) {
 No confies mai en `$_FILES['foto']['name']` per a construir la ruta final sense processar-lo abans: podria contindre caràcters perillosos o intents de *path traversal* (com `../../etc/passwd`). Genera sempre un nom nou (per exemple, amb `uniqid()`) i queda't només amb l'extensió del nom original.
 :::
 
-> 📖 Documentació oficial: [PHP: move_uploaded_file](https://www.php.net/manual/es/function.move-uploaded-file.php)
 
 #### Configuració rellevant al `php.ini`
 
@@ -1246,40 +1144,7 @@ max_file_uploads = 20
 `post_max_size` ha de ser sempre **igual o major** que `upload_max_filesize`, ja que l'arxiu viatja dins del cos de la petició `POST`.
 :::
 
-### Pujar diversos arxius alhora
-
-Combinant el que hem vist al punt 4.1 (arrays en formularis), es poden pujar múltiples arxius amb un mateix camp:
-
-```html
-<input type="file" name="fotos[]" multiple accept="image/*">
-```
-
-```php
-<?php
-// Amb múltiples arxius, $_FILES['fotos'] té una estructura una mica diferent:
-// cada propietat (name, type, tmp_name...) és un array indexat
-$total = count($_FILES['fotos']['name']);
-
-for ($i = 0; $i < $total; $i++) {
-    if ($_FILES['fotos']['error'][$i] === UPLOAD_ERR_OK) {
-        $tmpName = $_FILES['fotos']['tmp_name'][$i];
-        $nomFinal = uniqid('img_', true) . '.' .
-            pathinfo($_FILES['fotos']['name'][$i], PATHINFO_EXTENSION);
-
-        move_uploaded_file($tmpName, __DIR__ . '/pujades/' . $nomFinal);
-    }
-}
-```
-
-::: warning Atenció
-Amb pujades múltiples, l'estructura de `$_FILES` **no** és un array de sub-arrays per arxiu, sinó un array de propietats on cada propietat és, al seu torn, un array indexat per posició. Cal iterar amb un índex comú (`$i`) per a totes les propietats, com mostra l'exemple.
-:::
-
----
-
 📌 **A recordar:** valida sempre el tipus real de l'arxiu (mai el camp `type` de `$_FILES`), limita la grandària, i utilitza `move_uploaded_file()` amb un nom generat automàticament per a evitar sobreescritures i problemes de seguretat.
-
-> 📖 Documentació oficial: [PHP: Subir archivos con POST](https://www.php.net/manual/es/features.file-upload.post-method.php) · [PHP: move_uploaded_file](https://www.php.net/manual/es/function.move-uploaded-file.php) · [PHP: fileinfo](https://www.php.net/manual/es/book.fileinfo.php)
 
 
 ## 5. Cookies i sessions
@@ -1323,8 +1188,6 @@ setcookie(
 ::: tip Bona pràctica
 Activa sempre `httponly: true` en cookies sensibles (com la de sessió): impedix que JavaScript hi accedisca amb `document.cookie`, reduint l'impacte d'un possible atac XSS (vist al punt 4.3). Activa `secure: true` sempre que el lloc funcione amb HTTPS.
 :::
-
-> 📖 Documentació oficial: [PHP: setcookie](https://www.php.net/manual/es/function.setcookie.php)
 
 #### Llegir una cookie
 
@@ -1393,8 +1256,6 @@ session_start();
 echo 'Sessió iniciada per: ' . htmlspecialchars($_SESSION['usuari'] ?? 'ningú');
 ```
 
-> 📖 Documentació oficial: [PHP: $_SESSION](https://www.php.net/manual/es/reserved.variables.session.php) · [PHP: session_start](https://www.php.net/manual/es/function.session-start.php)
-
 #### Eliminar dades i tancar la sessió
 
 ```php
@@ -1407,7 +1268,6 @@ $_SESSION = [];                   // Buida totes les dades de la sessió
 session_destroy();                // Destruïx la sessió al servidor
 ```
 
-> 📖 Documentació oficial: [PHP: session_destroy](https://www.php.net/manual/es/function.session-destroy.php)
 
 #### Exemple pràctic: comptador de visites
 
@@ -1453,7 +1313,6 @@ Este patró és la base de l'autenticació d'usuaris que veurem en detall al pun
 
 📌 **A recordar:** `setcookie()` i `session_start()` han de cridar-se abans de qualsevol eixida; les cookies guarden dades al client (útils per a preferències), les sessions al servidor (útils per a dades sensibles com l'autenticació).
 
-> 📖 Documentació oficial: [PHP: Manejo de sesiones](https://www.php.net/manual/es/book.session.php) · [PHP: Manejo de cookies con HTTP](https://www.php.net/manual/es/features.cookies.php)
 
 ## 6. Autenticació d'usuaris (password_hash i password_verify)
 
@@ -1493,8 +1352,6 @@ Cada vegada que crides `password_hash()` amb la mateixa contrasenya, obtens un r
 :::
 
 `PASSWORD_DEFAULT` utilitza sempre l'algorisme recomanat per l'equip de PHP en cada versió (actualment **bcrypt**), i pot canviar en versions futures de PHP a mesura que apareguen algorismes millors. Per això és preferible a especificar un algorisme fix com `PASSWORD_BCRYPT`.
-
-> 📖 Documentació oficial: [PHP: password_hash](https://www.php.net/manual/es/function.password-hash.php)
 
 ### Registrar un usuari
 
@@ -1536,7 +1393,6 @@ if (password_verify($contrasenyaIntroduida, $hashGuardat)) {
 }
 ```
 
-> 📖 Documentació oficial: [PHP: password_verify](https://www.php.net/manual/es/function.password-verify.php)
 
 ### Exemple pràctic complet: registre i inici de sessió
 
@@ -1599,7 +1455,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 Crida sempre `session_regenerate_id(true)` just després d'autenticar un usuari correctament. Açò genera un nou identificador de sessió, evitant un tipus d'atac anomenat *fixació de sessió* (on un atacant força a una víctima a usar un ID de sessió que ja coneix).
 :::
 
-> 📖 Documentació oficial: [PHP: session_regenerate_id](https://www.php.net/manual/es/function.session-regenerate-id.php)
+
 
 **`pagina_privada.php`**
 
@@ -1633,13 +1489,8 @@ exit;
 No indiques mai si l'error és "l'usuari no existeix" o "la contrasenya és incorrecta" per separat: dóna sempre un missatge genèric com "Usuari o contrasenya incorrectes". Si no, un atacant podria esbrinar quins noms d'usuari existixen al sistema simplement provant-los un a un.
 :::
 
-> 📖 Documentació oficial: [PHP: password_needs_rehash](https://www.php.net/manual/es/function.password-needs-rehash.php)
-
----
 
 📌 **A recordar:** mai guardes contrasenyes en text pla ni amb `md5()`/`sha1()`; utilitza sempre `password_hash()` per a crear-les i `password_verify()` per a comprovar-les; regenera l'ID de sessió (`session_regenerate_id()`) després d'un login correcte.
-
-> 📖 Documentació oficial: [PHP: Funciones de Password Hashing](https://www.php.net/manual/es/book.password.php) · [OWASP: Password Storage Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html)
 
 
 ## 7. Gestió d'errors i excepcions
@@ -1667,7 +1518,6 @@ echo $variableNoDefinida ?? 'valor per defecte';
 funcioQueNoExisteix();
 ```
 
-> 📖 Documentació oficial: [PHP: Errores](https://www.php.net/manual/es/language.errors.php)
 
 ### `try`, `catch` i `throw`
 
@@ -1694,8 +1544,6 @@ echo 'L\'script continua executant-se amb normalitat.';
 ::: tip Bona pràctica
 El codi dins del bloc `try` s'ha d'executar sempre fins que troba el problema; si `dividir()` llança l'excepció, l'`echo` posterior a dins del `try` **no** s'arriba a executar, i el control passa directament al `catch`.
 :::
-
-> 📖 Documentació oficial: [PHP: Excepciones](https://www.php.net/manual/es/language.exceptions.php)
 
 ### El bloc `finally`
 
@@ -1730,7 +1578,6 @@ try {
 
 📌 **A recordar:** utilitza `try`/`catch`/`throw` per a gestionar situacions anòmales de manera controlada; ordena els `catch` de més específic a més genèric; no reveles mai detalls tècnics de les excepcions a l'usuari final.
 
-> 📖 Documentació oficial: [PHP: Excepciones](https://www.php.net/manual/es/language.exceptions.php) · [PHP: Manejo de errores](https://www.php.net/manual/es/book.errorfunc.php)
 
 ## 8. Classes i objectes
 
@@ -1740,7 +1587,6 @@ Ja coneixes la programació orientada a objectes des de Java (1r curs del cicle)
 PHP és un llenguatge de tipatge dinàmic i opcional (a diferència de Java), també en POO: pots indicar tipus als atributs, paràmetres i valors de retorn (com farem en tots els exemples), però no és obligatori fer-ho.
 :::
 
-> 📖 Documentació oficial: [PHP: Programación orientada a objetos](https://www.php.net/manual/es/language.oop5.php)
 
 ### Definir una classe
 
@@ -1931,8 +1777,6 @@ $rectangle->enviarNotificacio('Hola'); // Notificació: Hola
 Com en Java: una classe abstracta no es pot instanciar directament (`new Figura()` donaria error) i pot combinar mètodes ja implementats (com `descriure()`) amb mètodes abstractes que obliguen a implementar-los a les subclasses (`calcularArea()`). Una classe pot implementar (`implements`) diverses interfícies, però només pot estendre (`extends`) **una** classe.
 :::
 
-> 📖 Documentació oficial: [PHP: Clases abstractas](https://www.php.net/manual/es/language.oop5.abstract.php) · [PHP: Interfaces de Objetos](https://www.php.net/manual/es/language.oop5.interfaces.php)
-
 ### Propietats i mètodes estàtics
 
 Pertanyen a la classe en si, no a una instància concreta. S'accedixen amb `::` en lloc de `->`.
@@ -2027,7 +1871,7 @@ En projectes reals, els namespaces es combinen amb l'**autoload** de Composer (s
 
 📌 **A recordar:** els conceptes de POO són els mateixos que ja coneixes de Java; canvia la sintaxi (`->` en lloc de `.`, `$this->` en lloc de `this.`, `::` per a membres estàtics) i PHP afig facilitats pròpies com les propietats promocionades del constructor o `readonly`.
 
-> 📖 Documentació oficial: [PHP: Programación Orientada a Objetos](https://www.php.net/manual/es/language.oop5.php) · [PHP: PSR-4 Autoloading](https://www.php-fig.org/psr/psr-4/)
+
 
 ## 9. Debug, proves i documentació [Ampliació]
 
@@ -2059,7 +1903,6 @@ ini_set('display_errors', 1);
 error_reporting(E_ALL);
 ```
 
-> 📖 Documentació oficial: [PHP: error_reporting](https://www.php.net/manual/es/function.error-reporting.php)
 
 ### Xdebug: depuració pas a pas
 
@@ -2175,7 +2018,6 @@ OK (2 tests, 2 assertions)
 | `assertCount($n, $array)` | Que un array té `$n` elements |
 | `expectException($classe)` | Que el codi llança una excepció d'eixa classe |
 
-> 📖 Documentació oficial: [PHPUnit: Documentación](https://docs.phpunit.de/en/10.5/) · [PHPUnit: Assertions](https://docs.phpunit.de/en/10.5/assertions.html)
 
 ### Documentació del codi: PHPDoc
 
@@ -2224,11 +2066,3 @@ class Producte {
     private float $preu;
 }
 ```
-
-> 📖 Documentació oficial: [PHPDoc: phpDocumentor](https://docs.phpdoc.org/guide/getting-started/what-is-a-docblock.html)
-
----
-
-📌 **A recordar:** `var_dump()`/`print_r()` per a depuracions ràpides, Xdebug per a seguir l'execució pas a pas en errors complexos, PHPUnit per a automatitzar la comprovació que el codi funciona correctament, i PHPDoc per a documentar el propòsit de funcions, paràmetres i excepcions.
-
-> 📖 Documentació oficial: [Xdebug](https://xdebug.org/docs/) · [PHPUnit](https://docs.phpunit.de/en/10.5/) · [phpDocumentor](https://docs.phpdoc.org/)
