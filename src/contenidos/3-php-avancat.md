@@ -162,6 +162,8 @@ En esta unitat en farem un ús avançat, però ací en tens una primera visió d
 | `$_ENV` | Variables d'entorn del sistema | Este punt |
 | `$_REQUEST` | Combinació de `$_GET`, `$_POST` i `$_COOKIE` | Este punt |
 
+![u3_supervariables](./media/u3_supervariables.png)
+
 ::: info 📖 Documentació oficial
  [PHP: Variables predefinides](https://www.php.net/manual/es/reserved.variables.php)
 :::
@@ -1003,6 +1005,10 @@ unset($_SESSION['errors'], $_SESSION['old']); // Netejar per a la següent visit
 Este patró (redirigir després d'un POST, en lloc de mostrar el resultat directament) es coneix com **PRG** (*Post/Redirect/Get*) i té una avantatge important: evita que, si l'usuari refresca la pàgina, el navegador torne a enviar el formulari (i, per exemple, duplique una comanda).
 :::
 
+
+
+![u3_PRG](./media/u3_PRG.png)
+
 ---
 
 📌 **A recordar:** un sticky form reomplin sempre els valors previs de l'usuari, passats per `htmlspecialchars()`; per a `select`/`checkbox`/`radio` cal comparar el valor guardat per a decidir si s'afig `selected`/`checked`.
@@ -1128,6 +1134,8 @@ if (move_uploaded_file($arxiuTemporal, $rutaDesti)) {
 ::: warning Atenció
 No confies mai en `$_FILES['foto']['name']` per a construir la ruta final sense processar-lo abans: podria contindre caràcters perillosos o intents de *path traversal* (com `../../etc/passwd`). Genera sempre un nom nou (per exemple, amb `uniqid()`) i queda't només amb l'extensió del nom original.
 :::
+
+![u3_files](./media/u3_files.png)
 
 
 #### Configuració rellevant al `php.ini`
@@ -1393,6 +1401,8 @@ if (password_verify($contrasenyaIntroduida, $hashGuardat)) {
 }
 ```
 
+
+![u3_login](./media/u3_login.png)
 
 ### Exemple pràctic complet: registre i inici de sessió
 
