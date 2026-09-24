@@ -116,7 +116,7 @@ Dins d’aquesta carpeta, crea l'arxiu `docker-compose.yml`. Utilitzem l'última
 ```yaml
 services:
   app:
-    image: php:8.2-apache
+    image: php:8.5-apache
     container_name: php_app
     volumes:
       - ./:/var/www/html
