@@ -43,105 +43,22 @@
 
 ## Índex
 
-- [Unitat 3. PHP Avançat](#unitat-3-php-avançat)
-  - [Resultats d'aprenentatge i criteris d'avaluació](#resultats-daprenentatge-i-criteris-davaluació)
-  - [Temporalització](#temporalització)
-  - [Índex](#índex)
-  - [1. Supervariables](#1-supervariables)
-    - [`$_ENV`](#_env)
-    - [`$_GET` i `$_POST`](#_get-i-_post)
-    - [`$_REQUEST`](#_request)
-    - [`$_SERVER`](#_server)
-    - [`$_COOKIE` i `$_SESSION`](#_cookie-i-_session)
-    - [`$_FILES`](#_files)
-  - [2. Encapçalaments de resposta](#2-encapçalaments-de-resposta)
-    - [La funció `header()`](#la-funció-header)
-    - [Capçaleres més habituals](#capçaleres-més-habituals)
-      - [Redireccions](#redireccions)
-      - [Tipus de contingut (`Content-Type`)](#tipus-de-contingut-content-type)
-      - [Codis d'estat HTTP](#codis-destat-http)
-      - [Forçar la descàrrega d'un arxiu](#forçar-la-descàrrega-dun-arxiu)
-  - [3. Separació lògica i vistes amb require i include](#3-separació-lògica-i-vistes-amb-require-i-include)
-    - [`include` vs `require`](#include-vs-require)
-    - [`include_once` i `require_once`](#include_once-i-require_once)
-    - [Separació lògica: patró bàsic de capçalera i peu](#separació-lògica-patró-bàsic-de-capçalera-i-peu)
-    - [Separació de la lògica i la vista (patró senzill tipus MVC)](#separació-de-la-lògica-i-la-vista-patró-senzill-tipus-mvc)
-    - [Rutes d'arxiu: absolutes vs relatives](#rutes-darxiu-absolutes-vs-relatives)
-  - [4. Ús avançat de formularis](#4-ús-avançat-de-formularis)
-    - [4.1. Arrays en formularis](#41-arrays-en-formularis)
-      - [Checkboxes múltiples](#checkboxes-múltiples)
-      - [Select múltiple](#select-múltiple)
-      - [Arrays amb claus associatives](#arrays-amb-claus-associatives)
-      - [Arrays multidimensionals amb claus associatives (name)](#arrays-multidimensionals-amb-claus-associatives-name)
-    - [4.2. Validació de dades de formularis](#42-validació-de-dades-de-formularis)
-      - [Comprovar que un camp existeix i no està buit](#comprovar-que-un-camp-existeix-i-no-està-buit)
-      - [Funcions natives de validació de tipus](#funcions-natives-de-validació-de-tipus)
-      - [El sistema de filtres: `filter_var()`](#el-sistema-de-filtres-filter_var)
-    - [Acumular i mostrar errors: patró complet](#acumular-i-mostrar-errors-patró-complet)
-    - [4.3. Seguretat XSS](#43-seguretat-xss)
-      - [Exemple d'atac](#exemple-datac)
-      - [La solució: `htmlspecialchars()`](#la-solució-htmlspecialchars)
-      - [On aplicar `htmlspecialchars()`](#on-aplicar-htmlspecialchars)
-    - [Casos especials: atributs HTML i URLs](#casos-especials-atributs-html-i-urls)
-    - [4.4. Sticky forms](#44-sticky-forms)
-      - [Patró bàsic: un únic arxiu per a formulari i processament](#patró-bàsic-un-únic-arxiu-per-a-formulari-i-processament)
-      - [Sticky en diferents tipus de camp](#sticky-en-diferents-tipus-de-camp)
-        - [Select](#select)
-        - [Checkbox](#checkbox)
-        - [Checkboxes múltiples (recorda el punt 4.1)](#checkboxes-múltiples-recorda-el-punt-41)
-        - [Radio buttons](#radio-buttons)
-      - [Alternativa: separar formulari i processament en dos arxius](#alternativa-separar-formulari-i-processament-en-dos-arxius)
-    - [4.5. Pujar arxius i imatges](#45-pujar-arxius-i-imatges)
-      - [L'array `$_FILES`](#larray-_files)
-      - [Codis d'error de pujada](#codis-derror-de-pujada)
-      - [Validar el tipus i la grandària de l'arxiu](#validar-el-tipus-i-la-grandària-de-larxiu)
-      - [Moure l'arxiu a la seua ubicació definitiva](#moure-larxiu-a-la-seua-ubicació-definitiva)
-      - [Configuració rellevant al `php.ini`](#configuració-rellevant-al-phpini)
-  - [5. Cookies i sessions](#5-cookies-i-sessions)
-    - [Cookies](#cookies)
-      - [Crear una cookie: `setcookie()`](#crear-una-cookie-setcookie)
-      - [Llegir una cookie](#llegir-una-cookie)
-      - [Eliminar una cookie](#eliminar-una-cookie)
-      - [Sense data d'expiració: *session cookies*](#sense-data-dexpiració-session-cookies)
-    - [Sessions](#sessions)
-      - [Iniciar una sessió: `session_start()`](#iniciar-una-sessió-session_start)
-      - [Guardar i llegir dades de sessió](#guardar-i-llegir-dades-de-sessió)
-      - [Eliminar dades i tancar la sessió](#eliminar-dades-i-tancar-la-sessió)
-      - [Exemple pràctic: comptador de visites](#exemple-pràctic-comptador-de-visites)
-      - [Exemple pràctic: control d'accés bàsic](#exemple-pràctic-control-daccés-bàsic)
-    - [Cookies vs Sessions: quan usar cada una](#cookies-vs-sessions-quan-usar-cada-una)
-  - [6. Autenticació d'usuaris (password\_hash i password\_verify)](#6-autenticació-dusuaris-password_hash-i-password_verify)
-    - [Per què no n'hi ha prou amb `md5()` o `sha1()`](#per-què-no-nhi-ha-prou-amb-md5-o-sha1)
-    - [La solució: `password_hash()`](#la-solució-password_hash)
-    - [Registrar un usuari](#registrar-un-usuari)
-    - [Verificar una contrasenya: `password_verify()`](#verificar-una-contrasenya-password_verify)
-    - [Exemple pràctic complet: registre i inici de sessió](#exemple-pràctic-complet-registre-i-inici-de-sessió)
-    - [Missatges genèrics per a no revelar informació](#missatges-genèrics-per-a-no-revelar-informació)
-  - [7. Gestió d'errors i excepcions](#7-gestió-derrors-i-excepcions)
-    - [Tipus d'errors en PHP](#tipus-derrors-en-php)
-    - [`try`, `catch` i `throw`](#try-catch-i-throw)
-    - [El bloc `finally`](#el-bloc-finally)
-    - [Mètodes útils de l'objecte `Exception`](#mètodes-útils-de-lobjecte-exception)
-  - [8. Classes i objectes](#8-classes-i-objectes)
-    - [Definir una classe](#definir-una-classe)
-    - [Visibilitat: `public`, `private`, `protected`](#visibilitat-public-private-protected)
-    - [Propietats promocionades del constructor (PHP 8+)](#propietats-promocionades-del-constructor-php-8)
-    - [Herència: `extends`](#herència-extends)
-    - [Classes abstractes i interfícies](#classes-abstractes-i-interfícies)
-    - [Propietats i mètodes estàtics](#propietats-i-mètodes-estàtics)
-    - [Constants de classe](#constants-de-classe)
-    - [`readonly` (PHP 8.1+)](#readonly-php-81)
-    - [Namespaces: organitzar classes en projectes grans](#namespaces-organitzar-classes-en-projectes-grans)
-  - [9. Debug, proves i documentació \[Ampliació\]](#9-debug-proves-i-documentació-ampliació)
-    - [Depuració bàsica sense ferramentes externes](#depuració-bàsica-sense-ferramentes-externes)
-    - [Xdebug: depuració pas a pas](#xdebug-depuració-pas-a-pas)
-      - [Ús bàsic amb Visual Studio Code](#ús-bàsic-amb-visual-studio-code)
-    - [PHPUnit: proves automatitzades](#phpunit-proves-automatitzades)
-      - [Instal·lació amb Composer](#installació-amb-composer)
-      - [Estructura bàsica d'un test](#estructura-bàsica-dun-test)
-      - [Execució de les proves](#execució-de-les-proves)
-      - [Mètodes d'aserció més habituals](#mètodes-daserció-més-habituals)
-    - [Documentació del codi: PHPDoc](#documentació-del-codi-phpdoc)
+[Índex](#índex)
+  1. [Supervariables](#1-supervariables)
+  2. [Encapçalaments de resposta](#2-encapçalaments-de-resposta)
+  3. [Separació lògica i vistes amb require i include](#3-separació-lògica-i-vistes-amb-require-i-include)
+  4. [Ús avançat de formularis](#4-ús-avançat-de-formularis)
+  5. [Cookies i sessions](#5-cookies-i-sessions)
+  6. [Autenticació d'usuaris (password\_hash i password\_verify)](#6-autenticació-dusuaris-password_hash-i-password_verify)
+  7. [Gestió d'errors i excepcions](#7-gestió-derrors-i-excepcions)
+  8. [Classes i objectes](#8-classes-i-objectes)
+  9. [Debug, proves i documentació \[Ampliació\]](#9-debug-proves-i-documentació-ampliació)
+  10. [Exercicis](#10-exercicis)
+    10.1 [10.1. Supervariables](#101-supervariables)
+      - [Exercici 1.1 — Panell de la petició](#exercici-11--panell-de-la-petició)
+    - [10.2. Encapçalaments de resposta](#102-encapçalaments-de-resposta)
+      - [Exercici 2.1 — Redirecció a la zona de clients](#exercici-21--redirecció-a-la-zona-de-clients)
+      - [Exercici 2.2 — Un lead en format JSON](#exercici-22--un-lead-en-format-json)
 
 
 
@@ -782,10 +699,6 @@ Amb açò, el `<script>` de l'exemple anterior es mostraria literalment com a te
 | `"` | `&quot;` |
 | `'` | `&#039;` (amb `ENT_QUOTES`) |
 | `&` | `&amp;` |
-
-::: tip Bona pràctica
-Utilitza sempre el segon paràmetre `ENT_QUOTES` perquè també escape les cometes simples i dobles (per defecte, `ENT_QUOTES` només escapava les dobles en versions antigues de PHP). Des de PHP 8.1, `ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML401` és el valor per defecte, però és recomanable indicar-lo explícitament per a claredat i compatibilitat.
-:::
 
 ::: info 📖 Documentació oficial: [PHP: htmlspecialchars](https://www.php.net/manual/es/function.htmlspecialchars.php)
 :::
@@ -2076,3 +1989,250 @@ class Producte {
     private float $preu;
 }
 ```
+## 10. Exercicis
+
+### 10.1. Supervariables
+
+#### Exercici 1.1 — Panell de la petició
+
+**Fitxer de partida:** `exercici1.1.php`
+
+::: details 📄 **exercici1.1.php**
+
+```php
+<?php
+    // TODO 1: Declara $metode, $host i $uri amb els valors de $_SERVER
+    // que corresponen a les claus 'REQUEST_METHOD', 'HTTP_HOST' i 'REQUEST_URI'
+
+    // TODO 2: Captura $_GET['lead'] amb ?? (per defecte 'Cap lead seleccionat')
+    // i guarda-la en $lead
+
+    // TODO 3: Declara $nota = ''. Després, si $metode === 'POST',
+    // captura $_POST['nota'] amb trim() i ?? (per defecte '') i guarda-la en $nota
+
+    // TODO 4: Crea l'array associatiu $resum amb les claus 'GET', 'POST', 'COOKIE' i 'FILES'.
+    // El valor de cada clau ha de ser el count() de la supervariable corresponent
+
+?>
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercici 1.1 - Panell de la petició</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-8">
+
+    <!-- VISTA: no cal tocar res d'ací en avall -->
+    <div class="max-w-3xl mx-auto space-y-6">
+
+        <h1 class="text-2xl font-bold text-gray-800">Panell de la petició · TechLeads</h1>
+
+        <!-- $_SERVER -->
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-lg font-semibold text-gray-800 mb-3">Informació de la petició <code class="text-sm text-blue-700">$_SERVER</code></h2>
+            <ul class="text-gray-700 space-y-1">
+                <li><span class="font-semibold">Mètode:</span> <?= htmlspecialchars($metode) ?></li>
+                <li><span class="font-semibold">Host:</span> <?= htmlspecialchars($host) ?></li>
+                <li><span class="font-semibold">Ruta sol·licitada:</span> <?= htmlspecialchars($uri) ?></li>
+            </ul>
+        </div>
+
+        <!-- $_GET -->
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-lg font-semibold text-gray-800 mb-3">Selecciona un lead <code class="text-sm text-blue-700">$_GET</code></h2>
+            <div class="flex gap-3 mb-4">
+                <a href="?lead=Aina" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded">Aina</a>
+                <a href="?lead=Marc" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded">Marc</a>
+                <a href="exercici1.1.php" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold px-4 py-2 rounded">Netejar</a>
+            </div>
+            <p class="text-gray-700">Lead seleccionat: <span class="font-semibold text-purple-700"><?= htmlspecialchars($lead) ?></span></p>
+        </div>
+
+        <!-- $_POST -->
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-lg font-semibold text-gray-800 mb-3">Afig una nota <code class="text-sm text-blue-700">$_POST</code></h2>
+            <form method="POST" action="" class="flex gap-2 mb-4">
+                <input type="text" name="nota" placeholder="Escriu una nota..."
+                       class="flex-1 border border-gray-300 rounded px-3 py-2">
+                <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded">
+                    Enviar
+                </button>
+            </form>
+            <?php if ($metode === 'POST'): ?>
+                <p class="text-gray-700">Nota rebuda: <span class="font-semibold text-green-700"><?= htmlspecialchars($nota) ?></span></p>
+            <?php else: ?>
+                <p class="text-gray-500">Encara no has enviat cap nota.</p>
+            <?php endif; ?>
+        </div>
+
+        <!-- Resum -->
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-lg font-semibold text-gray-800 mb-3">Resum de supervariables</h2>
+            <ul class="text-gray-700 space-y-1">
+                <?php foreach ($resum as $nomSuperglobal => $total): ?>
+                    <li><code class="text-blue-700">$_<?= $nomSuperglobal ?></code>: <?= $total ?> element(s)</li>
+                <?php endforeach; ?>
+            </ul>
+        </div>
+
+    </div>
+
+</body>
+</html>
+```
+:::
+
+**Objectiu:** Practicar l'accés a les supervariables `$_SERVER`, `$_GET` i `$_POST`, i comprovar que són arrays associatius que es poden tractar com qualsevol altre array (per exemple, amb `count()`).
+
+Tasques a fer dins del fitxer:
+
+1. A `TODO 1`, declara tres variables amb la informació de la petició que et dona `$_SERVER`:
+   - `$metode` amb el valor de la clau `'REQUEST_METHOD'`
+   - `$host` amb el valor de la clau `'HTTP_HOST'`
+   - `$uri` amb el valor de la clau `'REQUEST_URI'`
+2. A `TODO 2`, captura el paràmetre `lead` de la URL amb `$_GET` i l'operador `??`, utilitzant `'Cap lead seleccionat'` com a valor per defecte, i guarda'l en `$lead`.
+3. A `TODO 3`, declara `$nota = ''`. Després, només si `$metode === 'POST'`, captura `$_POST['nota']` (amb `trim()` i `??` amb `''` per defecte) i guarda'l en `$nota`.
+4. A `TODO 4`, crea l'array associatiu `$resum` amb les claus `'GET'`, `'POST'`, `'COOKIE'` i `'FILES'`. El valor de cada clau ha de ser el nombre d'elements (`count()`) de la supervariable corresponent.
+5. La vista ja mostra tota la informació que has preparat — no cal que la toques.
+
+**Pista:** Prova els botons *Aina* i *Marc* i fixa't com canvia `$uri` i el compte de `$_GET`. Després envia una nota amb el formulari: el mètode passarà a ser `POST`, però la URL manté el paràmetre `lead` si l'hi havia, així que `$_GET` i `$_POST` tindran elements a la vegada. `$_FILES` seguirà a 0 i `$_COOKIE` normalment també (les cookies de `localhost` es comparteixen entre ports, així que pot eixir algun element d'un altre projecte): les treballarem als punts 4.5 i 5.
+
+### 10.2. Encapçalaments de resposta
+
+#### Exercici 2.1 — Redirecció a la zona de clients
+
+**Fitxers de partida:** `exercici2.1.php` i `zona-clients.php` (este últim ja està fet, no cal tocar-lo)
+
+::: details **📄 exercici2.1.php**
+
+```php
+<?php
+    // TODO 1: Declara $esClient amb el valor true
+
+    // TODO 2: Si $esClient és true, redirigeix l'usuari a 'zona-clients.php'
+    // amb header('Location: ...') i atura l'execució amb exit
+
+?>
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercici 2.1 - Redirecció</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+
+    <!-- VISTA: no cal tocar res d'ací en avall -->
+    <div class="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center">
+        <h1 class="text-2xl font-bold text-gray-800 mb-2">Zona pública</h1>
+        <p class="text-gray-600">Este contingut només el veuen els visitants que encara no són clients de TechLeads.</p>
+    </div>
+
+</body>
+</html>
+```
+:::
+
+::: details **📄 zona-clients.php**
+
+```php
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zona de clients</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+
+    <div class="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center">
+        <h1 class="text-2xl font-bold text-blue-700 mb-2">Zona de clients</h1>
+        <p class="text-gray-600">Has arribat ací gràcies a una redirecció. Fixa't en l'adreça de la barra del navegador.</p>
+    </div>
+
+</body>
+</html>
+```
+:::
+
+**Objectiu:** Practicar la redirecció amb `header('Location: ...')` i la necessitat de cridar a `exit` just després.
+
+Tasques a fer dins del fitxer `exercici2.1.php`:
+
+1. A `TODO 1`, declara la variable `$esClient` amb el valor `true`.
+2. A `TODO 2`, amb un `if`, comprova si `$esClient` és `true`. Si ho és, redirigeix l'usuari a `zona-clients.php` amb `header('Location: zona-clients.php')` i atura l'execució amb `exit`.
+3. Obri `exercici2.1.php` al navegador i comprova que acabes a la zona de clients (fixa't en l'adreça de la barra). Després canvia `$esClient` a `false` i comprova que ara es queda a la zona pública.
+
+**Pista:** `header()` s'ha de cridar abans d'enviar cap contingut. Per això el bloc PHP està al principi del fitxer: si hi haguera un espai o un salt de línia abans de `<?php`, obtindries l'error *headers already sent*.
+
+#### Exercici 2.2 — Un lead en format JSON
+
+**Fitxers de partida:** `exercici2.2.php` i `prova2.2.html` (este últim ja està fet, no cal tocar-lo)
+
+:::details **📄 exercici2.2.php**
+
+```php
+<?php
+    // Array ja proporcionat, no cal que el toques
+    $leads = [
+        1 => ['id' => 1, 'nom' => 'Aina Soler',    'empresa' => 'Textils S.L.',  'pressupost' => 4500.0],
+        2 => ['id' => 2, 'nom' => 'Marc Climent',  'empresa' => 'Econova',       'pressupost' => 800.0],
+        3 => ['id' => 3, 'nom' => 'Laura Sanchis', 'empresa' => 'Innovacio Tech', 'pressupost' => 12000.0],
+    ];
+
+    // Id demanat per la URL (ja proporcionat), per exemple: exercici2.2.php?id=1
+    $id = (int) ($_GET['id'] ?? 0);
+    $lead = $leads[$id] ?? null;
+
+    // TODO 1: Indica al navegador que la resposta és JSON
+    // amb header('Content-Type: application/json')
+
+    // TODO 2: Si $lead és null, respon amb el codi d'estat 404 (http_response_code),
+    // imprimeix json_encode(['error' => 'Lead no trobat']) i atura l'execució amb exit
+
+    // TODO 3: Imprimeix el lead en format JSON amb echo json_encode($lead)
+```
+:::
+
+:::details **📄 prova2.2.html**
+
+```html
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prova de l'exercici 2.2</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+
+    <div class="bg-white p-8 rounded-lg shadow-md max-w-md w-full">
+        <h1 class="text-xl font-bold text-gray-800 mb-4">Consulta un lead (JSON)</h1>
+        <ul class="space-y-2">
+            <li><a href="exercici2.2.php?id=1" class="text-blue-600 hover:underline">Lead amb id 1</a></li>
+            <li><a href="exercici2.2.php?id=2" class="text-blue-600 hover:underline">Lead amb id 2</a></li>
+            <li><a href="exercici2.2.php?id=99" class="text-red-600 hover:underline">Lead amb id 99 (no existeix)</a></li>
+        </ul>
+    </div>
+
+</body>
+</html>
+```
+:::
+
+**Objectiu:** Practicar l'encapçalament `Content-Type` per a respondre amb JSON i l'ús de `http_response_code()` per a indicar un codi d'estat HTTP.
+
+Tasques a fer dins del fitxer `exercici2.2.php`:
+
+1. Ja tens declarat (no cal que el toques) l'array `$leads`, i també `$id` i `$lead`, que agafen el lead demanat per la URL (`exercici2.2.php?id=1`). Si l'id no existeix, `$lead` val `null`.
+2. A `TODO 1`, indica al navegador que la resposta és JSON amb `header('Content-Type: application/json')`.
+3. A `TODO 2`, si `$lead` és `null`, respon amb el codi d'estat `404` utilitzant `http_response_code(404)`, imprimeix `json_encode(['error' => 'Lead no trobat'])` i atura l'execució amb `exit`.
+4. A `TODO 3`, imprimeix el lead trobat en format JSON amb `echo json_encode($lead)`.
+5. Obri `prova2.2.html` i prova els tres enllaços. Amb les eines de desenvolupador del navegador (pestanya *Xarxa*), comprova el `Content-Type` i el codi d'estat de cada resposta.
+
+**Pista:** Fixa't que este fitxer no té HTML ni etiqueta de tancament `?>`: només envia dades. Si t'oblides de l'`exit` després del 404, s'imprimiria també un segon JSON (`null`) després de l'error.

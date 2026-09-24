@@ -33,10 +33,16 @@ A continuació es detalla com fer aquesta preparació sobre **Ubuntu 26**.
 
 1. **Afegir el repositori de Docker en Ubuntu 26:**
 ```bash
-# 1. Limpieza de configuraciones anteriores para evitar duplicados o errores
-sudo rm -f /etc/apt/sources.list.d/docker.list /etc/apt/sources.list.d/docker.sources
+# 1. Netejar configuracions anteriors
+sudo rm -f /etc/apt/sources.list.d/docker.list
+sudo rm -f /etc/apt/sources.list.d/docker.sources
+
+# Eliminar paquets antics o incompatibles
+
+sudo apt remove -y docker.io docker-compose docker-compose-v2 docker-doc docker-buildx podman-docker containerd runc
 
 # 2. Añadir la clave GPG oficial de Docker
+
 sudo apt update
 sudo apt install -y ca-certificates curl
 sudo install -m 0755 -d /etc/apt/keyrings
