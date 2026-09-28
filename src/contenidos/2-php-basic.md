@@ -427,8 +427,10 @@ ECHO $Nom; // Mostra: Carles (ECHO funciona igual que echo)
 
 PHP admet diferents tipus de dades escalar o primitius. Podem comprovar el tipus de dada d'una variable utilitzant les funcions `var_dump()` (per a depuració detallada) o `gettype()`.
 
+Aquí tens la tabla corregida i ben formatada en Markdown:
+
 | Tipus | Descripció | Exemple |
-|  |  |  |
+| --- | --- | --- |
 | **Integer** | Números enters (positius o negatius) | `$edat = 25;` |
 | **Float / Double** | Números de punt flotant (decimals) | `$preu = 19.99;` |
 | **String** | Cadenes de text | `$nom = "TechLeads";` |
@@ -1462,7 +1464,7 @@ function buscarLeadPerId(array $llistat, int|string $id): ?array {
 PHP permet dividir el codi en diferents fitxers. Hi ha 4 opcions principals:
 
 | Funció | Descripció | Si el fitxer NO existeix... |
-|  |  |  |
+| --- | --- | --- |
 | `include` | Inclou el fitxer. | Llança un **Warning** i **continua** l'execució. |
 | `require` | Inclou el fitxer. | Llança un **Fatal Error** i **atura** l'execució. |
 | `include_once` | Com `include`, però només el carregarà **una vegada**. | Warning i continua. |
