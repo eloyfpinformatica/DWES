@@ -54,11 +54,8 @@
   8. [Classes i objectes](#8-classes-i-objectes)
   9. [Debug, proves i documentació \[Ampliació\]](#9-debug-proves-i-documentació-ampliació)
   10. [Exercicis](#10-exercicis)
-    10.1 [10.1. Supervariables](#101-supervariables)
-      - [Exercici 1.1 — Panell de la petició](#exercici-11--panell-de-la-petició)
-    - [10.2. Encapçalaments de resposta](#102-encapçalaments-de-resposta)
-      - [Exercici 2.1 — Redirecció a la zona de clients](#exercici-21--redirecció-a-la-zona-de-clients)
-      - [Exercici 2.2 — Un lead en format JSON](#exercici-22--un-lead-en-format-json)
+      -  [10.1. Supervariables](#_10-1-supervariables)
+      -  [10.2. Encapçalaments de resposta](#_10-2-encapcalaments-de-resposta) 
 
 
 
@@ -1025,15 +1022,33 @@ if (getimagesize($arxiuTemporal) === false) {
 ```
 #### Moure l'arxiu a la seua ubicació definitiva
 
-L'arxiu pujat es guarda inicialment en una carpeta temporal del sistema i **s'elimina automàticament** en acabar l'script si no es mou. Cal usar sempre `move_uploaded_file()` (mai `copy()` ni `rename()`) per motius de seguretat: esta funció comprova que l'arxiu prové realment d'una pujada HTTP.
+L'arxiu pujat es guarda inicialment en una carpeta temporal del sistema i s'elimina automàticament en acabar l'script si no es mou. Cal usar `move_uploaded_file()` per a moure'l.
+
+Una vegada validat el tipus real de l'arxiu amb `finfo`, **no hem d'utilitzar l'extensió proporcionada pel nom original** per a construir el nom final. El nom original és una dada controlada per l'usuari i la seua extensió no té per què coincidir amb el contingut real de l'arxiu.
+
+Per tant, associem cada tipus MIME permés amb la seua extensió i utilitzem aquesta informació per a generar el nom final:
 
 ```php
 <?php
-$carpetaDesti = __DIR__ . '/pujades/';
-$nomOriginal = basename($_FILES['foto']['name']);
-$extensio = strtolower(pathinfo($nomOriginal, PATHINFO_EXTENSION));
 
-// Generar un nom únic per a evitar sobreescriure arxius existents
+$carpetaDesti = __DIR__ . '/pujades/';
+
+$tipusPermesos = [
+    'image/jpeg' => 'jpg',
+    'image/png'  => 'png',
+    'image/webp' => 'webp',
+];
+
+$finfo = new finfo(FILEINFO_MIME_TYPE);
+$tipusReal = $finfo->file($arxiuTemporal);
+
+if (!isset($tipusPermesos[$tipusReal])) {
+    die('Tipus d\'arxiu no permés.');
+}
+
+// L'extensió es deriva del tipus real detectat, no del nom original.
+$extensio = $tipusPermesos[$tipusReal];
+
 $nomFinal = uniqid('img_', true) . '.' . $extensio;
 $rutaDesti = $carpetaDesti . $nomFinal;
 
@@ -1043,6 +1058,15 @@ if (move_uploaded_file($arxiuTemporal, $rutaDesti)) {
     echo 'Error en moure l\'arxiu.';
 }
 ```
+
+**Per què?**
+
+`$_FILES['foto']['name']` conté el nom original proporcionat pel client i, per tant, no s'ha d'utilitzar per decidir quin tipus d'arxiu hem rebut. `finfo` inspecciona el contingut i ens permet determinar el tipus MIME que ha detectat el servidor.
+
+Per exemple, si un usuari envia un arxiu anomenat `shell.php` però el contingut és identificat com a `image/png`, l'aplicació ha d'utilitzar l'extensió associada al tipus permés (`.png`) i **no** conservar `.php`.
+
+A més, per a una aplicació real, és recomanable guardar els arxius pujats fora del directori públic sempre que siga possible. Si han d'estar dins del directori públic, el servidor web ha d'estar configurat per a impedir l'execució de codi en la carpeta de pujades.
+
 
 ::: warning Atenció
 No confies mai en `$_FILES['foto']['name']` per a construir la ruta final sense processar-lo abans: podria contindre caràcters perillosos o intents de *path traversal* (com `../../etc/passwd`). Genera sempre un nom nou (per exemple, amb `uniqid()`) i queda't només amb l'extensió del nom original.
@@ -1065,7 +1089,7 @@ max_file_uploads = 20
 `post_max_size` ha de ser sempre **igual o major** que `upload_max_filesize`, ja que l'arxiu viatja dins del cos de la petició `POST`.
 :::
 
-📌 **A recordar:** valida sempre el tipus real de l'arxiu (mai el camp `type` de `$_FILES`), limita la grandària, i utilitza `move_uploaded_file()` amb un nom generat automàticament per a evitar sobreescritures i problemes de seguretat.
+📌 **A recordar:** valida el contingut real de l'arxiu, associa el MIME validat amb una extensió coneguda i genera sempre un nom nou. No utilitzes l'extensió del nom original per a determinar el tipus de l'arxiu.
 
 
 ## 5. Cookies i sessions
@@ -1319,12 +1343,10 @@ if (password_verify($contrasenyaIntroduida, $hashGuardat)) {
 
 ### Exemple pràctic complet: registre i inici de sessió
 
-**`registre.php`** (simulant una "base de dades" amb un array, per simplicitat)
+**`usuaris_bd.php`** (simulant una "base de dades" amb un array, per simplicitat)
 
 ```php
 <?php
-session_start();
-
 // Simulació d'una BD d'usuaris (en un cas real seria una taula de MySQL)
 $usuaris = [
     'ana' => [
@@ -1338,7 +1360,7 @@ $usuaris = [
 ```php
 <?php
 session_start();
-require 'usuaris_bd.php'; // Conté l'array $usuaris de l'exemple anterior
+require __DIR__ . '/usuaris_bd.php'; // Conté l'array $usuaris de l'exemple anterior
 
 $errors = [];
 
@@ -2236,3 +2258,2015 @@ Tasques a fer dins del fitxer `exercici2.2.php`:
 5. Obri `prova2.2.html` i prova els tres enllaços. Amb les eines de desenvolupador del navegador (pestanya *Xarxa*), comprova el `Content-Type` i el codi d'estat de cada resposta.
 
 **Pista:** Fixa't que este fitxer no té HTML ni etiqueta de tancament `?>`: només envia dades. Si t'oblides de l'`exit` després del 404, s'imprimiria també un segon JSON (`null`) després de l'error.
+
+### 10.3. Separació lògica i vistes amb require i include
+
+#### Exercici 3.1 — Plantilla amb capçalera i peu
+
+**Carpeta de partida:** `exercici3.1/`, amb els fitxers `capcalera.php`, `peu.php` i `banner-ofertes.php` (ja fets, no cal tocar-los) i `index.php` i `contacte.php` (els que has de completar).
+
+::: details **📄 exercici3.1/capcalera.php**
+
+```php
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?= htmlspecialchars($titolPagina ?? 'TechLeads') ?></title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+    <header class="bg-blue-700 text-white">
+        <nav class="max-w-3xl mx-auto flex items-center gap-6 px-6 py-4">
+            <span class="font-bold text-lg mr-auto">TechLeads</span>
+            <a href="index.php" class="hover:underline">Inici</a>
+            <a href="contacte.php" class="hover:underline">Contacte</a>
+        </nav>
+    </header>
+```
+:::
+
+::: details **📄 exercici3.1/peu.php**
+
+```php
+    <footer class="bg-gray-800 text-gray-300 text-center text-sm py-4 mt-auto">
+        <p>&copy; <?= date('Y') ?> TechLeads · CFGS DAW</p>
+    </footer>
+</body>
+</html>
+```
+:::
+
+::: details **📄 exercici3.1/banner-ofertes.php**
+
+```php
+<div class="bg-yellow-100 border border-yellow-300 text-yellow-800 text-center py-2 text-sm">
+    🎉 Esta setmana: 10% de descompte en el primer pressupost!
+</div>
+```
+:::
+
+::: details **📄 exercici3.1/index.php**
+
+```php
+<?php
+    // TODO 1: Declara $titolPagina amb el valor 'Inici'
+    // (ha de definir-se ABANS d'incloure la capçalera)
+
+    // TODO 2: Incorpora la capçalera amb require 'capcalera.php'
+
+    // TODO 3: Incorpora el banner d'ofertes amb include 'banner-ofertes.php'
+    // (és un element opcional: si falla, la pàgina ha de continuar)
+
+?>
+
+<!-- CONTINGUT: no cal tocar res d'ací en avall, excepte el TODO 4 -->
+<main class="max-w-3xl mx-auto p-6 flex-1">
+    <h1 class="text-3xl font-bold text-gray-800 mb-2">Benvinguts a TechLeads</h1>
+    <p class="text-gray-600">Gestiona els teus leads comercials de manera senzilla.</p>
+</main>
+
+<?php
+    // TODO 4: Incorpora el peu amb require 'peu.php'
+?>
+```
+:::
+
+::: details **📄 exercici3.1/contacte.php**
+
+```php
+<?php
+    // TODO 1: Declara $titolPagina amb el valor 'Contacte'
+
+    // TODO 2: Incorpora la capçalera amb require 'capcalera.php'
+
+?>
+
+<!-- CONTINGUT: no cal tocar res d'ací en avall, excepte el TODO 3 -->
+<main class="max-w-3xl mx-auto p-6 flex-1">
+    <h1 class="text-3xl font-bold text-gray-800 mb-2">Contacte</h1>
+    <p class="text-gray-600">Escriu-nos a <span class="font-semibold text-blue-700">info@techleads.exemple</span> i et respondrem en 24 hores.</p>
+</main>
+
+<?php
+    // TODO 3: Incorpora el peu amb require 'peu.php'
+?>
+```
+:::
+
+**Objectiu:** Reutilitzar les parts comunes d'un lloc web (capçalera i peu) amb `require`, passar una dada a l'arxiu inclòs mitjançant una variable i distingir entre `require` (imprescindible) i `include` (opcional).
+
+Tasques a fer:
+
+1. A `index.php`, `TODO 1`: declara la variable `$titolPagina` amb el valor `'Inici'`. Ha de definir-se **abans** d'incloure la capçalera.
+2. A `TODO 2`: incorpora la capçalera amb `require 'capcalera.php'`.
+3. A `TODO 3`: incorpora el banner d'ofertes amb `include 'banner-ofertes.php'`, ja que és un element opcional.
+4. A `TODO 4`: incorpora el peu amb `require 'peu.php'`.
+5. A `contacte.php`, fes el mateix amb el títol `'Contacte'`: declara `$titolPagina`, incorpora la capçalera i incorpora el peu (no porta banner).
+6. Obri `index.php` al navegador i comprova que el títol de la pestanya canvia entre les dues pàgines i que els enllaços del menú funcionen.
+7. **Comprova la diferència entre `include` i `require`:** canvia temporalment el nom de `banner-ofertes.php` per un altre. Amb `include`, la pàgina mostra un *Warning* però continua carregant-se. Ara canvia l'`include` per un `require` i observa què passa.
+
+**Pista:** L'arxiu inclòs comparteix les variables de l'arxiu que el crida. Per això `capcalera.php` pot llegir `$titolPagina` sense que li la passes de cap altra manera, sempre que la definisques abans del `require`.
+
+#### Exercici 3.2 — Separar la lògica de la vista
+
+**Carpeta de partida:** `exercici3.2/`, amb els fitxers `dades_leads.php` (lògica) i `llistat_leads.php` (vista).
+
+::: details **📄 exercici3.2/dades_leads.php**
+
+```php
+<?php
+// LÒGICA: dades i càlculs. Ací no hi ha HTML.
+
+function obtenirLeads(): array {
+    // En un cas real, ací hi hauria una consulta a la base de dades
+    return [
+        ['nom' => 'Aina Soler',    'empresa' => 'Tèxtils S.L.',   'pressupost' => 4500.0],
+        ['nom' => 'Marc Climent',  'empresa' => 'Econova',        'pressupost' => 800.0],
+        ['nom' => 'Laura Sanchis', 'empresa' => 'Innovació Tech', 'pressupost' => 12000.0],
+    ];
+}
+
+function calcularPressupostTotal(array $leads): float {
+    // TODO 1: Recorre $leads amb un foreach, suma el 'pressupost' de cada lead
+    // i retorna el total
+}
+```
+:::
+
+::: details **📄 exercici3.2/llistat_leads.php**
+
+```php
+<?php
+    // TODO 2: Carrega 'dades_leads.php' amb require_once
+    // i una ruta construïda amb __DIR__
+
+    // TODO 3: Guarda en $leads el resultat de cridar a obtenirLeads()
+
+    // TODO 4: Guarda en $total el resultat de cridar a calcularPressupostTotal($leads)
+
+?>
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercici 3.2 - Llistat de leads</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-8">
+
+    <!-- VISTA: no cal tocar res d'ací en avall -->
+    <div class="max-w-3xl mx-auto bg-white p-6 rounded-lg shadow-md">
+        <h1 class="text-2xl font-bold text-gray-800 mb-4">Llistat de leads</h1>
+
+        <table class="w-full text-left">
+            <thead>
+                <tr class="border-b text-gray-600">
+                    <th class="py-2">Nom</th>
+                    <th class="py-2">Empresa</th>
+                    <th class="py-2 text-right">Pressupost</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($leads as $lead): ?>
+                    <tr class="border-b text-gray-700">
+                        <td class="py-2"><?= htmlspecialchars($lead['nom']) ?></td>
+                        <td class="py-2"><?= htmlspecialchars($lead['empresa']) ?></td>
+                        <td class="py-2 text-right"><?= number_format($lead['pressupost'], 2, ',', '.') ?> €</td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+            <tfoot>
+                <tr class="font-bold text-gray-800">
+                    <td colspan="2" class="py-3">Total</td>
+                    <td class="py-3 text-right"><?= number_format($total, 2, ',', '.') ?> €</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+</body>
+</html>
+```
+:::
+
+**Objectiu:** Separar el processament de dades (lògica) de la presentació (vista), carregant l'arxiu de lògica amb `require_once` i una ruta fiable construïda amb `__DIR__`.
+
+Tasques a fer:
+
+1. A `dades_leads.php`, `TODO 1`: completa la funció `calcularPressupostTotal()`. Recorre l'array `$leads` amb un `foreach`, suma el `'pressupost'` de cada lead i retorna el total.
+2. A `llistat_leads.php`, `TODO 2`: carrega `dades_leads.php` amb `require_once`, construint la ruta amb `__DIR__`.
+3. A `TODO 3`: guarda en `$leads` el resultat de cridar a `obtenirLeads()`.
+4. A `TODO 4`: guarda en `$total` el resultat de cridar a `calcularPressupostTotal($leads)`.
+5. Obri `llistat_leads.php` al navegador i comprova que es mostren els tres leads i el total.
+6. **Comprova per què existeix `_once`:** duplica la línia del `require_once` i comprova que tot continua funcionant. Després canvia les dues per `require` i observa l'error.
+
+**Pista:** Fixa't que la vista no fa cap càlcul ni accedeix a les dades directament: només mostra les variables `$leads` i `$total` que li prepara la part PHP del principi. Amb `require` duplicat, PHP intentaria declarar dos cops les mateixes funcions i llançaria l'error *Cannot redeclare*.
+
+### 10.4. Ús avançat de formularis
+
+#### Exercici 4.1 — Arrays en formularis
+
+**Fitxer de partida:** `exercici4.1.php`
+
+::: details **📄 exercici4.1.php**
+
+```php
+<?php
+    $enviat = $_SERVER['REQUEST_METHOD'] === 'POST';
+
+    // TODO 1: Recupera l'array associatiu $_POST['contacte'] (amb ?? [] per defecte)
+    // i guarda'l en $contacte. Després declara $nom i $email amb els valors
+    // de les claus 'nom' i 'email' d'eixe array (amb ?? i '' per defecte)
+
+    // TODO 2: Recupera l'array $_POST['serveis'] (amb ?? [] per defecte) i guarda'l en $serveis.
+    // Declara $totalServeis amb el nombre de serveis marcats (count)
+
+    // TODO 3: Recupera l'array $_POST['idiomes'] (amb ?? [] per defecte) i guarda'l en $idiomes.
+    // Declara $resumIdiomes amb els idiomes separats per comes (implode)
+
+?>
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercici 4.1 - Arrays en formularis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-8">
+
+    <!-- VISTA: no cal tocar res d'ací en avall -->
+    <div class="max-w-xl mx-auto space-y-6">
+
+        <h1 class="text-2xl font-bold text-gray-800">Sol·licitud d'informació · TechLeads</h1>
+
+        <form method="POST" action="" class="bg-white p-6 rounded-lg shadow-md space-y-4">
+            <div>
+                <label for="nom" class="block text-sm font-semibold text-gray-700 mb-1">Nom</label>
+                <input type="text" id="nom" name="contacte[nom]" class="w-full border border-gray-300 rounded px-3 py-2">
+            </div>
+
+            <div>
+                <label for="email" class="block text-sm font-semibold text-gray-700 mb-1">Email</label>
+                <input type="email" id="email" name="contacte[email]" class="w-full border border-gray-300 rounded px-3 py-2">
+            </div>
+
+            <fieldset>
+                <legend class="block text-sm font-semibold text-gray-700 mb-1">Serveis d'interés</legend>
+                <div class="flex flex-wrap gap-4 text-gray-700">
+                    <label class="flex items-center gap-2"><input type="checkbox" name="serveis[]" value="Web"> Web</label>
+                    <label class="flex items-center gap-2"><input type="checkbox" name="serveis[]" value="App mòbil"> App mòbil</label>
+                    <label class="flex items-center gap-2"><input type="checkbox" name="serveis[]" value="SEO"> SEO</label>
+                    <label class="flex items-center gap-2"><input type="checkbox" name="serveis[]" value="Cloud"> Cloud</label>
+                </div>
+            </fieldset>
+
+            <div>
+                <label for="idiomes" class="block text-sm font-semibold text-gray-700 mb-1">
+                    Idiomes de comunicació <span class="font-normal text-gray-500">(Ctrl/Cmd + clic per a triar-ne diversos)</span>
+                </label>
+                <select id="idiomes" name="idiomes[]" multiple size="4" class="w-full border border-gray-300 rounded px-3 py-2">
+                    <option value="Valencià">Valencià</option>
+                    <option value="Castellà">Castellà</option>
+                    <option value="Anglés">Anglés</option>
+                    <option value="Francés">Francés</option>
+                </select>
+            </div>
+
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded">
+                Enviar sol·licitud
+            </button>
+        </form>
+
+        <?php if ($enviat): ?>
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-lg font-semibold text-green-700 mb-3">Sol·licitud rebuda</h2>
+                <p class="text-gray-700"><span class="font-semibold">Nom:</span> <?= htmlspecialchars($nom) ?></p>
+                <p class="text-gray-700"><span class="font-semibold">Email:</span> <?= htmlspecialchars($email) ?></p>
+
+                <p class="text-gray-700 mt-2"><span class="font-semibold">Serveis triats (<?= $totalServeis ?>):</span></p>
+                <?php if ($totalServeis === 0): ?>
+                    <p class="text-gray-500">Cap servei seleccionat.</p>
+                <?php else: ?>
+                    <ul class="list-disc list-inside text-gray-700">
+                        <?php foreach ($serveis as $servei): ?>
+                            <li><?= htmlspecialchars($servei) ?></li>
+                        <?php endforeach; ?>
+                    </ul>
+                <?php endif; ?>
+
+                <p class="text-gray-700 mt-2">
+                    <span class="font-semibold">Idiomes:</span>
+                    <?= $resumIdiomes !== '' ? htmlspecialchars($resumIdiomes) : 'Cap idioma seleccionat' ?>
+                </p>
+            </div>
+        <?php endif; ?>
+
+    </div>
+
+</body>
+</html>
+```
+:::
+
+**Objectiu:** Recuperar dades que arriben a `$_POST` en forma d'array (`serveis[]`, `idiomes[]` i `contacte[nom]`) i tractar-les amb `count()`, `implode()` i `foreach`.
+
+Tasques a fer dins del fitxer:
+
+1. A `TODO 1`, recupera l'array associatiu `$_POST['contacte']` amb `??` (per defecte, `[]`) i guarda'l en `$contacte`. Després declara `$nom` i `$email` amb els valors de les claus `'nom'` i `'email'` d'eixe array (amb `??` i `''` per defecte).
+2. A `TODO 2`, recupera l'array `$_POST['serveis']` (per defecte, `[]`) i guarda'l en `$serveis`. Declara `$totalServeis` amb el nombre de serveis marcats (`count()`).
+3. A `TODO 3`, recupera l'array `$_POST['idiomes']` (per defecte, `[]`) i guarda'l en `$idiomes`. Declara `$resumIdiomes` amb els idiomes separats per comes (`implode()`).
+4. Prova el formulari de tres maneres: omplint-ho tot, enviant-lo sense marcar cap checkbox ni triar cap idioma, i seleccionant diversos idiomes amb `Ctrl`/`Cmd` + clic.
+
+**Pista:** Els checkboxes sense marcar (i un `select` múltiple sense cap opció triada) **no s'envien**: la clau no existix a `$_POST`. Per això cal usar `?? []` abans de comptar o recórrer l'array; si no, obtindries un *Undefined array key*.
+
+#### Exercici 4.2 — Validació d'un formulari d'alta
+
+**Fitxer de partida:** `exercici4.2.php`
+
+::: details **📄 exercici4.2.php**
+
+```php
+<?php
+    $errors = [];
+    $enviat = $_SERVER['REQUEST_METHOD'] === 'POST';
+
+    if ($enviat) {
+        // Dades rebudes (ja proporcionades, no cal que les toques)
+        $nom        = trim($_POST['nom'] ?? '');
+        $email      = trim($_POST['email'] ?? '');
+        $web        = trim($_POST['web'] ?? '');
+        $pressupost = trim($_POST['pressupost'] ?? '');
+
+        // TODO 1: El nom és obligatori. Si està buit, afig a $errors
+        // el missatge 'El nom és obligatori.'
+
+        // TODO 2: L'email ha de ser vàlid (filter_var amb FILTER_VALIDATE_EMAIL).
+        // Si no ho és, afig a $errors el missatge 'L\'email no és vàlid.'
+
+        // TODO 3: La web és opcional, però si s'ha escrit alguna cosa ha de ser una URL vàlida
+        // (filter_var amb FILTER_VALIDATE_URL). Missatge: 'La web no és una URL vàlida.'
+
+        // TODO 4: El pressupost ha de ser un enter entre 0 i 100000
+        // (filter_var amb FILTER_VALIDATE_INT i les opcions min_range i max_range).
+        // Compte: 0 és un valor vàlid. Missatge: 'El pressupost ha de ser un enter entre 0 i 100000.'
+    }
+?>
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercici 4.2 - Validació</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-8">
+
+    <!-- VISTA: no cal tocar res d'ací en avall -->
+    <div class="max-w-xl mx-auto space-y-6">
+
+        <h1 class="text-2xl font-bold text-gray-800">Alta de lead · TechLeads</h1>
+
+        <?php if ($enviat && empty($errors)): ?>
+            <div class="bg-green-100 border border-green-300 text-green-800 px-4 py-3 rounded">
+                Lead donat d'alta correctament!
+            </div>
+        <?php elseif ($enviat): ?>
+            <div class="bg-red-100 border border-red-300 text-red-800 px-4 py-3 rounded">
+                <p class="font-semibold mb-1">Revisa les dades:</p>
+                <ul class="list-disc list-inside">
+                    <?php foreach ($errors as $error): ?>
+                        <li><?= htmlspecialchars($error) ?></li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
+        <?php endif; ?>
+
+        <!-- novalidate: desactiva la validació del navegador perquè pugues provar la del servidor -->
+        <form method="POST" action="" novalidate class="bg-white p-6 rounded-lg shadow-md space-y-4">
+            <div>
+                <label for="nom" class="block text-sm font-semibold text-gray-700 mb-1">Nom</label>
+                <input type="text" id="nom" name="nom" class="w-full border border-gray-300 rounded px-3 py-2">
+            </div>
+
+            <div>
+                <label for="email" class="block text-sm font-semibold text-gray-700 mb-1">Email</label>
+                <input type="email" id="email" name="email" class="w-full border border-gray-300 rounded px-3 py-2">
+            </div>
+
+            <div>
+                <label for="web" class="block text-sm font-semibold text-gray-700 mb-1">
+                    Web <span class="font-normal text-gray-500">(opcional)</span>
+                </label>
+                <input type="url" id="web" name="web" placeholder="https://..." class="w-full border border-gray-300 rounded px-3 py-2">
+            </div>
+
+            <div>
+                <label for="pressupost" class="block text-sm font-semibold text-gray-700 mb-1">Pressupost estimat (€)</label>
+                <input type="text" id="pressupost" name="pressupost" class="w-full border border-gray-300 rounded px-3 py-2">
+            </div>
+
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded">
+                Donar d'alta
+            </button>
+        </form>
+
+    </div>
+
+</body>
+</html>
+```
+:::
+
+**Objectiu:** Validar les dades al servidor amb `trim()` i `filter_var()` (`FILTER_VALIDATE_EMAIL`, `FILTER_VALIDATE_URL` i `FILTER_VALIDATE_INT` amb rang), acumulant tots els errors en un array.
+
+Tasques a fer dins del fitxer (les dades ja estan capturades a les variables `$nom`, `$email`, `$web` i `$pressupost`):
+
+1. A `TODO 1`, comprova que `$nom` no estiga buit. Si ho està, afig el missatge `'El nom és obligatori.'` a `$errors`.
+2. A `TODO 2`, comprova que `$email` siga vàlid amb `filter_var()` i `FILTER_VALIDATE_EMAIL`. Si no ho és, afig el missatge `'L\'email no és vàlid.'`.
+3. A `TODO 3`, la web és opcional: només si s'ha escrit alguna cosa (`$web !== ''`), comprova que siga una URL vàlida amb `FILTER_VALIDATE_URL`. Missatge: `'La web no és una URL vàlida.'`.
+4. A `TODO 4`, comprova que `$pressupost` siga un enter entre 0 i 100000 amb `FILTER_VALIDATE_INT` i les opcions `min_range` i `max_range`. Missatge: `'El pressupost ha de ser un enter entre 0 i 100000.'`.
+5. Prova el formulari amb diverses combinacions: tot correcte, tot buit, un email com `abc`, una web com `ex`, i pressuposts com `0`, `abc`, `-5` i `100001`. Comprova que es mostren tots els errors alhora.
+
+**Pista:** El formulari porta l'atribut `novalidate` perquè el navegador no valide per nosaltres i puguem provar la validació del servidor (que és l'única fiable). Fixa't que `0` és un pressupost vàlid: `filter_var()` retorna `false` quan falla, així que has de comparar amb `=== false` (amb `empty()` es rebutjaria el `0`). Per ara els camps es buiden en enviar; al 4.4 farem que el formulari recorde el que s'havia escrit.
+
+#### Exercici 4.3 — Evitar XSS
+
+**Fitxer de partida:** `exercici4.3.php`
+
+::: details **📄 exercici4.3.php**
+
+```php
+<?php
+    // TODO 1: Defineix la funció e(string $valor): string que retorne
+    // htmlspecialchars($valor, ENT_QUOTES, 'UTF-8')
+
+    // Comentaris de mostra (ja proporcionats). Fixa't en el segon i el tercer!
+    $comentaris = [
+        ['autor' => 'Aina',                 'text' => 'Molt interessada en el pressupost de la web.'],
+        ['autor' => 'Visitant',             'text' => '<script>alert("XSS: este codi s\'ha executat!")</script>'],
+        ['autor' => 'Marc <b>(client)</b>', 'text' => 'Ens agrada l\'enfocament "cloud" & la proposta.'],
+    ];
+
+    $cerca = $_GET['q'] ?? '';
+?>
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercici 4.3 - XSS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-8">
+
+    <!-- VISTA: només has de modificar les etiquetes d'eixida que indiquen els TODO -->
+    <div class="max-w-xl mx-auto space-y-6">
+
+        <h1 class="text-2xl font-bold text-gray-800">Notes sobre el lead · TechLeads</h1>
+
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-lg font-semibold text-gray-800 mb-3">Cerca en les notes</h2>
+
+            <?php /* TODO 3: Sanea $cerca amb e() tant en l'atribut value de l'input com en el text dels resultats */ ?>
+            <form method="GET" action="" class="flex gap-2 mb-3">
+                <input type="text" name="q" value="<?= $cerca ?>" class="flex-1 border border-gray-300 rounded px-3 py-2">
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded">Cerca</button>
+            </form>
+
+            <?php if ($cerca !== ''): ?>
+                <p class="text-gray-700 mb-1">Resultats per a: <span class="font-semibold text-purple-700"><?= $cerca ?></span></p>
+
+                <?php /* TODO 4: Dins d'una URL no s'usa e(): codifica $cerca amb urlencode() */ ?>
+                <a href="?q=<?= $cerca ?>" class="text-blue-600 hover:underline">Repetir la cerca</a>
+            <?php endif; ?>
+        </div>
+
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-lg font-semibold text-gray-800 mb-1">Comentaris</h2>
+
+            <?php /* TODO 2: Sanea amb e() l'autor i el text de cada comentari */ ?>
+            <?php foreach ($comentaris as $comentari): ?>
+                <div class="border-b py-3">
+                    <p class="font-semibold text-gray-800"><?= $comentari['autor'] ?></p>
+                    <p class="text-gray-600"><?= $comentari['text'] ?></p>
+                </div>
+            <?php endforeach; ?>
+        </div>
+
+    </div>
+
+</body>
+</html>
+```
+:::
+
+**Objectiu:** Sanejar amb `htmlspecialchars()` les dades que s'imprimixen en HTML (contingut i atributs) i codificar amb `urlencode()` les que van dins d'una URL.
+
+En obrir la pàgina saltarà un `alert()`: és un comentari maliciós que s'està executant al teu navegador. La teua tasca és impedir-ho.
+
+Tasques a fer dins del fitxer:
+
+1. A `TODO 1`, defineix la funció `e(string $valor): string` que retorne `htmlspecialchars($valor, ENT_QUOTES, 'UTF-8')`.
+2. A `TODO 2`, sanea amb `e()` l'autor i el text de cada comentari (les dues etiquetes `<?= ... ?>` de dins del `foreach`).
+3. A `TODO 3`, sanea `$cerca` amb `e()` en els dos llocs on s'imprimix: l'atribut `value` de l'input i el text «Resultats per a».
+4. A `TODO 4`, en l'enllaç «Repetir la cerca», codifica `$cerca` amb `urlencode()` (dins d'una URL no s'usa `e()`).
+5. Comprova el resultat: recarrega la pàgina (el `<script>` s'ha de veure com a text, sense executar-se) i prova estes cerques en la URL:
+   - `?q=<b>hola</b> & adéu`
+   - `?q="><script>alert(1)</script>`
+
+**Pista:** El sanejat es fa **en el moment d'imprimir**, no en el de rebre la dada. Fixa't que la segona cerca aprofita les cometes per «tancar» l'atribut `value` i injectar codi: per això cal `ENT_QUOTES`, que també escapa les cometes.
+
+#### Exercici 4.4 — Sticky forms
+
+**Fitxer de partida:** `exercici4.4.php`
+
+::: details **📄 exercici4.4.php**
+
+```php
+<?php
+    function e(string $valor): string {
+        return htmlspecialchars($valor, ENT_QUOTES, 'UTF-8');
+    }
+
+    // Dades de suport per al formulari (ja proporcionades)
+    $serveis    = ['web' => 'Desenvolupament web', 'app' => 'Aplicació mòbil', 'seo' => 'Consultoria SEO'];
+    $prioritats = ['alta' => 'Alta', 'mitjana' => 'Mitjana', 'baixa' => 'Baixa'];
+    $interessosDisponibles = ['facturacio' => 'Facturació', 'crm' => 'CRM', 'analitica' => 'Analítica'];
+
+    $errors   = [];
+    $enviatOk = false;
+
+    $nom           = '';
+    $email         = '';
+    $servei        = '';
+    $prioritat     = '';
+    $interessos    = [];
+    $acceptaTermes = false;
+
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        // Captura de dades (ja proporcionada)
+        $nom           = trim($_POST['nom'] ?? '');
+        $email         = trim($_POST['email'] ?? '');
+        $servei        = $_POST['servei'] ?? '';
+        $prioritat     = $_POST['prioritat'] ?? '';
+        $interessos    = $_POST['interessos'] ?? [];
+        $acceptaTermes = isset($_POST['termes']);
+
+        // Validació (ja proporcionada)
+        if ($nom === '') {
+            $errors[] = 'El nom és obligatori.';
+        }
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $errors[] = 'L\'email no és vàlid.';
+        }
+        if (!array_key_exists($servei, $serveis)) {
+            $errors[] = 'Has de triar un servei.';
+        }
+        if (!array_key_exists($prioritat, $prioritats)) {
+            $errors[] = 'Has de triar una prioritat.';
+        }
+        if (!$acceptaTermes) {
+            $errors[] = 'Has d\'acceptar els termes i condicions.';
+        }
+
+        if (empty($errors)) {
+            // TODO 1: Les dades són vàlides. Marca $enviatOk com a true i buida tots els valors
+            // ($nom, $email, $servei, $prioritat, $interessos i $acceptaTermes) tornant-los
+            // al seu estat inicial, perquè el formulari es mostre buit després d'un enviament correcte
+        }
+    }
+?>
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercici 4.4 - Sticky forms</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-8">
+
+    <!-- VISTA: només has de completar els atributs que indiquen els TODO (2 al 6) -->
+    <div class="max-w-xl mx-auto space-y-6">
+
+        <h1 class="text-2xl font-bold text-gray-800">Alta de lead · TechLeads</h1>
+
+        <?php if ($enviatOk): ?>
+            <div class="bg-green-100 border border-green-300 text-green-800 px-4 py-3 rounded">
+                Lead donat d'alta correctament!
+            </div>
+        <?php endif; ?>
+
+        <?php if (!empty($errors)): ?>
+            <div class="bg-red-100 border border-red-300 text-red-800 px-4 py-3 rounded">
+                <ul class="list-disc list-inside">
+                    <?php foreach ($errors as $error): ?>
+                        <li><?= e($error) ?></li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
+        <?php endif; ?>
+
+        <form method="POST" action="" novalidate class="bg-white p-6 rounded-lg shadow-md space-y-4">
+
+            <?php /* TODO 2: Fes que els camps nom i email recorden el valor, escrivint-lo en value="" sanejat amb e() */ ?>
+            <div>
+                <label for="nom" class="block text-sm font-semibold text-gray-700 mb-1">Nom</label>
+                <input type="text" id="nom" name="nom" value="" class="w-full border border-gray-300 rounded px-3 py-2">
+            </div>
+
+            <div>
+                <label for="email" class="block text-sm font-semibold text-gray-700 mb-1">Email</label>
+                <input type="email" id="email" name="email" value="" class="w-full border border-gray-300 rounded px-3 py-2">
+            </div>
+
+            <div>
+                <label for="servei" class="block text-sm font-semibold text-gray-700 mb-1">Servei</label>
+                <select id="servei" name="servei" class="w-full border border-gray-300 rounded px-3 py-2">
+                    <option value="">-- Selecciona --</option>
+                    <?php foreach ($serveis as $codi => $etiqueta): ?>
+                        <option value="<?= e($codi) ?>" <?php /* TODO 3: afig selected si $servei coincideix amb $codi */ ?>><?= e($etiqueta) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <fieldset>
+                <legend class="block text-sm font-semibold text-gray-700 mb-1">Prioritat</legend>
+                <div class="flex gap-4 text-gray-700">
+                    <?php foreach ($prioritats as $codi => $etiqueta): ?>
+                        <label class="flex items-center gap-2">
+                            <input type="radio" name="prioritat" value="<?= e($codi) ?>" <?php /* TODO 4: afig checked si $prioritat coincideix amb $codi */ ?>>
+                            <?= e($etiqueta) ?>
+                        </label>
+                    <?php endforeach; ?>
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <legend class="block text-sm font-semibold text-gray-700 mb-1">Àrees d'interés</legend>
+                <div class="flex flex-wrap gap-4 text-gray-700">
+                    <?php foreach ($interessosDisponibles as $codi => $etiqueta): ?>
+                        <label class="flex items-center gap-2">
+                            <input type="checkbox" name="interessos[]" value="<?= e($codi) ?>" <?php /* TODO 5: afig checked si $codi està dins de l'array $interessos (in_array) */ ?>>
+                            <?= e($etiqueta) ?>
+                        </label>
+                    <?php endforeach; ?>
+                </div>
+            </fieldset>
+
+            <label class="flex items-center gap-2 text-gray-700">
+                <input type="checkbox" name="termes" <?php /* TODO 6: afig checked si $acceptaTermes és true */ ?>>
+                Accepte els termes i condicions
+            </label>
+
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded">
+                Donar d'alta
+            </button>
+        </form>
+
+    </div>
+
+</body>
+</html>
+```
+:::
+
+**Objectiu:** Fer que un formulari recorde els valors que l'usuari ja havia introduït quan hi ha errors, tant en camps de text com en `select`, `radio` i `checkbox`.
+
+El formulari ja captura i valida les dades. Tasques a fer dins del fitxer:
+
+1. A `TODO 1`, quan no hi ha errors, marca `$enviatOk` com a `true` i buida tots els valors (`$nom`, `$email`, `$servei`, `$prioritat`, `$interessos` i `$acceptaTermes`), tornant-los al seu estat inicial perquè el formulari es mostre buit.
+2. A `TODO 2`, fes que els inputs de nom i email recorden el valor escrivint-lo en el seu `value=""`, sanejat amb `e()`.
+3. A `TODO 3`, afig l'atribut `selected` a l'`option` que coincidisca amb `$servei`.
+4. A `TODO 4`, afig l'atribut `checked` al `radio` que coincidisca amb `$prioritat`.
+5. A `TODO 5`, afig l'atribut `checked` als checkboxes múltiples els valors dels quals estiguen dins de l'array `$interessos` (`in_array()`).
+6. A `TODO 6`, afig l'atribut `checked` al checkbox dels termes si `$acceptaTermes` és `true`.
+7. Prova el formulari deixant-ne alguns camps sense omplir: els que sí havies omplit han de continuar amb el seu valor. Prova també un nom amb cometes, com `Aina "Soler"`. Després envia'l correctament i comprova que es mostra buit.
+
+**Pista:** Per a `selected` i `checked` s'escriu una comparació que retorne l'atribut o una cadena buida, per exemple `<?= $servei === $codi ? 'selected' : '' ?>`. Eixes cadenes són fixes, no dades de l'usuari, així que **no** cal passar-les per `e()`. El `value` sí: és una dada de l'usuari.
+
+#### Exercici 4.5 — Pujar el logo d'una empresa
+
+**Fitxer de partida:** `exercici4.5.php` i la carpeta `pujades/` (ja creada, on es guardaran les imatges)
+
+::: details **📄 exercici4.5.php**
+
+```php
+<?php
+    $errors   = [];
+    $nomFinal = null;
+
+    $carpetaDesti    = __DIR__ . '/pujades/';
+    $grandariaMaxima = 2 * 1024 * 1024; // 2 MB
+    $tipusPermesos   = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
+
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $arxiu = $_FILES['logo'] ?? null;
+
+        // TODO 1: Si $arxiu és null o el seu camp 'error' és diferent de UPLOAD_ERR_OK,
+        // afig a $errors el missatge 'No s\'ha pujat cap arxiu o s\'ha produït un error en la pujada.'
+
+        // TODO 2: Només si no hi ha errors: si el camp 'size' supera $grandariaMaxima,
+        // afig a $errors el missatge 'L\'arxiu no pot superar els 2 MB.'
+
+        // TODO 3: Només si no hi ha errors: obtín el tipus real de l'arxiu temporal amb finfo
+        // (new finfo(FILEINFO_MIME_TYPE) i el mètode file() sobre 'tmp_name') i guarda'l en $tipusReal.
+        // Si $tipusReal no és una clau de $tipusPermesos, afig a $errors el missatge
+        // 'Només es permeten imatges JPEG, PNG o WEBP.'
+
+        // TODO 4: Només si no hi ha errors: genera un nom únic amb uniqid('logo_', true), seguit d'un punt
+        // i de l'extensió que corresponga a $tipusReal segons $tipusPermesos, i guarda'l en $nomFinal.
+        // Mou l'arxiu a $carpetaDesti . $nomFinal amb move_uploaded_file().
+        // Si move_uploaded_file() falla, afig a $errors el missatge 'No s\'ha pogut guardar l\'arxiu.'
+        // i torna a posar $nomFinal a null
+    }
+?>
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercici 4.5 - Pujar arxius</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-8">
+
+    <!-- VISTA: no cal tocar res d'ací en avall -->
+    <div class="max-w-xl mx-auto space-y-6">
+
+        <h1 class="text-2xl font-bold text-gray-800">Logo de l'empresa · TechLeads</h1>
+
+        <?php if (!empty($errors)): ?>
+            <div class="bg-red-100 border border-red-300 text-red-800 px-4 py-3 rounded">
+                <ul class="list-disc list-inside">
+                    <?php foreach ($errors as $error): ?>
+                        <li><?= htmlspecialchars($error) ?></li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
+        <?php endif; ?>
+
+        <?php if ($nomFinal !== null): ?>
+            <div class="bg-green-100 border border-green-300 text-green-800 px-4 py-3 rounded">
+                <p class="mb-3">Logo pujat correctament com a <span class="font-semibold"><?= htmlspecialchars($nomFinal) ?></span></p>
+                <img src="pujades/<?= htmlspecialchars($nomFinal) ?>" alt="Logo pujat" class="h-32 rounded border border-green-300 bg-white p-1">
+            </div>
+        <?php endif; ?>
+
+        <form method="POST" action="" enctype="multipart/form-data" class="bg-white p-6 rounded-lg shadow-md space-y-4">
+            <div>
+                <label for="logo" class="block text-sm font-semibold text-gray-700 mb-1">
+                    Selecciona el logo <span class="font-normal text-gray-500">(JPEG, PNG o WEBP, màx. 2 MB)</span>
+                </label>
+                <input type="file" id="logo" name="logo" class="w-full text-gray-700">
+            </div>
+
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded">
+                Pujar
+            </button>
+        </form>
+
+    </div>
+
+</body>
+</html>
+```
+:::
+
+**Objectiu:** Gestionar la pujada d'un arxiu de manera segura: comprovar el codi d'error i la grandària, validar el tipus real amb `finfo`, generar un nom propi i moure l'arxiu amb `move_uploaded_file()`.
+
+Nota: Apache ha de poder escriure a la carpeta `pujades/`. Si obtens l'error «No s'ha pogut guardar l'arxiu», dona-li permisos d'escriptura (en Docker, per a esta pràctica de classe, sol bastar `chmod 777 pujades`).
+
+Tasques a fer dins del fitxer:
+
+1. A `TODO 1`, comprova que s'ha pujat un arxiu sense errors (`$arxiu` no és `null` i el seu camp `'error'` és `UPLOAD_ERR_OK`). Si no és així, afig el missatge `'No s\'ha pujat cap arxiu o s\'ha produït un error en la pujada.'`.
+2. A `TODO 2`, només si no hi ha errors, comprova que la grandària (`'size'`) no supere `$grandariaMaxima`. Missatge: `'L\'arxiu no pot superar els 2 MB.'`.
+3. A `TODO 3`, només si no hi ha errors, obtín el tipus real de l'arxiu temporal amb `finfo` i comprova que és una clau de `$tipusPermesos`. Missatge: `'Només es permeten imatges JPEG, PNG o WEBP.'`.
+4. A `TODO 4`, només si no hi ha errors, genera un nom únic amb `uniqid('logo_', true)` seguit de l'extensió que corresponga al tipus real, i mou l'arxiu a `pujades/` amb `move_uploaded_file()`. Si falla, afig el missatge `'No s\'ha pogut guardar l\'arxiu.'` i torna a posar `$nomFinal` a `null`.
+5. Prova estos casos: una imatge PNG o JPG vàlida, un arxiu de text amb l'extensió canviada a `.png`, enviar el formulari sense triar cap arxiu i una imatge de més de 2 MB.
+
+**Pista:** No et fies mai de `$_FILES['logo']['type']` ni del nom original: els envia el navegador i es poden falsificar. Per això el tipus es comprova llegint el contingut (`finfo`) i l'extensió s'obté d'eixe tipus real (`$tipusPermesos`) en lloc de copiar-la del nom que envia l'usuari. Si la imatge de més de 2 MB no arriba al teu control de grandària, és perquè el `php.ini` (`upload_max_filesize`) ja la ha rebutjat abans i, en eixe cas, saltarà l'error del `TODO 1`.
+
+
+### 10.5. Cookies i sessions
+
+#### Exercici 5.1 — Cookie de preferències
+
+**Fitxer de partida:** `exercici5.1.php`
+
+:::details **📄 exercici5.1.php**
+
+```php
+<?php
+    // TODO 1: Si $_GET['tema'] val 'clar' o 'fosc' (comprova-ho amb in_array), crea la cookie 'tema'
+    // amb setcookie(): valor = el tema rebut, expira en 30 dies, path '/' i httponly activat.
+    // Després redirigeix a 'exercici5.1.php' amb header('Location: ...') i exit
+
+    // TODO 2: Si $_GET['tema'] val 'esborrar', elimina la cookie 'tema' (data d'expiració
+    // en el passat i path '/') i redirigeix a 'exercici5.1.php' amb exit
+
+    // TODO 3: Llig la cookie 'tema' de $_COOKIE amb ?? (per defecte 'clar') i guarda-la en $tema
+
+?>
+<?php $fosc = $tema === 'fosc'; ?>
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercici 5.1 - Cookie de preferències</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="<?= $fosc ? 'bg-gray-900 text-gray-100' : 'bg-gray-100 text-gray-800' ?> min-h-screen p-8">
+
+    <!-- VISTA: no cal tocar res d'ací en avall -->
+    <div class="max-w-xl mx-auto space-y-6">
+
+        <h1 class="text-2xl font-bold">Preferències · TechLeads</h1>
+
+        <div class="<?= $fosc ? 'bg-gray-800' : 'bg-white' ?> p-6 rounded-lg shadow-md space-y-4">
+            <p>Tema actual: <span class="font-semibold"><?= $fosc ? 'fosc' : 'clar' ?></span></p>
+            <p class="text-sm opacity-75">
+                Valor de la cookie <code>tema</code>:
+                <?= htmlspecialchars($_COOKIE['tema'] ?? '(no definida)') ?>
+            </p>
+
+            <div class="flex flex-wrap gap-3">
+                <a href="?tema=clar" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded">Mode clar</a>
+                <a href="?tema=fosc" class="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-4 py-2 rounded">Mode fosc</a>
+                <a href="?tema=esborrar" class="bg-gray-400 hover:bg-gray-500 text-white font-semibold px-4 py-2 rounded">Oblidar preferència</a>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>
+```
+:::
+
+**Objectiu:** Crear, llegir i eliminar una cookie amb `setcookie()` i `$_COOKIE`, entenent que la cookie no estarà disponible fins a la petició següent.
+
+Tasques a fer dins del fitxer:
+
+1. A `TODO 1`, si `$_GET['tema']` val `'clar'` o `'fosc'` (comprova-ho amb `in_array()`), crea la cookie `tema` amb `setcookie()`: el valor és el tema rebut, expira en 30 dies (`time() + 3600 * 24 * 30`), amb `path` `'/'` i `httponly` activat. Després redirigeix a `exercici5.1.php` amb `header('Location: ...')` i `exit`.
+2. A `TODO 2`, si `$_GET['tema']` val `'esborrar'`, elimina la cookie `tema` (amb una data d'expiració en el passat i el mateix `path`) i redirigeix a `exercici5.1.php` amb `exit`.
+3. A `TODO 3`, llig la cookie `tema` de `$_COOKIE` amb `??` (per defecte, `'clar'`) i guarda-la en `$tema`.
+4. Prova la pàgina: tria el mode fosc, recarrega-la, tanca la pestanya i torna-la a obrir. Comprova la cookie a les eines de desenvolupador (pestanya *Aplicació* o *Emmagatzematge* → *Cookies*): veuràs la data d'expiració i que és `HttpOnly`. Després prem «Oblidar preferència».
+
+**Pista:** `setcookie()` envia una capçalera HTTP, per això el bloc PHP està al principi del fitxer, abans de qualsevol eixida. Una cookie acabada de crear **no** està a `$_COOKIE` fins a la petició següent: per això, després de crear-la, es redirigeix a la mateixa pàgina. Si vols comprovar-ho, comenta temporalment la redirecció i observa que el canvi de tema no es veu fins a recarregar. Fixa't també que el valor que es guarda a la cookie ve de la URL, per això només s'accepten els valors `'clar'` i `'fosc'`. Les cookies de `localhost` es comparteixen entre ports, així que pot haver-hi cookies d'altres projectes teus.
+
+#### Exercici 5.2 — Comptador de visites amb sessió
+
+**Fitxer de partida:** `exercici5.2.php`
+
+:::details **📄 exercici5.2.php**
+
+```php
+<?php
+    // TODO 1: Inicia la sessió amb session_start()
+
+    // TODO 2: Si $_GET['accio'] val 'reiniciar', buida $_SESSION (amb un array buit),
+    // destruïx la sessió amb session_destroy() i redirigeix a 'exercici5.2.php' amb exit
+
+    // TODO 3: Incrementa en 1 el comptador $_SESSION['visites']
+    // (si encara no existix, ha de començar en 0)
+
+    // TODO 4: Si $_SESSION['primera_visita'] encara no existix,
+    // guarda-hi l'hora actual amb date('H:i:s')
+
+    // TODO 5: Guarda $_SESSION['visites'] en $visites
+    // i $_SESSION['primera_visita'] en $primeraVisita
+
+?>
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercici 5.2 - Comptador de visites</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-8">
+
+    <!-- VISTA: no cal tocar res d'ací en avall -->
+    <div class="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center space-y-4">
+        <h1 class="text-2xl font-bold text-gray-800">Àrea de clients · TechLeads</h1>
+
+        <p class="text-gray-700">
+            Has visitat esta pàgina
+            <span class="text-3xl font-bold text-blue-700 block my-2"><?= (int) $visites ?></span>
+            <?= $visites === 1 ? 'vegada' : 'vegades' ?> en esta sessió.
+        </p>
+        <p class="text-sm text-gray-500">Primera visita: <?= htmlspecialchars($primeraVisita) ?></p>
+
+        <div class="flex justify-center gap-3">
+            <a href="exercici5.2.php" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded">Recarregar</a>
+            <a href="?accio=reiniciar" class="bg-red-500 hover:bg-red-600 text-white font-semibold px-4 py-2 rounded">Reiniciar sessió</a>
+        </div>
+    </div>
+
+</body>
+</html>
+```
+:::
+
+**Objectiu:** Iniciar una sessió amb `session_start()`, guardar i llegir dades a `$_SESSION` i destruir la sessió.
+
+Tasques a fer dins del fitxer:
+
+1. A `TODO 1`, inicia la sessió amb `session_start()`.
+2. A `TODO 2`, si `$_GET['accio']` val `'reiniciar'`, buida `$_SESSION` (amb un array buit), destruïx la sessió amb `session_destroy()` i redirigeix a `exercici5.2.php` amb `exit`.
+3. A `TODO 3`, incrementa en 1 el comptador `$_SESSION['visites']` (si encara no existix, ha de començar en 0).
+4. A `TODO 4`, si `$_SESSION['primera_visita']` encara no existix, guarda-hi l'hora actual amb `date('H:i:s')`.
+5. A `TODO 5`, guarda `$_SESSION['visites']` en `$visites` i `$_SESSION['primera_visita']` en `$primeraVisita`.
+6. Prova la pàgina: recarrega-la diverses vegades i comprova que el comptador puja i que la primera visita no canvia. Obri-la en una finestra privada per a comprovar que és una sessió independent, i prova el botó «Reiniciar sessió».
+
+**Pista:** `session_start()` ha d'anar al principi de l'script, abans de qualsevol eixida. A les eines de desenvolupador (*Cookies*) veuràs la cookie `PHPSESSID`: el navegador només guarda eixe identificador, les dades (`visites`, `primera_visita`) viuen al servidor. Per això el comptador és diferent en cada navegador.
+
+#### Exercici 5.3 — Control d'accés amb sessió
+
+**Carpeta de partida:** `exercici5.3/`, amb els fitxers `login.php`, `pagina_privada.php` i `logout.php`
+
+:::details **📄 exercici5.3/login.php**
+
+```php
+<?php
+    // TODO 1: Inicia la sessió amb session_start()
+
+    // Usuaris autoritzats i el seu rol (ja proporcionat).
+    // En este exercici no hi ha contrasenya: l'autenticació real, amb password_hash(),
+    // la farem al punt 6
+    $usuaris = ['ana' => 'comercial', 'marc' => 'administrador'];
+    $errors  = [];
+
+    // TODO 2: Si l'usuari ja té la sessió iniciada ($_SESSION['usuari'] existix),
+    // redirigeix a 'pagina_privada.php' amb exit
+
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $usuari = trim($_POST['usuari'] ?? '');
+
+        // TODO 3: Si $usuari és una clau de l'array $usuaris, guarda en $_SESSION['usuari'] el seu nom
+        // i en $_SESSION['rol'] el rol que li corresponga, i redirigeix a 'pagina_privada.php' amb exit.
+        // Si no, afig a $errors el missatge 'Accés denegat: usuari no reconegut.'
+    }
+?>
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercici 5.3 - Iniciar sessió</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-8">
+
+    <!-- VISTA: no cal tocar res d'ací en avall -->
+    <div class="max-w-sm w-full space-y-4">
+
+        <?php foreach ($errors as $error): ?>
+            <div class="bg-red-100 border border-red-300 text-red-800 px-4 py-3 rounded"><?= htmlspecialchars($error) ?></div>
+        <?php endforeach; ?>
+
+        <form method="POST" action="" class="bg-white p-8 rounded-lg shadow-md space-y-4">
+            <h1 class="text-2xl font-bold text-gray-800">Iniciar sessió</h1>
+            <p class="text-sm text-gray-500">Usuaris de prova: <code>ana</code> i <code>marc</code></p>
+
+            <div>
+                <label for="usuari" class="block text-sm font-semibold text-gray-700 mb-1">Usuari</label>
+                <input type="text" id="usuari" name="usuari" class="w-full border border-gray-300 rounded px-3 py-2">
+            </div>
+
+            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded">
+                Entrar
+            </button>
+        </form>
+
+    </div>
+
+</body>
+</html>
+```
+:::
+
+:::details **📄 exercici5.3/pagina_privada.php**
+
+```php
+<?php
+    // TODO 1: Inicia la sessió amb session_start()
+
+    // TODO 2: Si NO existix $_SESSION['usuari'], redirigeix a 'login.php' amb exit
+
+    // TODO 3: Guarda $_SESSION['usuari'] en $usuari i $_SESSION['rol'] en $rol
+
+?>
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercici 5.3 - Pàgina privada</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-8">
+
+    <!-- VISTA: no cal tocar res d'ací en avall -->
+    <div class="max-w-xl mx-auto space-y-6">
+
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h1 class="text-2xl font-bold text-gray-800 mb-1">Benvingut/da, <?= htmlspecialchars($usuari) ?>!</h1>
+            <p class="text-gray-600">Rol: <span class="font-semibold text-blue-700"><?= htmlspecialchars($rol) ?></span></p>
+        </div>
+
+        <?php if ($rol === 'administrador'): ?>
+            <div class="bg-yellow-100 border border-yellow-300 text-yellow-800 px-4 py-3 rounded">
+                Panell d'administració: només el veuen els administradors.
+            </div>
+        <?php endif; ?>
+
+        <a href="logout.php" class="inline-block bg-red-500 hover:bg-red-600 text-white font-semibold px-4 py-2 rounded">
+            Tancar sessió
+        </a>
+
+    </div>
+
+</body>
+</html>
+```
+:::
+
+:::details **📄 exercici5.3/logout.php**
+
+```php
+<?php
+    // TODO 1: Inicia la sessió amb session_start()
+
+    // TODO 2: Buida $_SESSION amb un array buit i destruïx la sessió amb session_destroy()
+
+    // TODO 3: Redirigeix a 'login.php' amb exit
+```
+:::
+
+**Objectiu:** Utilitzar la sessió per a recordar que un usuari s'ha identificat, protegir una pàgina privada redirigint els visitants no identificats i tancar la sessió.
+
+En este exercici no hi ha contrasenya: només es comprova que l'usuari estiga en una llista. Açò **no** és segur; l'autenticació real, amb `password_hash()` i `password_verify()`, la veurem al punt 6.
+
+Tasques a fer:
+
+1. A `login.php`, `TODO 1`: inicia la sessió amb `session_start()`.
+2. A `login.php`, `TODO 2`: si l'usuari ja té la sessió iniciada (`$_SESSION['usuari']` existix), redirigeix a `pagina_privada.php` amb `exit`.
+3. A `login.php`, `TODO 3`: si `$usuari` és una clau de l'array `$usuaris`, guarda en `$_SESSION['usuari']` el seu nom i en `$_SESSION['rol']` el rol que li corresponga, i redirigeix a `pagina_privada.php` amb `exit`. Si no, afig a `$errors` el missatge `'Accés denegat: usuari no reconegut.'`.
+4. A `pagina_privada.php`, `TODO 1`: inicia la sessió amb `session_start()`.
+5. A `pagina_privada.php`, `TODO 2`: si **no** existix `$_SESSION['usuari']`, redirigeix a `login.php` amb `exit`.
+6. A `pagina_privada.php`, `TODO 3`: guarda `$_SESSION['usuari']` en `$usuari` i `$_SESSION['rol']` en `$rol`.
+7. A `logout.php`, `TODO 1`: inicia la sessió amb `session_start()`.
+8. A `logout.php`, `TODO 2`: buida `$_SESSION` amb un array buit i destruïx la sessió amb `session_destroy()`.
+9. A `logout.php`, `TODO 3`: redirigeix a `login.php` amb `exit`.
+10. Prova el flux complet: obri `pagina_privada.php` directament (t'ha de tornar al login), prova un usuari que no existix, entra com `ana` i com `marc` (només l'administrador veu el panell d'administració), tanca la sessió i intenta tornar a la pàgina privada amb el botó *Arrere* del navegador o escrivint-ne la URL.
+
+**Pista:** `session_start()` s'ha de cridar en **tots** els arxius que llegisquen o escriguen `$_SESSION`. El bloc de `pagina_privada.php` (comprovar la sessió i redirigir amb `exit`) és el patró de control d'accés que reutilitzaràs en qualsevol pàgina que vulgues protegir: sense l'`exit`, el codi de la pàgina continuaria executant-se encara que el navegador ja haja rebut l'ordre de redirigir.
+
+### 10.6. Autenticació d'usuaris (password_hash i password_verify)
+
+#### Exercici 6.1 — Registre d'usuari amb `password_hash()`
+
+**Fitxer de partida:** `exercici6.1.php`
+
+::: details **📄 exercici6.1.php**
+
+```php
+<?php
+    $errors = [];
+    $enviat = $_SERVER['REQUEST_METHOD'] === 'POST';
+
+    if ($enviat) {
+        // Dades rebudes (ja proporcionades, no cal que les toques)
+        $usuari      = trim($_POST['usuari'] ?? '');
+        $contrasenya = $_POST['contrasenya'] ?? '';
+        $confirmacio = $_POST['confirmacio'] ?? '';
+
+        // TODO 1: Valida les dades i acumula els errors en $errors:
+        // - Si $usuari està buit: 'El nom d\'usuari és obligatori.'
+        // - Si $contrasenya i $confirmacio no coincidixen: 'Les contrasenyes no coincidixen.'
+        // - Si coincidixen però tenen menys de 8 caràcters (strlen): 'La contrasenya ha de tindre almenys 8 caràcters.'
+
+        if (empty($errors)) {
+            // TODO 2: Genera el hash de $contrasenya amb password_hash() i PASSWORD_DEFAULT
+            // i guarda'l en $hash. (En un cas real, este hash és el que es guardaria a la base
+            // de dades: mai la contrasenya en text pla)
+
+            // TODO 3: Genera un segon hash de la mateixa contrasenya i guarda'l en $hash2.
+            // Després declara:
+            // - $hashesIguals: si $hash i $hash2 són idèntics (===)
+            // - $verificacioCorrecta: el resultat de password_verify() amb $contrasenya i $hash
+            // - $verificacioIncorrecta: el resultat de password_verify() amb $contrasenya . 'x' i $hash
+        }
+    }
+?>
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercici 6.1 - Registre d'usuari</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-8">
+
+    <!-- VISTA: no cal tocar res d'ací en avall -->
+    <div class="max-w-xl mx-auto space-y-6">
+
+        <h1 class="text-2xl font-bold text-gray-800">Registre d'usuari · TechLeads</h1>
+
+        <?php if ($enviat && !empty($errors)): ?>
+            <div class="bg-red-100 border border-red-300 text-red-800 px-4 py-3 rounded">
+                <ul class="list-disc list-inside">
+                    <?php foreach ($errors as $error): ?>
+                        <li><?= htmlspecialchars($error) ?></li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
+        <?php endif; ?>
+
+        <form method="POST" action="" novalidate class="bg-white p-6 rounded-lg shadow-md space-y-4">
+            <div>
+                <label for="usuari" class="block text-sm font-semibold text-gray-700 mb-1">Usuari</label>
+                <input type="text" id="usuari" name="usuari" class="w-full border border-gray-300 rounded px-3 py-2">
+            </div>
+
+            <div>
+                <label for="contrasenya" class="block text-sm font-semibold text-gray-700 mb-1">Contrasenya</label>
+                <input type="password" id="contrasenya" name="contrasenya" class="w-full border border-gray-300 rounded px-3 py-2">
+            </div>
+
+            <div>
+                <label for="confirmacio" class="block text-sm font-semibold text-gray-700 mb-1">Repetix la contrasenya</label>
+                <input type="password" id="confirmacio" name="confirmacio" class="w-full border border-gray-300 rounded px-3 py-2">
+            </div>
+
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded">
+                Registrar-se
+            </button>
+        </form>
+
+        <?php if ($enviat && empty($errors)): ?>
+            <div class="bg-white p-6 rounded-lg shadow-md space-y-3">
+                <h2 class="text-lg font-semibold text-green-700">Usuari «<?= htmlspecialchars($usuari) ?>» registrat</h2>
+
+                <div>
+                    <p class="text-sm font-semibold text-gray-700">Hash que es guardaria a la base de dades:</p>
+                    <p class="font-mono text-sm break-all bg-gray-100 rounded p-2"><?= htmlspecialchars($hash) ?></p>
+                </div>
+
+                <div>
+                    <p class="text-sm font-semibold text-gray-700">Un segon hash de la mateixa contrasenya:</p>
+                    <p class="font-mono text-sm break-all bg-gray-100 rounded p-2"><?= htmlspecialchars($hash2) ?></p>
+                </div>
+
+                <ul class="text-gray-700 space-y-1">
+                    <li>Els dos hashes són iguals? <span class="font-semibold"><?= $hashesIguals ? 'Sí' : 'No' ?></span></li>
+                    <li>Verificació amb la contrasenya correcta: <span class="font-semibold"><?= $verificacioCorrecta ? 'Sí' : 'No' ?></span></li>
+                    <li>Verificació amb una contrasenya errònia: <span class="font-semibold"><?= $verificacioIncorrecta ? 'Sí' : 'No' ?></span></li>
+                </ul>
+            </div>
+        <?php endif; ?>
+
+    </div>
+
+</body>
+</html>
+```
+:::
+
+**Objectiu:** Validar un formulari de registre i generar el hash d'una contrasenya amb `password_hash()`, comprovant que dos hashes de la mateixa contrasenya són diferents però `password_verify()` els reconeix.
+
+Tasques a fer dins del fitxer (les dades ja estan capturades a `$usuari`, `$contrasenya` i `$confirmacio`):
+
+1. A `TODO 1`, valida les dades i acumula els errors en `$errors`:
+   - si `$usuari` està buit: `'El nom d\'usuari és obligatori.'`
+   - si `$contrasenya` i `$confirmacio` no coincidixen: `'Les contrasenyes no coincidixen.'`
+   - si coincidixen però tenen menys de 8 caràcters (`strlen()`): `'La contrasenya ha de tindre almenys 8 caràcters.'`
+2. A `TODO 2`, genera el hash de `$contrasenya` amb `password_hash()` i `PASSWORD_DEFAULT`, i guarda'l en `$hash`.
+3. A `TODO 3`, genera un segon hash de la mateixa contrasenya en `$hash2` i declara:
+   - `$hashesIguals`: si `$hash` i `$hash2` són idèntics (`===`)
+   - `$verificacioCorrecta`: el resultat de `password_verify()` amb `$contrasenya` i `$hash`
+   - `$verificacioIncorrecta`: el resultat de `password_verify()` amb `$contrasenya . 'x'` i `$hash`
+4. Prova el formulari amb contrasenyes que no coincidisquen, massa curtes i correctes. Registra dues vegades la mateixa contrasenya i comprova que el hash és diferent cada vegada, però sempre comença per `$2y$10$` (l'algorisme *bcrypt*).
+
+**Pista:** Cada crida a `password_hash()` afig un valor aleatori (*salt*) al resultat, per això dos hashes de la mateixa contrasenya són diferents. Este valor viatja dins del propi hash, i per això `password_verify()` pot comprovar la contrasenya sense «desxifrar» res (bcrypt no és reversible). Fixa't que la contrasenya en text pla no s'imprimix mai a la pàgina i que no es fa `trim()` d'ella: els espais també formen part d'una contrasenya. En un cas real, el hash es guardaria a la base de dades.
+
+#### Exercici 6.2 — Inici de sessió amb `password_verify()`
+
+**Carpeta de partida:** `exercici6.2/`, amb els fitxers `usuaris_bd.php`, `pagina_privada.php` i `logout.php` (ja fets, no cal tocar-los) i `login.php` (el que has de completar)
+
+::: details **📄 exercici6.2/usuaris_bd.php**
+
+```php
+<?php
+// Simula una taula d'usuaris de la base de dades.
+// Fixa't que NOMÉS es guarden els hashes, mai les contrasenyes en text pla.
+$usuaris = [
+    'ana'  => ['hash' => '$2y$10$jtyC89SwKBSRwUpjO.3Ot.Rql4v6QY05kZR7SFrkVLUyWHLNVnZK6', 'rol' => 'comercial'],
+    'marc' => ['hash' => '$2y$10$74Dle4/UJiucMgWk8l4bMuOEhYAzKPGxIrGcDAkOmqivk5ocTez6C', 'rol' => 'administrador'],
+];
+```
+:::
+
+::: details **📄 exercici6.2/login.php**
+
+```php
+<?php
+    // TODO 1: Inicia la sessió amb session_start()
+
+    // TODO 2: Carrega 'usuaris_bd.php' amb require_once i una ruta construïda amb __DIR__
+    // (este arxiu defineix l'array $usuaris)
+
+    $errors = [];
+
+    // TODO 3: Si l'usuari ja té la sessió iniciada ($_SESSION['usuari'] existix),
+    // redirigeix a 'pagina_privada.php' amb exit
+
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $usuari      = trim($_POST['usuari'] ?? '');
+        $contrasenya = $_POST['contrasenya'] ?? '';
+
+        // TODO 4: Comprova que $usuari existix a $usuaris I que password_verify() confirma la contrasenya
+        // contra el 'hash' d'eixe usuari. Si és així:
+        //   - Regenera l'ID de sessió amb session_regenerate_id(true)
+        //   - Guarda en $_SESSION['usuari'] el nom i en $_SESSION['rol'] el seu rol
+        //   - Redirigeix a 'pagina_privada.php' amb exit
+        // Si no, afig a $errors el missatge genèric 'Usuari o contrasenya incorrectes.'
+    }
+?>
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercici 6.2 - Iniciar sessió</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-8">
+
+    <!-- VISTA: no cal tocar res d'ací en avall -->
+    <div class="max-w-sm w-full space-y-4">
+
+        <?php foreach ($errors as $error): ?>
+            <div class="bg-red-100 border border-red-300 text-red-800 px-4 py-3 rounded"><?= htmlspecialchars($error) ?></div>
+        <?php endforeach; ?>
+
+        <form method="POST" action="" class="bg-white p-8 rounded-lg shadow-md space-y-4">
+            <h1 class="text-2xl font-bold text-gray-800">Iniciar sessió</h1>
+
+            <div>
+                <label for="usuari" class="block text-sm font-semibold text-gray-700 mb-1">Usuari</label>
+                <input type="text" id="usuari" name="usuari" class="w-full border border-gray-300 rounded px-3 py-2">
+            </div>
+
+            <div>
+                <label for="contrasenya" class="block text-sm font-semibold text-gray-700 mb-1">Contrasenya</label>
+                <input type="password" id="contrasenya" name="contrasenya" class="w-full border border-gray-300 rounded px-3 py-2">
+            </div>
+
+            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded">
+                Entrar
+            </button>
+        </form>
+
+    </div>
+
+</body>
+</html>
+```
+:::
+
+::: details **📄 exercici6.2/pagina_privada.php**
+
+```php
+<?php
+    session_start();
+
+    if (!isset($_SESSION['usuari'])) {
+        header('Location: login.php');
+        exit;
+    }
+
+    $usuari = $_SESSION['usuari'];
+    $rol    = $_SESSION['rol'];
+?>
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercici 6.2 - Pàgina privada</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-8">
+
+    <div class="max-w-xl mx-auto space-y-6">
+
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h1 class="text-2xl font-bold text-gray-800 mb-1">Benvingut/da, <?= htmlspecialchars($usuari) ?>!</h1>
+            <p class="text-gray-600">Rol: <span class="font-semibold text-blue-700"><?= htmlspecialchars($rol) ?></span></p>
+        </div>
+
+        <?php if ($rol === 'administrador'): ?>
+            <div class="bg-yellow-100 border border-yellow-300 text-yellow-800 px-4 py-3 rounded">
+                Panell d'administració: només el veuen els administradors.
+            </div>
+        <?php endif; ?>
+
+        <a href="logout.php" class="inline-block bg-red-500 hover:bg-red-600 text-white font-semibold px-4 py-2 rounded">
+            Tancar sessió
+        </a>
+
+    </div>
+
+</body>
+</html>
+```
+:::
+
+::: details **📄 exercici6.2/logout.php**
+
+```php
+<?php
+    session_start();
+    $_SESSION = [];
+    session_destroy();
+    header('Location: login.php');
+    exit;
+```
+:::
+
+**Objectiu:** Autenticar usuaris comprovant la contrasenya contra el hash guardat amb `password_verify()`, amb un missatge d'error genèric i regenerant l'ID de sessió en iniciar sessió.
+
+Usuaris de prova: `ana` amb la contrasenya `contrasenya123` i `marc` (administrador) amb la contrasenya `admin12345`. Fixa't que `usuaris_bd.php`, que simula la base de dades, només conté els hashes.
+
+Tasques a fer dins del fitxer `login.php`:
+
+1. A `TODO 1`, inicia la sessió amb `session_start()`.
+2. A `TODO 2`, carrega `usuaris_bd.php` amb `require_once` i una ruta construïda amb `__DIR__` (este arxiu defineix l'array `$usuaris`).
+3. A `TODO 3`, si l'usuari ja té la sessió iniciada (`$_SESSION['usuari']` existix), redirigeix a `pagina_privada.php` amb `exit`.
+4. A `TODO 4`, comprova que `$usuari` existix a `$usuaris` **i** que `password_verify()` confirma la contrasenya contra el `'hash'` d'eixe usuari. Si és així: regenera l'ID de sessió amb `session_regenerate_id(true)`, guarda en `$_SESSION['usuari']` el nom i en `$_SESSION['rol']` el seu rol, i redirigeix a `pagina_privada.php` amb `exit`. Si no, afig a `$errors` el missatge genèric `'Usuari o contrasenya incorrectes.'`.
+5. Prova el flux complet: entra amb `ana`, tanca la sessió i entra amb `marc` (només ell veu el panell d'administració). Prova una contrasenya errònia i un usuari que no existix: el missatge ha de ser exactament el mateix. Amb les eines de desenvolupador (*Cookies*), comprova que el valor de `PHPSESSID` canvia en iniciar sessió.
+
+**Pista:** Escriu primer `isset($usuaris[$usuari])` i després `password_verify()`, units amb `&&`: si l'usuari no existix, PHP no arriba a evaluar la segona part i no intenta accedir a un `'hash'` inexistent. El missatge és el mateix en els dos casos perquè un atacant no puga esbrinar quins usuaris existixen. I `session_regenerate_id(true)` evita la *fixació de sessió*: un atacant que haguera forçat un ID de sessió conegut perdria l'accés en el moment que la víctima s'autentica.
+
+### 10.7. Gestió d'errors i excepcions
+
+#### Exercici 7.1 — Comissió comercial
+
+**Fitxer de partida:** `exercici7.1.php`
+
+::: details **📄 exercici7.1.php**
+
+```php
+<?php
+    function calcularComissio(float $venda, float $percentatge): float {
+        // TODO 1: Llança una Exception (throw new Exception(...)) en estos casos:
+        // - Si $venda és negativa: 'La venda no pot ser negativa.'
+        // - Si $percentatge està fora del rang de 0 a 100: 'El percentatge ha d\'estar entre 0 i 100.'
+        // Si les dades són correctes, retorna la comissió: $venda * $percentatge / 100
+    }
+
+    $comissio = null;
+    $error    = null;
+    $enviat   = $_SERVER['REQUEST_METHOD'] === 'POST';
+
+    if ($enviat) {
+        // Dades rebudes (ja proporcionades, no cal que les toques)
+        $venda       = (float) ($_POST['venda'] ?? 0);
+        $percentatge = (float) ($_POST['percentatge'] ?? 0);
+
+        // TODO 2: Dins d'un bloc try, crida a calcularComissio($venda, $percentatge)
+        // i guarda el resultat en $comissio.
+        // Amb un bloc catch (Exception $e), guarda el missatge de l'excepció
+        // (getMessage()) en $error
+    }
+?>
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercici 7.1 - Comissió comercial</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-8">
+
+    <!-- VISTA: no cal tocar res d'ací en avall -->
+    <div class="max-w-xl mx-auto space-y-6">
+
+        <h1 class="text-2xl font-bold text-gray-800">Comissió comercial · TechLeads</h1>
+
+        <?php if ($error !== null): ?>
+            <div class="bg-red-100 border border-red-300 text-red-800 px-4 py-3 rounded">
+                <?= htmlspecialchars($error) ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if ($comissio !== null): ?>
+            <div class="bg-green-100 border border-green-300 text-green-800 px-4 py-3 rounded">
+                Sobre una venda de <?= number_format($venda, 2, ',', '.') ?> € amb un <?= $percentatge ?>%,
+                la comissió és de <span class="font-bold"><?= number_format($comissio, 2, ',', '.') ?> €</span>.
+            </div>
+        <?php endif; ?>
+
+        <!-- novalidate: perquè puguis provar valors incorrectes -->
+        <form method="POST" action="" novalidate class="bg-white p-6 rounded-lg shadow-md space-y-4">
+            <div>
+                <label for="venda" class="block text-sm font-semibold text-gray-700 mb-1">Import de la venda (€)</label>
+                <input type="text" id="venda" name="venda" class="w-full border border-gray-300 rounded px-3 py-2">
+            </div>
+
+            <div>
+                <label for="percentatge" class="block text-sm font-semibold text-gray-700 mb-1">Percentatge de comissió (%)</label>
+                <input type="text" id="percentatge" name="percentatge" class="w-full border border-gray-300 rounded px-3 py-2">
+            </div>
+
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded">
+                Calcular
+            </button>
+        </form>
+
+    </div>
+
+</body>
+</html>
+```
+:::
+
+**Objectiu:** Llançar una excepció amb `throw new Exception(...)` quan les dades no són vàlides i capturar-la amb `try`/`catch` per a mostrar el seu missatge amb `getMessage()`.
+
+Tasques a fer dins del fitxer:
+
+1. A `TODO 1`, completa la funció `calcularComissio()`. Ha de llançar una `Exception` si `$venda` és negativa (`'La venda no pot ser negativa.'`) o si `$percentatge` està fora del rang de 0 a 100 (`'El percentatge ha d\'estar entre 0 i 100.'`). Si les dades són correctes, ha de retornar `$venda * $percentatge / 100`.
+2. A `TODO 2`, dins d'un bloc `try`, crida a `calcularComissio($venda, $percentatge)` i guarda el resultat en `$comissio`. Amb un bloc `catch (Exception $e)`, guarda el missatge de l'excepció (`getMessage()`) en `$error`.
+3. Prova el formulari amb una venda de `1000` i un `5`%, amb un percentatge de `150`, amb una venda negativa i amb els límits `0` i `100` (han de ser vàlids).
+
+**Pista:** La funció no imprimeix cap error: simplement el llança, i qui la crida decidix què fer amb ell. Quan es llança l'excepció, la resta de la funció (i la línia següent dins del `try`) no s'executa: per això `$comissio` es queda a `null` i la vista només mostra el missatge d'error. Fixa't també que a l'usuari només se li mostra `getMessage()`: mètodes com `getFile()` o `getLine()` revelen detalls tècnics que no ha de veure.
+
+#### Exercici 7.2 — Importació de leads en lot
+
+**Fitxer de partida:** `exercici7.2.php`
+
+:::details **📄 exercici7.2.php**
+
+```php
+<?php
+    function importarLead(string $linia): array {
+        $camps = explode(';', $linia);
+
+        // TODO 1: Valida la línia llançant una Exception, cada una amb el seu missatge i el seu codi
+        // (segon paràmetre del constructor d'Exception), en este ordre:
+        // - Si no té exactament 3 camps (count): 'Format incorrecte: calen 3 camps.', codi 1
+        //   (fes esta comprovació abans de llegir els camps)
+        // - Després, guarda els camps (sense espais als extrems) en $nom, $email i $pressupost
+        //   (per exemple, amb array_map('trim', $camps) i una assignació per desestructuració)
+        // - Si $nom està buit: 'El nom és obligatori.', codi 2
+        // - Si $email no és vàlid (filter_var): 'L\'email no és vàlid.', codi 3
+        // - Si $pressupost no és numèric (is_numeric): 'El pressupost ha de ser un número.', codi 4
+        // Si tot és correcte, retorna ['nom' => ..., 'email' => ..., 'pressupost' => ...],
+        // amb el pressupost convertit a float
+    }
+
+    // Línies a importar (ja proporcionades, format: nom;email;pressupost)
+    $linies = [
+        'Aina Soler;aina@textils.cat;4500',
+        'Marc Climent;marc-at-econova.cat;800',
+        'Laura Sanchis;laura@innovacio.cat;12000',
+        ';pau@exemple.cat;300',
+        'Joan Peris;joan@exemple.cat;abc',
+        'Rosa Vidal;rosa@exemple.cat',
+    ];
+
+    $importats   = [];
+    $errors      = [];
+    $processades = 0;
+
+    // TODO 2: Recorre $linies amb un foreach (clau $i i valor $linia). Dins de cada volta:
+    // - Dins d'un bloc try, crida a importarLead($linia) i afig el resultat a $importats
+    // - Amb un bloc catch (Exception $e), afig a $errors un array amb les claus
+    //   'linia' ($i + 1), 'codi' (getCode()) i 'missatge' (getMessage())
+    // - Afig un bloc finally que incremente $processades: s'executa tant si hi ha excepció com si no
+
+?>
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercici 7.2 - Importació de leads</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-8">
+
+    <!-- VISTA: no cal tocar res d'ací en avall -->
+    <div class="max-w-3xl mx-auto space-y-6">
+
+        <h1 class="text-2xl font-bold text-gray-800">Importació de leads · TechLeads</h1>
+
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <p class="text-gray-700">
+                Línies processades: <span class="font-bold"><?= $processades ?></span> ·
+                correctes: <span class="font-bold text-green-700"><?= count($importats) ?></span> ·
+                amb errors: <span class="font-bold text-red-700"><?= count($errors) ?></span>
+            </p>
+        </div>
+
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-lg font-semibold text-green-700 mb-3">Leads importats</h2>
+            <?php if (empty($importats)): ?>
+                <p class="text-gray-500">Cap lead importat.</p>
+            <?php else: ?>
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="border-b text-gray-600">
+                            <th class="py-2">Nom</th>
+                            <th class="py-2">Email</th>
+                            <th class="py-2 text-right">Pressupost</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($importats as $lead): ?>
+                            <tr class="border-b text-gray-700">
+                                <td class="py-2"><?= htmlspecialchars($lead['nom']) ?></td>
+                                <td class="py-2"><?= htmlspecialchars($lead['email']) ?></td>
+                                <td class="py-2 text-right"><?= number_format($lead['pressupost'], 2, ',', '.') ?> €</td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            <?php endif; ?>
+        </div>
+
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-lg font-semibold text-red-700 mb-3">Línies amb errors</h2>
+            <?php if (empty($errors)): ?>
+                <p class="text-gray-500">Cap error.</p>
+            <?php else: ?>
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="border-b text-gray-600">
+                            <th class="py-2">Línia</th>
+                            <th class="py-2">Codi</th>
+                            <th class="py-2">Motiu</th>
+                            <th class="py-2">Contingut</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($errors as $error): ?>
+                            <tr class="border-b text-gray-700">
+                                <td class="py-2"><?= (int) $error['linia'] ?></td>
+                                <td class="py-2"><?= (int) $error['codi'] ?></td>
+                                <td class="py-2"><?= htmlspecialchars($error['missatge']) ?></td>
+                                <td class="py-2 font-mono text-sm"><?= htmlspecialchars($linies[$error['linia'] - 1]) ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            <?php endif; ?>
+        </div>
+
+    </div>
+
+</body>
+</html>
+```
+::: 
+
+**Objectiu:** Llançar excepcions amb missatge i codi, capturar-les dins d'un bucle perquè un error no aturi tot el procés i utilitzar `finally` per a un codi que s'ha d'executar sempre.
+
+Tasques a fer dins del fitxer:
+
+1. A `TODO 1`, completa la funció `importarLead()` llançant una `Exception` amb el missatge i el codi indicats, en este ordre:
+   - si la línia no té exactament 3 camps: `'Format incorrecte: calen 3 camps.'`, codi `1` (comprova-ho abans de llegir els camps)
+   - si `$nom` està buit: `'El nom és obligatori.'`, codi `2`
+   - si `$email` no és vàlid (`filter_var()`): `'L\'email no és vàlid.'`, codi `3`
+   - si `$pressupost` no és numèric (`is_numeric()`): `'El pressupost ha de ser un número.'`, codi `4`
+
+   Entre la primera i la segona comprovació, guarda els camps (sense espais als extrems) en `$nom`, `$email` i `$pressupost`. Si tot és correcte, retorna un array amb les claus `'nom'`, `'email'` i `'pressupost'` (este últim convertit a `float`).
+2. A `TODO 2`, recorre `$linies` amb un `foreach` (clau `$i` i valor `$linia`). Dins de cada volta, dins d'un bloc `try`, crida a `importarLead($linia)` i afig el resultat a `$importats`.
+3. Amb un bloc `catch (Exception $e)`, afig a `$errors` un array amb les claus `'linia'` (`$i + 1`), `'codi'` (`getCode()`) i `'missatge'` (`getMessage()`).
+4. Afig un bloc `finally` que incremente `$processades`.
+5. Comprova el resultat: han d'aparéixer 6 línies processades, 2 correctes i 4 amb error (amb els codis 3, 2, 4 i 1). Afig alguna línia pròpia a `$linies`, correcta o amb error, i comprova que es tracta bé.
+
+**Pista:** El `catch` dins del bucle fa que una línia incorrecta no ature la importació de les altres. Si vols comprovar-ho, comenta temporalment el `try`/`catch`: la primera línia errònia produirà un *Uncaught Exception* i el script s'aturarà. El bloc `finally` s'executa sempre, tant si hi ha hagut excepció com si no: per això `$processades` acaba sent 6 (i no 2).
+
+
+### 10.8. Classes i objectes
+
+#### Exercici 8.1 — La classe Lead
+
+**Carpeta de partida:** `exercici8.1/`, amb els fitxers `Lead.php` (la classe, que has de completar) i `llistat_leads.php` (la pàgina, amb la vista ja feta)
+
+::: details **📄 exercici8.1/Lead.php**
+
+```php
+<?php
+class Lead {
+    // TODO 1: Defineix el constructor amb propietats promocionades (PHP 8):
+    // string $nom, string $empresa i float $pressupost, totes private
+
+    // TODO 2: Afig els tres getters: getNom(), getEmpresa() i getPressupost() (cadascun amb el seu tipus de retorn)
+
+    // TODO 3: Afig el mètode aplicarDescompte(float $percentatge): void
+    // Només ha de modificar el pressupost si $percentatge està entre 0 i 100 (tots dos inclosos):
+    // en eixe cas, rebaixa $this->pressupost amb el percentatge indicat
+
+    // TODO 4: Afig el mètode getCategoria(): string, que retorne:
+    // - 'Gran' si el pressupost és de 10000 o més
+    // - 'Mitjà' si és de 2000 o més (i menys de 10000)
+    // - 'Xicotet' en qualsevol altre cas
+
+    // TODO 5: Afig el mètode màgic __toString(): string, que retorne el text 'Nom (Empresa)',
+    // per exemple: Aina Soler (Tèxtils S.L.)
+}
+```
+:::
+
+::: details **📄 exercici8.1/llistat_leads.php**
+
+```php
+<?php
+    // TODO 1: Carrega Lead.php amb require_once i una ruta construïda amb __DIR__
+
+    // TODO 2: Crea l'array $leads amb tres objectes de la classe Lead, amb new Lead(nom, empresa, pressupost):
+    // - 'Aina Soler', 'Tèxtils S.L.', 4500
+    // - 'Marc Climent', 'Econova', 800
+    // - 'Laura Sanchis', 'Innovació Tech', 12000
+
+    // TODO 3: Aplica un descompte del 20% al tercer lead ($leads[2]) amb el seu mètode aplicarDescompte()
+
+    // TODO 4: Declara $total: recorre $leads amb un foreach i suma el resultat de getPressupost() de cada lead
+
+?>
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercici 8.1 - Classe Lead</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-8">
+
+    <!-- VISTA: no cal tocar res d'ací en avall -->
+    <div class="max-w-3xl mx-auto space-y-6">
+
+        <h1 class="text-2xl font-bold text-gray-800">Cartera de leads · TechLeads</h1>
+
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <p class="text-gray-700 mb-4">
+                Primer lead de la llista:
+                <span class="font-semibold text-blue-700"><?= htmlspecialchars((string) $leads[0]) ?></span>
+            </p>
+
+            <table class="w-full text-left">
+                <thead>
+                    <tr class="border-b text-gray-600">
+                        <th class="py-2">Nom</th>
+                        <th class="py-2">Empresa</th>
+                        <th class="py-2">Categoria</th>
+                        <th class="py-2 text-right">Pressupost</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($leads as $lead): ?>
+                        <?php
+                            $classesCategoria = match ($lead->getCategoria()) {
+                                'Gran'  => 'bg-purple-100 text-purple-800',
+                                'Mitjà' => 'bg-blue-100 text-blue-800',
+                                default => 'bg-gray-100 text-gray-700',
+                            };
+                        ?>
+                        <tr class="border-b text-gray-700">
+                            <td class="py-2"><?= htmlspecialchars($lead->getNom()) ?></td>
+                            <td class="py-2"><?= htmlspecialchars($lead->getEmpresa()) ?></td>
+                            <td class="py-2">
+                                <span class="px-2 py-1 rounded text-sm font-semibold <?= $classesCategoria ?>">
+                                    <?= htmlspecialchars($lead->getCategoria()) ?>
+                                </span>
+                            </td>
+                            <td class="py-2 text-right"><?= number_format($lead->getPressupost(), 2, ',', '.') ?> €</td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+                <tfoot>
+                    <tr class="font-bold text-gray-800">
+                        <td colspan="3" class="py-3">Total</td>
+                        <td class="py-3 text-right"><?= number_format($total, 2, ',', '.') ?> €</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+    </div>
+
+</body>
+</html>
+```
+:::
+
+**Objectiu:** Definir una classe amb propietats promocionades del constructor, encapsulació (`private` i *getters*), un mètode amb lògica pròpia i el mètode màgic `__toString()`, i utilitzar-la des d'una altra pàgina.
+
+Tasques a fer:
+
+1. A `Lead.php`, `TODO 1`: defineix el constructor amb propietats promocionades `private`: `string $nom`, `string $empresa` i `float $pressupost`.
+2. A `TODO 2`: afig els tres *getters*: `getNom()`, `getEmpresa()` i `getPressupost()`, cadascun amb el seu tipus de retorn.
+3. A `TODO 3`: afig el mètode `aplicarDescompte(float $percentatge): void`. Només ha de modificar el pressupost si el percentatge està entre 0 i 100 (tots dos inclosos); en eixe cas, el rebaixa amb el percentatge indicat.
+4. A `TODO 4`: afig el mètode `getCategoria(): string`, que retorna `'Gran'` si el pressupost és de 10000 o més, `'Mitjà'` si és de 2000 o més (i menys de 10000) i `'Xicotet'` en qualsevol altre cas.
+5. A `TODO 5`: afig el mètode màgic `__toString(): string`, que retorna el text `Nom (Empresa)`, per exemple `Aina Soler (Tèxtils S.L.)`.
+6. A `llistat_leads.php`, `TODO 1`: carrega `Lead.php` amb `require_once` i una ruta construïda amb `__DIR__`.
+7. A `TODO 2`: crea l'array `$leads` amb tres objectes `Lead` (nom, empresa, pressupost): `'Aina Soler'`, `'Tèxtils S.L.'`, `4500`; `'Marc Climent'`, `'Econova'`, `800`; i `'Laura Sanchis'`, `'Innovació Tech'`, `12000`.
+8. A `TODO 3`: aplica un descompte del 20% al tercer lead (`$leads[2]`) amb el seu mètode `aplicarDescompte()`.
+9. A `TODO 4`: declara `$total`: recorre `$leads` amb un `foreach` i suma el resultat de `getPressupost()` de cada lead.
+10. Obri `llistat_leads.php` al navegador. Has de veure que el primer lead és `Aina Soler (Tèxtils S.L.)`, que les categories són *Mitjà*, *Xicotet* i *Mitjà* (Laura passa de *Gran* a *Mitjà* pel descompte) i que el total és `14.900,00 €`.
+11. Fes dos experiments temporals al bloc PHP i després lleva'ls: intenta escriure `echo $leads[0]->pressupost;` (observa l'error) i crida a `aplicarDescompte(150)` sobre un lead (comprova que el pressupost no canvia).
+
+**Pista:** Les propietats són `private`, així que la vista no pot fer `$lead->pressupost`: ha de passar pels *getters*. L'error que veuràs és *Cannot access private property Lead::$pressupost*. Per a canviar l'estat d'un objecte des de fora s'usa un mètode com `aplicarDescompte()`, que pot validar el valor abans de modificar-lo (igual que `ingressar()` en l'exemple del compte bancari dels apunts). Recorda que dins de la classe s'usa `$this->`, i que `__toString()` es crida automàticament quan l'objecte es converteix en text: per això la vista pot fer `(string) $lead`.
+
+#### Exercici 8.2 — Herència, classes abstractes i interfícies
+
+**Carpeta de partida:** `exercici8.2/`, amb els fitxers `Notificable.php` (ja fet, no cal tocar-lo), `Lead.php`, `LeadParticular.php`, `LeadEmpresa.php` i `panell_leads.php`
+
+::: details **📄 exercici8.2/Notificable.php**
+
+```php
+<?php
+// Interfície ja feta, no cal tocar-la
+interface Notificable {
+    public function enviarNotificacio(string $missatge): string;
+}
+```
+:::
+
+::: details **📄 exercici8.2/Lead.php**
+
+```php
+<?php
+abstract class Lead {
+    // TODO 1: Defineix el constructor amb propietats promocionades protected: string $nom i string $email
+
+    // TODO 2: Declara el mètode abstracte public calcularPuntuacio(): int (sense cos)
+
+    // TODO 3: Afig el mètode public descriure(): string, que retorne el text:
+    // 'Nom <email> - puntuació: X', on X és el resultat de cridar a calcularPuntuacio()
+}
+```
+:::
+
+::: details **📄 exercici8.2/LeadParticular.php**
+
+```php
+<?php
+// Un lead particular: una persona que ha visitat la nostra web
+class LeadParticular extends Lead implements Notificable {
+    // TODO 1: Defineix el constructor amb els paràmetres string $nom, string $email
+    // i una propietat promocionada private int $visitesWeb.
+    // Crida al constructor de la classe mare amb parent::__construct($nom, $email)
+
+    // TODO 2: Implementa calcularPuntuacio(): int. La puntuació són les visites a la web multiplicades per 2
+
+    // TODO 3: Implementa enviarNotificacio(string $missatge): string.
+    // Ha de retornar el text 'Correu personal a EMAIL: MISSATGE'
+}
+```
+:::
+
+::: details **📄 exercici8.2/LeadEmpresa.php**
+
+```php
+<?php
+// Un lead d'empresa: una organització amb empleats i pressupost
+class LeadEmpresa extends Lead implements Notificable {
+    // TODO 1: Defineix el constructor amb els paràmetres string $nom, string $email
+    // i dues propietats promocionades: private int $empleats i private float $pressupost.
+    // Crida al constructor de la classe mare amb parent::__construct($nom, $email)
+
+    // TODO 2: Implementa calcularPuntuacio(): int. La puntuació és el nombre d'empleats
+    // més els milers d'euros del pressupost (la part entera de $pressupost / 1000)
+
+    // TODO 3: Sobreescriu descriure(): string. Ha de retornar el que retorna descriure()
+    // de la classe mare (parent::descriure()) seguit del text ' - empresa de X empleats'
+
+    // TODO 4: Implementa enviarNotificacio(string $missatge): string.
+    // Ha de retornar el text 'Correu corporatiu a NOM (EMAIL): MISSATGE'
+}
+```
+:::
+
+::: details **📄 exercici8.2/panell_leads.php**
+
+```php
+<?php
+    // TODO 1: Carrega amb require_once (i una ruta amb __DIR__), en este ordre:
+    // Notificable.php, Lead.php, LeadParticular.php i LeadEmpresa.php
+
+    // TODO 2: Crea l'array $leads amb estos quatre objectes, en este ordre:
+    // - new LeadParticular('Aina Soler', 'aina@exemple.cat', 15)
+    // - new LeadEmpresa('Tèxtils S.L.', 'info@textils.cat', 50, 4500)
+    // - new LeadParticular('Pau Ferrer', 'pau@exemple.cat', 3)
+    // - new LeadEmpresa('Econova', 'hola@econova.cat', 8, 12000)
+
+    // TODO 3: Declara $puntuacioTotal: recorre $leads amb un foreach i suma el resultat
+    // de calcularPuntuacio() de cada lead. Fixa't que no cal saber de quin tipus és cada lead
+
+    // TODO 4: Crea l'array $notificacions: per a cada lead de $leads (en el mateix ordre), afig-hi el resultat
+    // de cridar a enviarNotificacio('El teu pressupost ja està disponible.')
+
+?>
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercici 8.2 - Herència i interfícies</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-8">
+
+    <!-- VISTA: no cal tocar res d'ací en avall -->
+    <div class="max-w-2xl mx-auto space-y-4">
+
+        <h1 class="text-2xl font-bold text-gray-800">Panell de leads · TechLeads</h1>
+
+        <div class="bg-white p-4 rounded-lg shadow-md">
+            <p class="text-gray-700">Puntuació total de la cartera: <span class="font-bold text-blue-700"><?= $puntuacioTotal ?></span></p>
+        </div>
+
+        <?php foreach ($leads as $i => $lead): ?>
+            <div class="bg-white p-4 rounded-lg shadow-md">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-semibold px-2 py-1 rounded <?= $lead instanceof LeadEmpresa ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800' ?>">
+                        <?= htmlspecialchars($lead::class) ?>
+                    </span>
+                    <span class="text-sm text-gray-500">Puntuació: <span class="font-bold text-gray-800"><?= $lead->calcularPuntuacio() ?></span></span>
+                </div>
+                <p class="text-gray-700"><?= htmlspecialchars($lead->descriure()) ?></p>
+                <p class="text-sm text-gray-500 mt-1"><?= htmlspecialchars($notificacions[$i]) ?></p>
+            </div>
+        <?php endforeach; ?>
+
+    </div>
+
+</body>
+</html>
+```
+:::
+
+**Objectiu:** Crear una jerarquia de classes amb una classe abstracta, dues classes filles que la estenen i una interfície que implementen, i comprovar el polimorfisme: el mateix codi crida al mateix mètode sobre objectes de classes diferents.
+
+Tasques a fer:
+
+1. A `Lead.php`, `TODO 1`: defineix el constructor amb propietats promocionades `protected`: `string $nom` i `string $email`.
+2. A `TODO 2`: declara el mètode abstracte `public calcularPuntuacio(): int` (sense cos).
+3. A `TODO 3`: afig el mètode `public descriure(): string`, que retorna el text `Nom <email> - puntuació: X`, on X és el resultat de `calcularPuntuacio()`.
+4. A `LeadParticular.php`, `TODO 1`: defineix el constructor amb els paràmetres `string $nom`, `string $email` i una propietat promocionada `private int $visitesWeb`, i crida al constructor de la classe mare amb `parent::__construct($nom, $email)`.
+5. A `TODO 2`: implementa `calcularPuntuacio()`: les visites a la web multiplicades per 2.
+6. A `TODO 3`: implementa `enviarNotificacio(string $missatge): string`, que retorna `Correu personal a EMAIL: MISSATGE`.
+7. A `LeadEmpresa.php`, `TODO 1`: defineix el constructor amb `string $nom`, `string $email` i dues propietats promocionades `private`: `int $empleats` i `float $pressupost`, i crida a `parent::__construct($nom, $email)`.
+8. A `TODO 2`: implementa `calcularPuntuacio()`: el nombre d'empleats més els milers d'euros del pressupost (la part entera de `$pressupost / 1000`).
+9. A `TODO 3`: sobreescriu `descriure()`: ha de retornar el que retorna `parent::descriure()` seguit del text ` - empresa de X empleats`.
+10. A `TODO 4`: implementa `enviarNotificacio(string $missatge): string`, que retorna `Correu corporatiu a NOM (EMAIL): MISSATGE`.
+11. A `panell_leads.php`, `TODO 1`: carrega amb `require_once` (i `__DIR__`), en este ordre, `Notificable.php`, `Lead.php`, `LeadParticular.php` i `LeadEmpresa.php`.
+12. A `TODO 2`: crea l'array `$leads` amb quatre objectes, en este ordre: `new LeadParticular('Aina Soler', 'aina@exemple.cat', 15)`, `new LeadEmpresa('Tèxtils S.L.', 'info@textils.cat', 50, 4500)`, `new LeadParticular('Pau Ferrer', 'pau@exemple.cat', 3)` i `new LeadEmpresa('Econova', 'hola@econova.cat', 8, 12000)`.
+13. A `TODO 3`: declara `$puntuacioTotal`, sumant amb un `foreach` el resultat de `calcularPuntuacio()` de cada lead.
+14. A `TODO 4`: crea l'array `$notificacions` amb el resultat de cridar a `enviarNotificacio('El teu pressupost ja està disponible.')` per a cada lead, en el mateix ordre.
+15. Obri `panell_leads.php`. Les puntuacions han de ser 30, 54, 6 i 20, i la puntuació total, 110. Fixa't que les dues classes mostren notificacions diferents i que les empreses afigeixen el text dels empleats a la descripció.
+16. Fes tres experiments temporals i després lleva'ls: a `panell_leads.php`, escriu `new Lead('Prova', 'prova@exemple.cat');`; a `LeadParticular.php`, comenta el mètode `calcularPuntuacio()`; i a `panell_leads.php`, posa `LeadParticular.php` abans de `Lead.php` en els `require_once`. Observa l'error de cada cas.
+
+**Pista:** El `foreach` del panell crida a `calcularPuntuacio()`, `descriure()` i `enviarNotificacio()` sense saber si cada objecte és un `LeadParticular` o un `LeadEmpresa`: cada un executa la seua versió del mètode. Això és el **polimorfisme**. Els errors que veuràs són *Cannot instantiate abstract class Lead*, *Class LeadParticular contains 1 abstract method and must therefore be declared abstract or implement the remaining methods* i *Class "Lead" not found* (una classe filla necessita que la mare ja estiga carregada). A diferència de Java, si una classe filla defineix el seu propi constructor, PHP **no** crida automàticament al de la mare: cal fer-ho explícitament amb `parent::__construct()`. Les propietats de `Lead` són `protected` perquè les classes filles hi puguen accedir (`$this->nom`, `$this->email`). Fixa't també que la vista aplica `htmlspecialchars()` a `descriure()`, ja que el text conté `<` i `>`.
+
+#### Exercici 8.3 — Membres estàtics, constants i readonly
+
+**Carpeta de partida:** `exercici8.3/`, amb els fitxers `Lead.php` (la classe) i `gestio_leads.php` (la pàgina, amb la vista ja feta)
+
+::: details **📄 exercici8.3/Lead.php**
+
+```php
+<?php
+class Lead {
+    // TODO 1: Defineix tres constants de classe per als estats:
+    // ESTAT_NOU = 'nou', ESTAT_CONTACTAT = 'contactat' i ESTAT_TANCAT = 'tancat'
+
+    // TODO 2: Declara una propietat estàtica privada $totalCreats de tipus int, amb valor inicial 0
+
+    // TODO 3: Declara la propietat pública readonly int $id (sense valor inicial: s'assignarà en el constructor)
+    // i la propietat privada string $estat, amb el valor inicial self::ESTAT_NOU
+
+    // TODO 4: Defineix el constructor amb una propietat promocionada public readonly string $nom.
+    // Dins del constructor, incrementa $totalCreats (amb self::) i assigna el nou valor a $this->id
+
+    // TODO 5: Afig el mètode getEstat(): string, que retorne l'estat actual
+
+    // TODO 6: Afig el mètode avancarEstat(): void, que faça passar l'estat de nou a contactat i de contactat a tancat.
+    // Si l'estat ja és tancat, no ha de canviar (usa les constants, amb match o amb if/elseif)
+
+    // TODO 7: Afig el mètode estàtic getTotalCreats(): int, que retorne el nombre de leads creats fins ara
+}
+```
+:::
+
+::: details **📄 exercici8.3/gestio_leads.php**
+
+```php
+<?php
+    // TODO 1: Carrega Lead.php amb require_once i una ruta construïda amb __DIR__
+
+    // TODO 2: Crea l'array $leads amb tres objectes: new Lead('Aina Soler'), new Lead('Marc Climent') i new Lead('Laura Sanchis')
+
+    // TODO 3: Fes avançar l'estat del primer lead dues vegades i el del segon una vegada, amb avancarEstat().
+    // El tercer lead ha de quedar com a nou
+
+    // TODO 4: Declara $total amb el nombre de leads creats, cridant al mètode estàtic Lead::getTotalCreats()
+
+?>
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercici 8.3 - Static, constants i readonly</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-8">
+
+    <!-- VISTA: no cal tocar res d'ací en avall -->
+    <div class="max-w-2xl mx-auto space-y-6">
+
+        <h1 class="text-2xl font-bold text-gray-800">Seguiment de leads · TechLeads</h1>
+
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <p class="text-sm text-gray-500 mb-4">
+                Estats possibles:
+                <span class="font-mono"><?= Lead::ESTAT_NOU ?> → <?= Lead::ESTAT_CONTACTAT ?> → <?= Lead::ESTAT_TANCAT ?></span>
+            </p>
+
+            <table class="w-full text-left">
+                <thead>
+                    <tr class="border-b text-gray-600">
+                        <th class="py-2">Id</th>
+                        <th class="py-2">Nom</th>
+                        <th class="py-2">Estat</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($leads as $lead): ?>
+                        <?php
+                            $classesEstat = match ($lead->getEstat()) {
+                                Lead::ESTAT_NOU       => 'bg-gray-100 text-gray-700',
+                                Lead::ESTAT_CONTACTAT => 'bg-yellow-100 text-yellow-800',
+                                Lead::ESTAT_TANCAT    => 'bg-green-100 text-green-800',
+                            };
+                        ?>
+                        <tr class="border-b text-gray-700">
+                            <td class="py-2">#<?= $lead->id ?></td>
+                            <td class="py-2"><?= htmlspecialchars($lead->nom) ?></td>
+                            <td class="py-2">
+                                <span class="px-2 py-1 rounded text-sm font-semibold <?= $classesEstat ?>">
+                                    <?= htmlspecialchars($lead->getEstat()) ?>
+                                </span>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+
+            <p class="mt-4 text-gray-700">Leads creats: <span class="font-bold text-blue-700"><?= $total ?></span></p>
+        </div>
+
+    </div>
+
+</body>
+</html>
+```
+:::
+
+**Objectiu:** Utilitzar constants de classe, una propietat estàtica compartida per totes les instàncies i propietats `readonly`, i accedir-hi amb `self::` i `::`.
+
+Nota: `readonly` requereix PHP 8.1 o superior.
+
+Tasques a fer:
+
+1. A `Lead.php`, `TODO 1`: defineix tres constants de classe per als estats: `ESTAT_NOU = 'nou'`, `ESTAT_CONTACTAT = 'contactat'` i `ESTAT_TANCAT = 'tancat'`.
+2. A `TODO 2`: declara una propietat estàtica privada `$totalCreats` de tipus `int`, amb valor inicial `0`.
+3. A `TODO 3`: declara la propietat pública `readonly` `int $id` (sense valor inicial) i la propietat privada `string $estat` amb el valor inicial `self::ESTAT_NOU`.
+4. A `TODO 4`: defineix el constructor amb una propietat promocionada `public readonly string $nom`. Dins del constructor, incrementa `$totalCreats` (amb `self::`) i assigna el nou valor a `$this->id`.
+5. A `TODO 5`: afig el mètode `getEstat(): string`, que retorna l'estat actual.
+6. A `TODO 6`: afig el mètode `avancarEstat(): void`, que fa passar l'estat de nou a contactat i de contactat a tancat. Si ja és tancat, no ha de canviar (usa les constants, amb `match` o amb `if`/`elseif`).
+7. A `TODO 7`: afig el mètode estàtic `getTotalCreats(): int`, que retorna el nombre de leads creats fins ara.
+8. A `gestio_leads.php`, `TODO 1`: carrega `Lead.php` amb `require_once` i una ruta construïda amb `__DIR__`.
+9. A `TODO 2`: crea l'array `$leads` amb tres objectes: `new Lead('Aina Soler')`, `new Lead('Marc Climent')` i `new Lead('Laura Sanchis')`.
+10. A `TODO 3`: fes avançar l'estat del primer lead dues vegades i el del segon una vegada, amb `avancarEstat()`. El tercer ha de quedar com a nou.
+11. A `TODO 4`: declara `$total` cridant al mètode estàtic `Lead::getTotalCreats()`.
+12. Obri `gestio_leads.php`. Els leads han de tindre els identificadors `#1`, `#2` i `#3`, els estats *tancat*, *contactat* i *nou*, i la pàgina ha d'indicar `Leads creats: 3`.
+13. Fes tres experiments temporals i després lleva'ls: intenta modificar `$leads[0]->nom = 'Canviat';`; intenta llegir `Lead::$totalCreats` des de fora de la classe; i crea un quart lead, comprovant que el seu identificador és `#4`, que el total puja a 4 i que avançar tres vegades un mateix lead no el treu de l'estat *tancat*.
+
+**Pista:** Una propietat estàtica pertany a la classe, no a cada objecte: totes les instàncies comparteixen el mateix `$totalCreats`, i per això serveix com a comptador. Dins de la classe s'hi accedix amb `self::$totalCreats` i, des de fora, amb `Lead::getTotalCreats()`: en tots dos casos amb `::` i no amb `->`. Una propietat `readonly` només es pot assignar una vegada i dins de la classe (normalment al constructor); per això `$id` es declara sense valor i s'assigna dins del constructor. Els errors que veuràs són *Cannot modify readonly property Lead::$nom* i *Cannot access private property Lead::$totalCreats*. Les constants (`Lead::ESTAT_NOU`) eviten escriure el text de l'estat a mà cada vegada, cosa que fàcilment produïx errors d'escriptura.
