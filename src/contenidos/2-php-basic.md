@@ -44,7 +44,7 @@
 
     1.1. [Què és PHP? Conceptes fonamentals](#_1-1-que-es-php-conceptes-fonamentals)
 
-    1.2. [Configuració de l'entorn de desenvolupament amb Docker](#_1-2-configuracio-de-lentorn-de-desenvolupament-amb-docker)
+    1.2. [Configuració de l'entorn de desenvolupament amb Docker](#_1-2-configuracio-de-l-entorn-de-desenvolupament-amb-docker)
 
     1.3. [Integració de codi PHP en HTML](#_1-3-integracio-de-codi-php-en-html)
 

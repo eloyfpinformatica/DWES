@@ -53,7 +53,7 @@
   7. [Gestió d'errors i excepcions](#7-gestió-derrors-i-excepcions)
   8. [Classes i objectes](#8-classes-i-objectes)
   9. [Debug, proves i documentació \[Ampliació\]](#9-debug-proves-i-documentació-ampliació)
-  10. [Exercicis](#10-exercicis)
+  10. [Exercicis](#_10-exercicis)
       -  [10.1. Supervariables](#_10-1-supervariables)
       -  [10.2. Encapçalaments de resposta](#_10-2-encapcalaments-de-resposta) 
       -  [10.3. Separació lògica i vistes amb require i include ](#_10-3-separacio-logica-i-vistes-amb-require-i-include) 
@@ -2019,6 +2019,15 @@ class Producte {
 ```
 ## 10. Exercicis
 
+-  [10.1. Supervariables](#_10-1-supervariables)
+-  [10.2. Encapçalaments de resposta](#_10-2-encapcalaments-de-resposta) 
+-  [10.3. Separació lògica i vistes amb require i include ](#_10-3-separacio-logica-i-vistes-amb-require-i-include) 
+-  [10.4. Ús avançat de formularis](#_10-4-us-avancat-de-formularis) 
+-  [10.5. Cookies i sessions](#_10-5-cookies-i-sessions) 
+-  [10.6. Autenticació d'usuaris](#_10-6-autenticacio-d-usuaris-password-hash-i-password-verify) 
+-  [10.7. Gestió d'errors i excepcions](#_10-7-gestio-d-errors-i-excepcions) 
+-  [10.8. Classes i objectes](#_10-8-classes-i-objectes) 
+  
 ### 10.1. Supervariables
 
 #### Exercici 1.1 — Panell de la petició

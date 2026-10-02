@@ -33,6 +33,7 @@ export default defineConfig({
             items: [
               { text: '1. Introducció', link: '/contenidos/1-introduccion' },
               { text: '2. PHP Bàsic', link: '/contenidos/2-php-basic' },
+              { text: '3. PHP Avançat', link: '/contenidos/3-php-avancat' },
 
             ]
           },
@@ -54,6 +55,7 @@ export default defineConfig({
           items: [
               { text: '1. Introducció', link: '/contenidos/1-introduccion' },
               { text: '2. PHP Bàsic', link: '/contenidos/2-php-basic' },
+              { text: '3. PHP Avançat', link: '/contenidos/3-php-avancat' },
 
             ]
         },
