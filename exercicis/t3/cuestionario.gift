@@ -1,0 +1,141 @@
+$CATEGORY: DWES/Unidad 3 - PHP Avanzado
+
+::Pregunta01::¿Qué característica distingue a las supervariables de PHP? {
+=Están disponibles automáticamente en todos los ámbitos del script
+~Solo están disponibles dentro de las funciones
+~Solo pueden utilizarse dentro de clases
+~Deben declararse mediante la palabra global antes de utilizarlas
+}
+
+::Pregunta02::¿Qué supervariable contiene información sobre el servidor y sobre la petición HTTP actual? {
+=$_SERVER
+~$_ENV
+~$_REQUEST
+~$_FILES
+}
+
+::Pregunta03::Una aplicación recibe datos mediante GET, POST y cookies y utiliza $_REQUEST para acceder a ellos. ¿Qué afirmación describe correctamente $_REQUEST? {
+=Combina datos de $_GET, $_POST y $_COOKIE según la configuración de PHP
+~Combina exclusivamente $_GET y $_POST
+~Contiene únicamente datos enviados mediante cookies
+~Contiene únicamente información del servidor web
+}
+
+::Pregunta04::¿Qué condición debe cumplirse para utilizar correctamente la función header() en PHP? {
+=Debe ejecutarse antes de enviar cualquier contenido de la respuesta
+~Debe ejecutarse siempre después de echo
+~Solo puede ejecutarse dentro de una función
+~Debe ejecutarse después de session_start()
+}
+
+::Pregunta05::Analiza este código PHP: header('Location: login.php'); echo 'Contenido'; ¿Qué problema existe? {
+=La ejecución continúa después de la redirección porque falta exit
+~header() no permite realizar redirecciones
+~echo debe ejecutarse antes de header()
+~La redirección solo funciona utilizando $_GET
+}
+
+::Pregunta06::¿Qué diferencia fundamental existe entre include y require cuando el archivo que se intenta incluir no existe? {
+=include genera un Warning y el script continúa, mientras que require provoca un error fatal y detiene la ejecución
+~include detiene siempre el script y require permite continuar
+~Ambos provocan exactamente el mismo tipo de error
+~require solo genera un mensaje informativo y continúa la ejecución
+}
+
+::Pregunta07::¿Para qué sirven require_once e include_once? {
+=Evitan que un mismo archivo se incluya más de una vez durante la ejecución
+~Permiten incluir únicamente archivos que contengan clases
+~Hacen que el archivo incluido se ejecute en una sesión independiente
+~Transforman automáticamente el archivo incluido en una clase
+}
+
+::Pregunta08::¿Qué ventaja ofrece utilizar DIR al construir una ruta para require? {
+=Permite construir una ruta basada en el directorio del archivo actual
+~Permite obtener el nombre del usuario conectado
+~Indica el directorio raíz del servidor web en todos los casos
+~Hace que PHP busque automáticamente el archivo en todos los directorios del proyecto
+}
+
+::Pregunta09::Un formulario contiene varios checkbox con name="aficiones[]". ¿Cómo recibirá PHP esos valores si se envían mediante POST? {
+=Como un array en $_POST['aficiones']
+~Como una única cadena en $_POST['aficiones']
+~Como varios valores independientes llamados $_POST['aficion1'], $_POST['aficion2'], etc.
+~Como un array dentro de $_GET['aficiones']
+}
+
+::Pregunta10::¿Por qué debe comprobarse con isset() o con ?? la existencia de un campo de formulario antes de recorrerlo? {
+=Porque determinados controles, como los checkbox no seleccionados, no aparecen en los datos enviados
+~Porque PHP no permite recorrer arrays procedentes de formularios
+~Porque $_POST siempre contiene todos los campos del formulario aunque estén vacíos
+~Porque foreach solo funciona con datos obtenidos mediante GET
+}
+
+::Pregunta11::¿Dónde debe realizarse la validación real de los datos enviados por un formulario? {
+=En el servidor, además de las posibles validaciones realizadas en el cliente
+~Únicamente mediante los atributos HTML del formulario
+~Solo mediante JavaScript en el navegador
+~Exclusivamente mediante CSS
+}
+
+::Pregunta12::¿Qué función es apropiada para comprobar si una cadena contiene una dirección de correo electrónico válida? {
+=filter_var() utilizando FILTER_VALIDATE_EMAIL
+~htmlspecialchars() utilizando FILTER_VALIDATE_EMAIL
+~password_verify() utilizando FILTER_VALIDATE_EMAIL
+~ctype_alpha() utilizando FILTER_VALIDATE_EMAIL
+}
+
+::Pregunta13::Analiza este código: $edad = filter_var('25', FILTER_VALIDATE_INT, ['options' => ['min_range' => 0, 'max_range' => 120]]); if ($edad === false) echo 'Error'; else echo $edad; ¿Qué mostrará? {
+=25
+~Error
+~false
+~0
+}
+
+::Pregunta14::¿Cuál es el objetivo principal de htmlspecialchars() cuando se muestran datos introducidos por un usuario dentro de HTML? {
+=Evitar que caracteres especiales sean interpretados como código HTML
+~Validar que el dato sea un número entero
+~Convertir automáticamente una URL en una dirección segura
+~Cifrar los datos antes de almacenarlos
+}
+
+::Pregunta15::Analiza este código: $comentario = $_POST['comentario']; echo '<p>' . htmlspecialchars($comentario, ENT_QUOTES, 'UTF-8') . '</p>'; ¿Qué problema de seguridad ayuda a prevenir? {
+=La ejecución de código HTML o JavaScript inyectado por el usuario en la página
+~La modificación de una contraseña almacenada mediante hash
+~La pérdida de datos almacenados en $_SESSION
+~La ejecución de consultas SQL sin conexión a una base de datos
+}
+
+::Pregunta16::¿Dónde se almacenan principalmente los datos de una sesión PHP? {
+=En el servidor
+~En el navegador del usuario
+~En la URL de la petición
+~En el código HTML enviado al navegador
+}
+
+::Pregunta17::Analiza este código: session_start(); $_SESSION['visitas'] = ($_SESSION['visitas'] ?? 0) + 1; echo $_SESSION['visitas']; ¿Qué ocurre si se ejecuta por primera vez para esa sesión? {
+=Se almacena 1 en $_SESSION['visitas'] y se muestra 1
+~Se produce un error porque $_SESSION['visitas'] todavía no existe
+~Se almacena 0 y se muestra 0
+~Se almacena null y se muestra una cadena vacía
+}
+
+::Pregunta18::¿Qué función debe utilizarse para crear un hash seguro de una contraseña en PHP? {
+=password_hash()
+~password_encrypt()
+~md5()
+~sha1()
+}
+
+::Pregunta19::¿Qué función se utiliza para comprobar una contraseña introducida por el usuario frente a un hash almacenado? {
+=password_verify()
+~password_check()
+~hash_compare()
+~verify_password_hash()
+}
+
+::Pregunta20::Analiza este código: class Cuenta \{ private float $saldo = 0; public function ingresar(float $importe): void \{ if ($importe > 0) \{ $this->saldo += $importe; \} \} public function consultarSaldo(): float \{ return $this->saldo; \} \} $cuenta = new Cuenta(); $cuenta->ingresar(100); echo $cuenta->consultarSaldo(); ¿Qué resultado produce? {
+=100
+~0
+~Se produce un error porque saldo es private
+~Se produce un error porque no se puede modificar una propiedad desde un método
+}
