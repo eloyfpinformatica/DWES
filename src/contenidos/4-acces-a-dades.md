@@ -24,7 +24,7 @@ Fins ara hem treballat amb PHP, però sense guardar res de manera permanent: els
 
 | Servei | Per a què serveix |
 | --- | --- |
-| `web` | Apache + PHP 8.3, amb **Xdebug** per a depurar |
+| `web` | Apache + PHP 8.5, amb **Xdebug** per a depurar |
 | `db` | El servidor de base de dades **MySQL** |
 | `phpmyadmin` | Interfície web per a gestionar la base de dades |
 
@@ -69,7 +69,7 @@ RUN { \
 
 Què fa cada part:
 
-- **`FROM php:8.3-apache`**: imatge base amb PHP 8.3 i el servidor Apache ja configurats.
+- **`FROM php:8.5-apache`**: imatge base amb PHP 8.5 i el servidor Apache ja configurats.
 - **`pdo_mysql`**: extensió que permetrà a PHP parlar amb MySQL mitjançant PDO.
 - **`pecl install xdebug`**: instal·la Xdebug, que en la unitat 3 vam vore com a ferramenta de depuració.
 - **`xdebug.client_host`**: adreça de la teua màquina, on escolta l'editor (VS Code). Des de dins del contenidor, `host.docker.internal` apunta a ella.
@@ -775,8 +775,7 @@ class Usuari
         private string $contrasenya = '',
         private string $rol = self::ROL_COMERCIAL,
         private ?int $id = null
-    ) {
-    }
+    ) {}
 
     public function getId(): ?int
     {
@@ -793,6 +792,12 @@ class Usuari
         return $this->rol;
     }
 
+    public function getContrasenyaHash(): string
+    {
+        return $this->contrasenya;
+    }
+
+
     public function verificarContrasenya(string $contrasenya): bool
     {
         return password_verify($contrasenya, $this->contrasenya);
@@ -803,6 +808,7 @@ class Usuari
         return get_object_vars($this);
     }
 }
+
 ```
 
 Observa dos decisions:
@@ -1396,20 +1402,20 @@ use PDO;
  */
 class LeadDAO implements IDbAccess
 {
-    // Columnes que es converteixen en propietats de Lead (sense data_creacio)
-    private const COLUMNES = 'id, nom, email, telefon, empresa, serveis, pressupost, missatge, document, estat';
-
     // Cada fila es converteix en un objecte Lead
     private const MODE = PDO::FETCH_CLASS | PDO::FETCH_PROPS_LATE;
 
-    public function __construct(private DBConnection $connexio)
-    {
-    }
+    public function __construct(private DBConnection $connexio) {}
 
     public function findAll(): array
     {
-        $stmt = $this->connexio->getPDO()->query(
-            'SELECT ' . self::COLUMNES . ' FROM leads ORDER BY data_creacio DESC, id DESC'
+        $pdo = $this->connexio->getPDO();
+
+        $stmt = $pdo->query(
+            'SELECT id, nom, email, telefon, empresa, serveis,
+                    pressupost, missatge, document, estat
+             FROM leads
+             ORDER BY data_creacio DESC, id DESC'
         );
 
         return $stmt->fetchAll(self::MODE, Lead::class);
@@ -1417,9 +1423,15 @@ class LeadDAO implements IDbAccess
 
     public function findById(int $id): ?Lead
     {
-        $stmt = $this->connexio->getPDO()->prepare(
-            'SELECT ' . self::COLUMNES . ' FROM leads WHERE id = :id'
+        $pdo = $this->connexio->getPDO();
+
+        $stmt = $pdo->prepare(
+            'SELECT id, nom, email, telefon, empresa, serveis,
+                    pressupost, missatge, document, estat
+             FROM leads
+             WHERE id = :id'
         );
+
         $stmt->setFetchMode(self::MODE, Lead::class);
         $stmt->execute(['id' => $id]);
 
@@ -1434,14 +1446,29 @@ class LeadDAO implements IDbAccess
         $pdo = $this->connexio->getPDO();
 
         // L'id el genera MySQL: no s'envia
-        $parametres = $lead->toArray();
-        unset($parametres['id']);
-
         $stmt = $pdo->prepare(
-            'INSERT INTO leads (nom, email, telefon, empresa, serveis, pressupost, missatge, document, estat)
-             VALUES (:nom, :email, :telefon, :empresa, :serveis, :pressupost, :missatge, :document, :estat)'
+            'INSERT INTO leads
+                (nom, email, telefon, empresa, serveis, pressupost,
+                 missatge, document, estat)
+             VALUES
+                (:nom, :email, :telefon, :empresa, :serveis, :pressupost,
+                 :missatge, :document, :estat)'
         );
-        $stmt->execute($parametres);
+
+        $stmt->execute([
+            'nom'        => $lead->getNom(),
+            'email'      => $lead->getEmail(),
+            'telefon'    => $lead->getTelefon(),
+            'empresa'    => $lead->getEmpresa(),
+            'serveis' => json_encode(
+                $lead->getServeis(),
+                JSON_UNESCAPED_UNICODE
+            ),
+            'pressupost' => $lead->getPressupost(),
+            'missatge'   => $lead->getMissatge(),
+            'document'   => $lead->getDocument(),
+            'estat'      => $lead->getEstat(),
+        ]);
 
         return (int) $pdo->lastInsertId();
     }
@@ -1451,22 +1478,52 @@ class LeadDAO implements IDbAccess
         $lead = $this->comprovarLead($entitat);
 
         if ($lead->getId() === null) {
-            throw new InvalidArgumentException('No es pot actualitzar un lead sense id.');
+            throw new InvalidArgumentException(
+                'No es pot actualitzar un lead sense id.'
+            );
         }
 
-        $stmt = $this->connexio->getPDO()->prepare(
+        $pdo = $this->connexio->getPDO();
+
+        $stmt = $pdo->prepare(
             'UPDATE leads
-             SET nom = :nom, email = :email, telefon = :telefon, empresa = :empresa,
-                 serveis = :serveis, pressupost = :pressupost, missatge = :missatge,
-                 document = :document, estat = :estat
+             SET nom = :nom,
+                 email = :email,
+                 telefon = :telefon,
+                 empresa = :empresa,
+                 serveis = :serveis,
+                 pressupost = :pressupost,
+                 missatge = :missatge,
+                 document = :document,
+                 estat = :estat
              WHERE id = :id'
         );
-        $stmt->execute($lead->toArray());
+
+        $stmt->execute([
+            'nom'        => $lead->getNom(),
+            'email'      => $lead->getEmail(),
+            'telefon'    => $lead->getTelefon(),
+            'empresa'    => $lead->getEmpresa(),
+            'serveis' => json_encode(
+                $lead->getServeis(),
+                JSON_UNESCAPED_UNICODE
+            ),
+            'pressupost' => $lead->getPressupost(),
+            'missatge'   => $lead->getMissatge(),
+            'document'   => $lead->getDocument(),
+            'estat'      => $lead->getEstat(),
+            'id'         => $lead->getId(),
+        ]);
     }
 
     public function delete(int $id): void
     {
-        $stmt = $this->connexio->getPDO()->prepare('DELETE FROM leads WHERE id = :id');
+        $pdo = $this->connexio->getPDO();
+
+        $stmt = $pdo->prepare(
+            'DELETE FROM leads WHERE id = :id'
+        );
+
         $stmt->execute(['id' => $id]);
     }
 
@@ -1476,12 +1533,15 @@ class LeadDAO implements IDbAccess
     private function comprovarLead(object $entitat): Lead
     {
         if (!$entitat instanceof Lead) {
-            throw new InvalidArgumentException('LeadDAO només accepta objectes Lead.');
+            throw new InvalidArgumentException(
+                'LeadDAO només accepta objectes Lead.'
+            );
         }
 
         return $entitat;
     }
 }
+
 ```
 
 Algunes claus per a entendre la classe:
@@ -1523,7 +1583,7 @@ use PDO;
  */
 class UsuariDAO implements IDbAccess
 {
-    private const COLUMNES = 'id, usuari, contrasenya, rol';
+    // Cada fila es converteix en un objecte Usuari
     private const MODE = PDO::FETCH_CLASS | PDO::FETCH_PROPS_LATE;
 
     public function __construct(private DBConnection $connexio)
@@ -1532,8 +1592,12 @@ class UsuariDAO implements IDbAccess
 
     public function findAll(): array
     {
-        $stmt = $this->connexio->getPDO()->query(
-            'SELECT ' . self::COLUMNES . ' FROM usuaris ORDER BY usuari'
+        $pdo = $this->connexio->getPDO();
+
+        $stmt = $pdo->query(
+            'SELECT id, usuari, contrasenya, rol
+             FROM usuaris
+             ORDER BY usuari'
         );
 
         return $stmt->fetchAll(self::MODE, Usuari::class);
@@ -1541,9 +1605,14 @@ class UsuariDAO implements IDbAccess
 
     public function findById(int $id): ?Usuari
     {
-        $stmt = $this->connexio->getPDO()->prepare(
-            'SELECT ' . self::COLUMNES . ' FROM usuaris WHERE id = :id'
+        $pdo = $this->connexio->getPDO();
+
+        $stmt = $pdo->prepare(
+            'SELECT id, usuari, contrasenya, rol
+             FROM usuaris
+             WHERE id = :id'
         );
+
         $stmt->setFetchMode(self::MODE, Usuari::class);
         $stmt->execute(['id' => $id]);
 
@@ -1557,9 +1626,14 @@ class UsuariDAO implements IDbAccess
      */
     public function findByUsuari(string $nomUsuari): ?Usuari
     {
-        $stmt = $this->connexio->getPDO()->prepare(
-            'SELECT ' . self::COLUMNES . ' FROM usuaris WHERE usuari = :usuari'
+        $pdo = $this->connexio->getPDO();
+
+        $stmt = $pdo->prepare(
+            'SELECT id, usuari, contrasenya, rol
+             FROM usuaris
+             WHERE usuari = :usuari'
         );
+
         $stmt->setFetchMode(self::MODE, Usuari::class);
         $stmt->execute(['usuari' => $nomUsuari]);
 
@@ -1573,13 +1647,17 @@ class UsuariDAO implements IDbAccess
         $usuari = $this->comprovarUsuari($entitat);
         $pdo = $this->connexio->getPDO();
 
-        $parametres = $usuari->toArray();
-        unset($parametres['id']);
-
+        // L'id el genera MySQL: no s'envia
         $stmt = $pdo->prepare(
-            'INSERT INTO usuaris (usuari, contrasenya, rol) VALUES (:usuari, :contrasenya, :rol)'
+            'INSERT INTO usuaris (usuari, contrasenya, rol)
+             VALUES (:usuari, :contrasenya, :rol)'
         );
-        $stmt->execute($parametres);
+
+        $stmt->execute([
+            'usuari'      => $usuari->getUsuari(),
+            'contrasenya' => $usuari->getContrasenyaHash(),
+            'rol'         => $usuari->getRol(),
+        ]);
 
         return (int) $pdo->lastInsertId();
     }
@@ -1589,25 +1667,46 @@ class UsuariDAO implements IDbAccess
         $usuari = $this->comprovarUsuari($entitat);
 
         if ($usuari->getId() === null) {
-            throw new InvalidArgumentException('No es pot actualitzar un usuari sense id.');
+            throw new InvalidArgumentException(
+                'No es pot actualitzar un usuari sense id.'
+            );
         }
 
-        $stmt = $this->connexio->getPDO()->prepare(
-            'UPDATE usuaris SET usuari = :usuari, contrasenya = :contrasenya, rol = :rol WHERE id = :id'
+        $pdo = $this->connexio->getPDO();
+
+        $stmt = $pdo->prepare(
+            'UPDATE usuaris
+             SET usuari = :usuari,
+                 contrasenya = :contrasenya,
+                 rol = :rol
+             WHERE id = :id'
         );
-        $stmt->execute($usuari->toArray());
+
+        $stmt->execute([
+            'usuari'      => $usuari->getUsuari(),
+            'contrasenya' => $usuari->getContrasenyaHash(),
+            'rol'         => $usuari->getRol(),
+            'id'          => $usuari->getId(),
+        ]);
     }
 
     public function delete(int $id): void
     {
-        $stmt = $this->connexio->getPDO()->prepare('DELETE FROM usuaris WHERE id = :id');
+        $pdo = $this->connexio->getPDO();
+
+        $stmt = $pdo->prepare(
+            'DELETE FROM usuaris WHERE id = :id'
+        );
+
         $stmt->execute(['id' => $id]);
     }
 
     private function comprovarUsuari(object $entitat): Usuari
     {
         if (!$entitat instanceof Usuari) {
-            throw new InvalidArgumentException('UsuariDAO només accepta objectes Usuari.');
+            throw new InvalidArgumentException(
+                'UsuariDAO només accepta objectes Usuari.'
+            );
         }
 
         return $entitat;
