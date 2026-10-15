@@ -49,7 +49,7 @@ projecte/
 La imatge oficial de PHP amb Apache no porta ni el driver de MySQL per a PDO ni Xdebug. El `Dockerfile` parteix d'ella i els afig:
 
 ```dockerfile
-FROM php:8.3-apache
+FROM php:8.5-apache
 
 # Driver de MySQL per a PDO (el veurem al punt 6)
 RUN docker-php-ext-install pdo_mysql
@@ -131,9 +131,6 @@ Les claus que cal entendre:
 - **Variables `MYSQL_*`**: MySQL crea en el primer arranc la base de dades `techleads` i l'usuari `techleads`. Les taules les crearem al punt 2.
 - **`db_data`**: volum amb nom on MySQL guarda les dades, de manera que **no es perden** en parar o eliminar els contenidors.
 
-::: info Nota
-No cal escriure la línia `version:` a dalt de tot del fitxer. Les versions actuals de Docker Compose la consideren obsoleta.
-:::
 
 ::: warning Atenció
 En Linux, la carpeta `pujades/` pertany al teu usuari i Apache s'executa com a `www-data`, de manera que `move_uploaded_file()` pot fallar per permisos. Si passa, executa `chmod 777 pujades` (només en desenvolupament). En Docker Desktop (Windows i macOS) no cal.
@@ -141,6 +138,22 @@ En Linux, la carpeta `pujades/` pertany al teu usuari i Apache s'executa com a `
 
 ::: danger Error crític
 Les contrasenyes (`root`, `techleads`) són vàlides només per a un entorn de desenvolupament local. Mai les utilitzes en un servidor real.
+:::
+
+::: warning Atenció
+MySQL només crea la base de dades i l'usuari a partir de les variables `MYSQL_*` **la primera vegada** que arranca amb el volum `db_data` buit. Si el volum ja existia (d'una prova anterior) o canvies les variables després, **s'ignoren**: l'usuari `techleads` no existirà o tindrà una altra contrasenya, i més endavant PHP donarà l'error `Access denied for user 'techleads'`.
+
+Hi ha dos camins:
+
+- **Començar de zero**: `docker compose down -v` esborra els contenidors **i el volum** (es perden les dades), i `docker compose up -d` ho torna a crear tot.
+- **Corregir l'usuari sense perdre dades**: entra a phpMyAdmin com a `root` i executa, a la pestanya **SQL**:
+
+```sql
+CREATE USER IF NOT EXISTS 'techleads'@'%' IDENTIFIED BY 'techleads';
+ALTER USER 'techleads'@'%' IDENTIFIED BY 'techleads';
+GRANT ALL PRIVILEGES ON techleads.* TO 'techleads'@'%';
+FLUSH PRIVILEGES;
+```
 :::
 
 ### 1.3. Arrancar i comprovar l'entorn
@@ -194,13 +207,6 @@ Amb l'extensió **PHP Debug** instal·lada (la vam usar al punt 9 de la unitat 3
 
 Per a provar-ho: posa un *breakpoint* a la primera línia de `index.php`, prem **F5** (_Escoltar Xdebug_) i recarrega `http://localhost:8080`. L'execució s'ha d'aturar en eixa línia.
 
----
-
-📌 **A recordar:** `Dockerfile` defineix la imatge de PHP (amb `pdo_mysql` i Xdebug); `docker-compose.yml` connecta els tres serveis (`web`, `db`, `phpmyadmin`). Dins de Docker, els serveis es troben pel seu nom (`db`), no per `localhost`. Les dades de MySQL viuen en un volum i sobreviuen als contenidors.
-
-📖 Documentació oficial
-
-[Imatge oficial de PHP](https://hub.docker.com/_/php) · [Imatge oficial de MySQL](https://hub.docker.com/_/mysql) · [Xdebug: configuració](https://xdebug.org/docs/step_debug)
 
 ## 2. Creació de les taules a phpMyAdmin
 
@@ -241,13 +247,13 @@ Al punt anterior, MySQL ha creat la base de dades `techleads` buida. Ara hi crea
 Algunes decisions de disseny, que convé entendre:
 
 - **`id` amb `AUTO_INCREMENT`**: ja no cal calcular-lo nosaltres. Recorda `GestorLead::obtenerNuevoId()`: este mètode desapareixerà.
-- **`serveis` com a `JSON`**: un lead pot tindre diversos serveis i una cel·la no pot guardar un array. MySQL permet guardar-lo com a text JSON i PHP el converteix amb `json_encode()` i `json_decode()` (ho farem al punt 8).
+- **`serveis` com a `JSON`**: un lead pot tindre diversos serveis i una cel·la no pot guardar un array. MySQL permet guardar-lo com a text JSON, i el model `Lead` s'encarrega de convertir-lo en array (punt 4).
 - **`pressupost` com a `DECIMAL`**: per als diners no s'utilitza `FLOAT`, que pot arrodonir malament. `DECIMAL(10,2)` guarda fins a 10 dígits, 2 d'ells decimals.
 - **`document` guarda només el nom**: l'arxiu continua a la carpeta `pujades/`; la base de dades no guarda l'arxiu, sinó una referència a ell.
 - **`estat` com a `ENUM`**: només admet els tres valors de les constants de `Lead`.
 
 ::: info Nota
-Quan PHP llig una columna `DECIMAL` amb PDO, la rep com a **cadena** (`"4500.00"`), no com a `float`. Ho tindrem en compte al construir l'objecte `Lead`.
+Quan PHP llig una columna `DECIMAL` amb PDO, la rep com a **cadena** (`"4500.00"`). No cal convertir-la a mà: en omplir la propietat `float` de `Lead`, PHP la converteix automàticament (punt 8).
 :::
 
 ::: tip Bona pràctica
@@ -320,16 +326,9 @@ Si executes dos vegades l'`INSERT` dels usuaris, MySQL donarà un error de clau 
 :::
 
 ::: tip Bona pràctica
-Guarda el codi SQL en un fitxer `base-de-dades.sql` dins del projecte. Així qualsevol persona pot recrear la base de dades en una altra màquina. També pots generar-lo des de phpMyAdmin amb la pestanya **Exporta**.
+Guarda el codi SQL en un fitxer `databases/base-de-dades.sql` dins del projecte. Així qualsevol persona pot recrear la base de dades en una altra màquina. També pots generar-lo des de phpMyAdmin amb la pestanya **Exporta**.
 :::
 
----
-
-📌 **A recordar:** les dades dels leads passen de `$_SESSION` a la taula `leads` i els usuaris a la taula `usuaris`. `AUTO_INCREMENT` genera els identificadors, `ENUM` limita els estats, `JSON` guarda l'array de serveis i `DECIMAL` els imports. De les contrasenyes només es guarda el hash.
-
-📖 Documentació oficial
-
-[MySQL: tipus de dades](https://dev.mysql.com/doc/refman/8.4/en/data-types.html) · [MySQL: tipus JSON](https://dev.mysql.com/doc/refman/8.4/en/json.html) · [Documentació de phpMyAdmin](https://docs.phpmyadmin.net/)
 
 ## 3. Estructura del projecte i Composer
 
@@ -350,10 +349,10 @@ projecte/
 ├── Dockerfile
 ├── docker-compose.yml
 ├── composer.json
-├── base-de-dades.sql
-├── .gitignore
 ├── config/
 │   └── usuaris.php
+├── databases/
+│   └── base-de-dades.sql
 ├── public/
 │   ├── index.php
 │   ├── processar_lead.php
@@ -370,7 +369,9 @@ projecte/
 ├── vistes/
 │   ├── capcalera.php
 │   └── peu.php
+├── .gitignore
 └── vendor/              ← el genera Composer
+
 ```
 
 | Carpeta | Què conté |
@@ -641,13 +642,6 @@ class Exemple
 Si el teu editor és VS Code, l'extensió **PHP CS Fixer** (o **Intelephense** amb formatador) aplica PSR-12 amb un clic.
 :::
 
----
-
-📌 **A recordar:** `public/` és l'única carpeta que Apache serveix; el codi de l'aplicació viu fora d'ella. Composer genera un autoload PSR-4 que associa l'espai de noms `App\` a la carpeta `src/`, de manera que no cal cap `require_once` de classes: n'hi ha prou amb `vendor/autoload.php` (abans de `session_start()`) i els `use` corresponents.
-
-📖 Documentació oficial
-
-[Composer: Autoloading](https://getcomposer.org/doc/04-schema.md#autoload) · [PSR-4](https://www.php-fig.org/psr/psr-4/) · [PSR-12](https://www.php-fig.org/psr/psr-12/) · [PHP: Espacios de nombres](https://www.php.net/manual/es/language.namespaces.php)
 
 ## 4. El model: `Lead` i `Usuari`
 
@@ -669,17 +663,17 @@ Així ja funcionava a la unitat 3: `Lead` no guardava res, ho feia `GestorLead`.
 `Lead` ja té quasi tot el que necessitem, però hi ha dos problemes:
 
 1. El constructor calcula el seu propi `id` cridant a `GestorLead::obtenerNuevoId()`, que comptava els leads de la sessió. Ara l'identificador el genera **MySQL** (`AUTO_INCREMENT`).
-2. Als punts 6 i 8 deixarem que **PDO construïsca els objectes `Lead` directament** a partir de les files (`PDO::FETCH_CLASS`). Això imposa unes regles al disseny de la classe.
+2. Al punt 8 deixarem que **PDO construïsca els objectes `Lead` directament** a partir de les files (`PDO::FETCH_CLASS`). Això imposa unes regles al disseny de la classe.
 
 | Regla | Per què |
 | --- | --- |
 | Les propietats tenen **el mateix nom que les columnes** | PDO copia cada columna a la propietat amb el seu nom, fins i tot si és `private` |
 | El constructor es pot cridar **sense arguments** | PDO crea l'objecte buit i després l'omple |
 | `id` **no pot ser `readonly`** | El constructor ja l'inicialitza, i PDO no el podria assignar després |
-| `serveis` guarda el **JSON com a text** | PDO no pot convertir el text de la columna en un array: ho fem nosaltres en `getServeis()` |
+| `serveis` pot ser **un array o un text JSON** | El constructor rep un array; PDO deixa el text JSON de la columna. El *getter* ho unifica |
 | Les propietats porten **tipus** | PDO converteix automàticament, p. ex. `"4500.00"` a `float` |
 
-Substituïx les propietats i el constructor de `src/Model/Lead.php` per:
+Substituïx les propietats i el constructor de `src/Model/Lead.php` per este constructor amb **promoció de propietats**: cada paràmetre declara alhora la propietat.
 
 ```php
 class Lead
@@ -688,43 +682,22 @@ class Lead
     public const ESTAT_CONTACTAT = 'contactat';
     public const ESTAT_TANCAT = 'tancat';
 
-    private ?int $id = null;
-    private string $nom = '';
-    private string $email = '';
-    private ?string $telefon = null;
-    private ?string $empresa = null;
-    private string $serveis = '[]';          // JSON, tal com està a la base de dades
-    private float $pressupost = 0.0;
-    private ?string $missatge = null;
-    private ?string $document = null;
-    private string $estat = self::ESTAT_NOU;
-
     public function __construct(
-        string $nom = '',
-        string $email = '',
-        ?string $telefon = null,
-        ?string $empresa = null,
-        array $serveis = [],
-        float $pressupost = 0.0,
-        ?string $missatge = null,
-        ?string $document = null,
-        ?int $id = null,
-        string $estat = self::ESTAT_NOU
+        private string $nom = '',
+        private string $email = '',
+        private ?string $telefon = null,
+        private ?string $empresa = null,
+        private array|string $serveis = [],
+        private float $pressupost = 0.0,
+        private ?string $missatge = null,
+        private ?string $document = null,
+        private ?int $id = null,
+        private string $estat = self::ESTAT_NOU
     ) {
-        $this->nom = $nom;
-        $this->email = $email;
-        $this->telefon = $telefon;
-        $this->empresa = $empresa;
-        $this->serveis = json_encode($serveis, JSON_UNESCAPED_UNICODE);
-        $this->pressupost = $pressupost;
-        $this->missatge = $missatge;
-        $this->document = $document;
-        $this->id = $id;
-        $this->estat = $estat;
     }
 ```
 
-Dos canvis als *getters*:
+Ja no calen les declaracions de propietats ni les assignacions dins del constructor. Dos *getters* canvien i n'hi ha un de nou:
 
 ```php
     public function getId(): ?int
@@ -734,15 +707,30 @@ Dos canvis als *getters*:
 
     public function getServeis(): array
     {
-        return json_decode($this->serveis, true) ?? [];
+        return is_string($this->serveis)
+            ? (json_decode($this->serveis, true) ?? [])
+            : $this->serveis;
+    }
+
+    /**
+     * Converteix el lead en un array columna => valor.
+     * És el camí invers de FETCH_CLASS: el DAO l'usa per a guardar.
+     */
+    public function toArray(): array
+    {
+        $dades = get_object_vars($this);
+        $dades['serveis'] = json_encode($this->getServeis(), JSON_UNESCAPED_UNICODE);
+
+        return $dades;
     }
 ```
 
+- **`array|string $serveis`**: el constructor rep un array (`['Web', 'SEO']`), però PDO hi deixarà el text de la columna (`'["Web","SEO"]'`). Amb un tipus unió, la propietat admet les dos coses i `getServeis()` sempre retorna un array.
+- **`toArray()`** usa `get_object_vars($this)`, que dins de la classe retorna **totes les propietats**, també les privades. Els seus noms coincidixen amb els de les columnes, i només cal convertir `serveis` a text JSON.
+
 La resta de mètodes (`getNom()`, `avancarEstat()`, etc.) no canvien.
 
-El constructor serveix per a dos usos:
-
-- **Nosaltres**, quan creem un lead amb dades (per exemple, des del formulari):
+Un lead nou es crea amb arguments amb nom, saltant-se els que no calen:
 
 ```php
 $lead = new Lead(
@@ -754,22 +742,18 @@ $lead = new Lead(
 );
 ```
 
-- **PDO**, que el crida sense arguments i després omple les propietats amb les columnes.
-
-::: tip Bona pràctica
-Els **arguments amb nom** (`empresa: '...'`) permeten saltar-se els paràmetres opcionals que no necessitem i fan el codi molt més llegible.
-:::
+El constructor també serveix a PDO, que el crida sense arguments i després omple les propietats amb les columnes.
 
 ::: warning Atenció
 Que tots els paràmetres siguen opcionals té un preu: `new Lead()` crea un lead **buit**, sense dades vàlides. Les dades correctes les garantim validant el formulari abans de construir l'objecte (punt 10). És el cost de deixar que PDO construïsca els objectes.
 :::
 
 ::: info Nota
-`id` ja no és `readonly`, però continua sense tindre cap mètode per a modificar-lo (no hi ha `setId()`). Només el pot assignar el constructor i PDO. Quan s'insereix un lead nou, MySQL assigna l'`id` i el DAO ens el **retorna** (punt 8).
+`id` ja no és `readonly`, però continua sense tindre cap mètode per a modificar-lo (no hi ha `setId()`). Només el pot assignar el constructor i PDO.
 :::
 
 ::: info Nota
-La taula `leads` té un camp `data_creacio`, però **no el portem al model**: només l'utilitzarem per a ordenar el llistat (`ORDER BY data_creacio DESC`). Per això les consultes del punt 8 indiquen les columnes que volem i no usen `SELECT *`.
+La taula `leads` té un camp `data_creacio`, però **no el portem al model**: només l'utilitzarem per a ordenar el llistat. Per això les consultes del punt 8 indiquen les columnes que volem i no usen `SELECT *`.
 :::
 
 ### 4.2. La classe `Usuari`
@@ -786,21 +770,12 @@ class Usuari
     public const ROL_COMERCIAL = 'comercial';
     public const ROL_ADMINISTRADOR = 'administrador';
 
-    private ?int $id = null;
-    private string $usuari = '';
-    private string $contrasenya = '';
-    private string $rol = self::ROL_COMERCIAL;
-
     public function __construct(
-        string $usuari = '',
-        string $contrasenya = '',
-        string $rol = self::ROL_COMERCIAL,
-        ?int $id = null
+        private string $usuari = '',
+        private string $contrasenya = '',
+        private string $rol = self::ROL_COMERCIAL,
+        private ?int $id = null
     ) {
-        $this->usuari = $usuari;
-        $this->contrasenya = $contrasenya;
-        $this->rol = $rol;
-        $this->id = $id;
     }
 
     public function getId(): ?int
@@ -822,16 +797,25 @@ class Usuari
     {
         return password_verify($contrasenya, $this->contrasenya);
     }
+
+    public function toArray(): array
+    {
+        return get_object_vars($this);
+    }
 }
 ```
 
 Observa dos decisions:
 
-- **No hi ha `getContrasenya()`.** El hash és una dada sensible: la classe no el mostra a l'exterior. En lloc d'això, ofereix `verificarContrasenya()`, que fa la comparació internament amb `password_verify()`, com ja fèiem a `login.php`.
-- **Les propietats es diuen com les columnes** de la taula `usuaris` (`usuari`, `contrasenya`, `rol`, `id`), perquè PDO les puga omplir.
+- **La contrasenya no té *getter*.** La comprovació es fa amb `verificarContrasenya()`, que usa `password_verify()` internament, com ja fèiem a `login.php`. El hash només ix de la classe dins de `toArray()`, que és el que necessita el DAO per a guardar-lo.
+- **Les propietats es diuen com les columnes** de la taula `usuaris`, perquè PDO les puga omplir.
 
 ::: warning Atenció
-Per què la contrasenya és ja un hash? Perquè un `Usuari` llegit de la base de dades ja la porta així. El moment d'aplicar `password_hash()` és abans de guardar l'usuari, no ací.
+`Usuari` guarda **sempre el hash**, mai la contrasenya en text pla: un `Usuari` llegit de la base de dades ja la porta així. El hash s'ha de calcular **abans** de crear l'objecte:
+
+```php
+$usuari = new Usuari('pau', password_hash('secret123', PASSWORD_DEFAULT), Usuari::ROL_COMERCIAL);
+```
 :::
 
 ### 4.3. Comprovar el model
@@ -853,6 +837,9 @@ var_dump($lead->getId());      // NULL
 var_dump($lead->getEstat());   // "nou"
 
 $lead->avancarEstat();
+
+var_dump($lead->toArray()['serveis']);   // string(...) "["Web","SEO"]"
+
 var_dump($lead->getEstat());   // "contactat"
 
 $usuari = new Usuari('ana', password_hash('contrasenya123', PASSWORD_DEFAULT));
@@ -862,13 +849,7 @@ var_dump($usuari->verificarContrasenya('altra'));           // bool(false)
 
 Obri `http://localhost:8080/prova-model.php`. Si els valors coincidixen amb els comentaris, el model està ben fet. **Esborra el fitxer** quan acabes.
 
----
 
-📌 **A recordar:** el model són classes que representen les files de les taules (`Lead` ↔ `leads`, `Usuari` ↔ `usuaris`) i no saben res de SQL. L'`id` el genera MySQL, per això és opcional al constructor, igual que l'`estat`. La contrasenya d'`Usuari` només es manipula internament.
-
-📖 Documentació oficial
-
-[PHP: Promoció de propietats al constructor](https://www.php.net/manual/es/language.oop5.decon.php#language.oop5.decon.constructor.promotion) · [PHP: Propietats `readonly`](https://www.php.net/manual/es/language.oop5.properties.php#language.oop5.properties.readonly-properties) · [PHP: Arguments amb nom](https://www.php.net/manual/es/functions.arguments.php#functions.named-arguments)
 
 ## 5. La interfície `IDbAccess`
 
@@ -999,47 +980,6 @@ Al punt 8 crearem `LeadDAO`, que escriurà `class LeadDAO implements IDbAccess`.
 Si una classe diu que implementa `IDbAccess` però li falta algun mètode, o el declara amb altres tipus, PHP donarà un error fatal: *Class ... contains 1 abstract method and must therefore be declared abstract or implement the remaining methods*. Això és precisament la utilitat de la interfície: **PHP comprova el contracte**.
 :::
 
-Hi ha una conseqüència important de triar `object` a la interfície. Una classe que implementa un contracte **no pot ser més restrictiva** que ell: si la interfície promet que `insert()` accepta qualsevol objecte, `LeadDAO` no pot declarar `insert(Lead $lead)`. PHP ho rebutjaria amb un error fatal.
-
-Per això, dins de cada implementació farem nosaltres la comprovació amb `instanceof`. Este és el patró que seguirem al punt 8:
-
-```php
-/**
- * @implements IDbAccess<Lead>
- */
-class LeadDAO implements IDbAccess
-{
-    // ...
-
-    public function insert(object $entitat): int
-    {
-        if (!$entitat instanceof Lead) {
-            throw new InvalidArgumentException('LeadDAO només accepta objectes Lead.');
-        }
-
-        // A partir d'ací, $entitat és un Lead segur
-        // ...
-    }
-
-    // Els tipus de retorn SÍ poden ser més concrets que els de la interfície:
-    public function findById(int $id): ?Lead
-    {
-        // ...
-    }
-}
-```
-
-- **`@implements IDbAccess<Lead>`** concreta el tipus `T` per a esta classe.
-- **`instanceof`** comprova en temps d'execució que ens han passat un `Lead`. Si no, llança una excepció i l'error queda a la vista.
-- **El tipus de retorn** sí que es pot fer més estricte: `?Lead` és un cas particular de `?object`, per tant és vàlid. Així, qui cride a `LeadDAO::findById()` sap que rep un `Lead`.
-
-::: info Nota
-Dins d'un espai de noms, les classes natives de PHP (`InvalidArgumentException`, `PDO`, `PDOException`...) s'han d'importar amb `use InvalidArgumentException;` o escriure's amb barra inicial (`\InvalidArgumentException`). Si no, PHP les buscarà dins de `App\DAO` i no les trobarà.
-:::
-
-::: warning Atenció
-Fixa't en el que guanyem i en el que perdem. **Guanyem** una interfície reutilitzable per a qualsevol entitat. **Perdem** que PHP detecte en temps de compilació que passem un objecte equivocat: ara l'error eixirà en executar (una excepció). És un intercanvi habitual quan es fa codi genèric en PHP.
-:::
 
 ### 5.5. Comprovar la interfície
 
@@ -1057,17 +997,11 @@ Recorda que els `use` van a dalt de l'arxiu, junt amb els altres. Si obtens `boo
 Si proves a escriure `new IDbAccess()`, PHP et donarà l'error `Cannot instantiate interface`. És el comportament esperat: una interfície és només un contracte.
 :::
 
----
 
-📌 **A recordar:** una interfície defineix **què** es pot fer, no **com**. `IDbAccess` fixa el CRUD (`findAll`, `findById`, `insert`, `update`, `delete`) per a qualsevol entitat, usant `object` com a tipus. Les classes que la implementen (punt 8) comproven amb `instanceof` que reben l'entitat correcta i poden concretar el tipus de retorn.
-
-📖 Documentació oficial
-
-[PHP: Interfícies d'objectes](https://www.php.net/manual/es/language.oop5.interfaces.php) · [PHP: Declaracions de tipus](https://www.php.net/manual/es/language.types.declarations.php) · [PHP: `instanceof`](https://www.php.net/manual/es/language.operators.type.php)
 
 ## 6. PDO: accedir a MySQL des de PHP
 
-Tenim les taules, el model i el contracte. Falta la peça que **parla amb MySQL**: PDO. En este punt aprendrem a usar-lo amb proves soltes; al punt 7 l'encapsularem en una classe i al punt 8 l'usarem dins dels DAO.
+Tenim les taules, el model i el contracte. Falta la peça que **parla amb MySQL**: PDO. En este punt veurem els **conceptes bàsics**; el codi complet (consultes, `FETCH_CLASS`, inserir, actualitzar...) el construirem al punt 8, dins dels DAO.
 
 ### 6.1. Què és PDO
 
@@ -1104,7 +1038,7 @@ El `host` és **`db`**, no `localhost`. Des de dins del contenidor `web`, `local
 
 ### 6.3. Opcions de connexió
 
-El tercer paràmetre (opcional) del constructor és un array d'opcions. Les tres següents són les que usarem sempre:
+El quart paràmetre (opcional) del constructor és un array d'opcions. Les tres següents són les que usarem sempre:
 
 ```php
 $opcions = [
@@ -1119,30 +1053,12 @@ $pdo = new PDO($dsn, 'techleads', 'techleads', $opcions);
 | Opció | Efecte |
 | --- | --- |
 | `ERRMODE_EXCEPTION` | Si una consulta falla, PDO llança una `PDOException`. Des de PHP 8 és el valor per defecte, però convé deixar-ho explícit. |
-| `FETCH_ASSOC` | Cada fila es retorna com a array associatiu (`$fila['nom']`). Per defecte retorna cada dada dues vegades (per nom i per posició). |
+| `FETCH_ASSOC` | Mode per defecte per a llegir les files: cada una és un array associatiu (`$fila['nom']`). Si no s'indica, PDO retorna cada dada dues vegades (per nom i per posició). |
 | `EMULATE_PREPARES => false` | Les consultes preparades les fa el propi MySQL, no PHP: més segur i més fidel. |
 
-### 6.4. Consultes sense paràmetres: `query()`
+### 6.4. Consultes preparades
 
-Si la consulta **no depén de cap dada externa**, es pot executar directament:
-
-```php
-$stmt = $pdo->query('SELECT id, nom, estat FROM leads ORDER BY data_creacio DESC');
-
-foreach ($stmt as $fila) {
-    echo $fila['id'] . ' - ' . $fila['nom'] . ' (' . $fila['estat'] . ')<br>';
-}
-```
-
-`query()` retorna un objecte `PDOStatement`, que es pot recórrer amb un `foreach`. Per a obtindre totes les files d'una vegada com a array, s'usa `fetchAll()`:
-
-```php
-$files = $pdo->query('SELECT * FROM leads')->fetchAll();
-```
-
-### 6.5. Consultes preparades
-
-Quan la consulta inclou **dades que venen de fora** (un `id` de la URL, un valor d'un formulari...), no s'ha de concatenar mai a la cadena SQL.
+Quan una consulta inclou **dades que venen de fora** (un `id` de la URL, un valor d'un formulari...), no s'ha de concatenar mai a la cadena SQL.
 
 ```php
 // MAI AIXÒ
@@ -1167,74 +1083,17 @@ El procés té tres passos:
 2. **`execute()`**: s'envien els valors reals.
 3. **`fetch()` / `fetchAll()`**: es recullen els resultats.
 
-| Mètode | Retorna |
-| --- | --- |
-| `fetch()` | La següent fila com a array, o `false` si no n'hi ha més |
-| `fetchAll()` | Totes les files, com a array d'arrays (buit si no n'hi ha) |
-
 ::: info Nota
-Els marcadors poden ser **amb nom** (`:id`, `:nom`), que és el que usarem, o **posicionals** (`?`). Els amb nom són més llegibles quan hi ha diversos paràmetres.
+`query()` executa una consulta directament i només s'ha d'usar quan **no depén de cap dada externa** (per exemple, un `SELECT COUNT(*) FROM leads`).
 :::
 
 ::: warning Atenció
 Els marcadors només poden substituir **valors**, no noms de taules, de columnes ni paraules clau com `ASC`/`DESC`. Si algun dia necessites un `ORDER BY` dinàmic, comprova el valor contra una llista de paraules permeses abans d'incloure'l a l'SQL.
 :::
 
-### 6.6. Inserir, actualitzar i eliminar
+### 6.5. Gestionar els errors: `PDOException`
 
-Les tres operacions s'executen igual: `prepare()` + `execute()`.
-
-**INSERT**: cal saber quin `id` ha assignat MySQL:
-
-```php
-$stmt = $pdo->prepare(
-    'INSERT INTO leads (nom, email, telefon, empresa, serveis, pressupost, missatge, document)
-     VALUES (:nom, :email, :telefon, :empresa, :serveis, :pressupost, :missatge, :document)'
-);
-
-$stmt->execute([
-    'nom'        => 'Pere Vidal',
-    'email'      => 'pere@exemple.com',
-    'telefon'    => null,
-    'empresa'    => 'Vidal i Fills',
-    'serveis'    => json_encode(['Web', 'Cloud'], JSON_UNESCAPED_UNICODE),
-    'pressupost' => 3200.50,
-    'missatge'   => null,
-    'document'   => null,
-]);
-
-$idNou = (int) $pdo->lastInsertId();
-```
-
-- **`json_encode()`** converteix l'array de serveis en text JSON per a la columna `serveis`. `JSON_UNESCAPED_UNICODE` evita que «App mòbil» es guarde com `App m\u00f2bil`.
-- **`lastInsertId()`** retorna l'`id` generat per `AUTO_INCREMENT`. Ho fa en forma de cadena, per això el convertim a `int`.
-- Els valors `null` de PHP es guarden com a `NULL` de MySQL.
-
-**UPDATE**:
-
-```php
-$stmt = $pdo->prepare('UPDATE leads SET estat = :estat WHERE id = :id');
-$stmt->execute(['estat' => 'contactat', 'id' => 2]);
-```
-
-**DELETE**:
-
-```php
-$stmt = $pdo->prepare('DELETE FROM leads WHERE id = :id');
-$stmt->execute(['id' => 4]);
-
-echo $stmt->rowCount();   // files eliminades: 1 si existia, 0 si no
-```
-
-`rowCount()` indica quantes files ha afectat l'última consulta `INSERT`, `UPDATE` o `DELETE`.
-
-::: danger Error crític
-Un `UPDATE` o `DELETE` **sense `WHERE`** afecta **totes les files** de la taula. Comprova sempre la clàusula `WHERE` abans d'executar.
-:::
-
-### 6.7. Gestionar els errors: `PDOException`
-
-Amb `ERRMODE_EXCEPTION`, qualsevol problema (connexió, SQL incorrecte, restricció violada) llança una `PDOException`. S'ha de capturar amb `try/catch`:
+Amb `ERRMODE_EXCEPTION`, qualsevol problema (connexió, SQL incorrecte, restricció violada) llança una `PDOException`, que es captura amb `try/catch`:
 
 ```php
 try {
@@ -1245,12 +1104,13 @@ try {
 }
 ```
 
-Estos són els errors més comuns en este entorn i com interpretar-los:
+Estos són els errors més comuns en este entorn:
 
 | Missatge (resumit) | Causa probable |
 | --- | --- |
-| `SQLSTATE[HY000] [2002] php_network_getaddresses` o `Connection refused` | El `host` és incorrecte (no és `db`) o el contenidor MySQL encara no ha arrancat |
-| `SQLSTATE[HY000] [1045] Access denied` | Usuari o contrasenya incorrectes |
+| `SQLSTATE[HY000] [2002] php_network_getaddresses` o `Connection refused` | El `host` és incorrecte (no és `db`) o el contenidor MySQL encara no ha acabat d'arrancar |
+| `SQLSTATE[HY000] [1045] Access denied ... (using password: YES)` | L'usuari o la contrasenya no coincidixen amb els de MySQL. Mira l'avís del punt 1.2 sobre el volum |
+| `SQLSTATE[HY000] [1045] Access denied ... (using password: NO)` | No s'ha enviat cap contrasenya: revisa les dades de connexió |
 | `SQLSTATE[HY000] [1049] Unknown database` | El nom de la base de dades al DSN és incorrecte |
 | `SQLSTATE[42S02]: Table ... doesn't exist` | La taula no existeix: no s'ha executat l'SQL del punt 2 |
 | `SQLSTATE[23000] ... Duplicate entry` | Es viola una clau única (p. ex. dos usuaris amb el mateix `usuari`) |
@@ -1259,117 +1119,6 @@ Estos són els errors més comuns en este entorn i com interpretar-los:
 `$e->getMessage()` pot revelar noms de taules, columnes o l'adreça del servidor. En desenvolupament és útil mostrar-lo; en un servidor real **mai** s'ensenya a l'usuari: es registra amb `error_log()` i es mostra un missatge genèric.
 :::
 
-### 6.8. De fila a objecte: `FETCH_CLASS`
-
-Fins ara hem rebut les files com a arrays. Però la nostra aplicació treballa amb objectes `Lead`. PDO pot fer la conversió per nosaltres amb el mode `PDO::FETCH_CLASS`: crea un objecte de la classe indicada i copia cada columna a la propietat amb el mateix nom.
-
-```php
-$stmt = $pdo->query(
-    'SELECT id, nom, email, telefon, empresa, serveis, pressupost, missatge, document, estat FROM leads'
-);
-
-$leads = $stmt->fetchAll(PDO::FETCH_CLASS | PDO::FETCH_PROPS_LATE, Lead::class);
-```
-
-Per a obtindre **un sol** objecte, s'indica el mode abans d'executar la consulta:
-
-```php
-$stmt = $pdo->prepare('SELECT id, nom, email, telefon, empresa, serveis, pressupost, missatge, document, estat FROM leads WHERE id = :id');
-$stmt->setFetchMode(PDO::FETCH_CLASS | PDO::FETCH_PROPS_LATE, Lead::class);
-$stmt->execute(['id' => 1]);
-
-$lead = $stmt->fetch();   // un objecte Lead, o false si no existeix
-```
-
-Hi ha tres detalls importants:
-
-- **`PDO::FETCH_PROPS_LATE`**: per defecte, PDO omple les propietats i **després** crida al constructor, que les sobreescriuria amb els valors per defecte. Amb este indicador l'ordre és el contrari: primer el constructor i després les dades de la base de dades. Sense ell, tots els leads eixirien buits.
-- **Propietats `private`**: PDO les pot escriure directament, sense passar pels *setters*.
-- **Conversió de tipus**: `pressupost` arriba de MySQL com a cadena (`"4500.00"`), però com que la propietat és `float`, PHP la converteix. La columna `serveis` arriba com a text JSON i es guarda tal qual: `getServeis()` s'encarrega de decodificar-la (punt 4).
-
-::: warning Atenció
-Si la consulta retorna una columna que **no té propietat** a la classe (per exemple, `data_creacio` amb un `SELECT *`), PHP 8.2 o superior mostra un avís de propietat dinàmica obsoleta. Per això indiquem les columnes una a una en lloc d'usar `SELECT *`.
-:::
-
-::: info Nota
-`FETCH_CLASS` és còmode, però acobla els noms de les propietats als noms de les columnes: si canvies el nom d'una columna, has de canviar la propietat. En classes amb conversions més complexes, el mapatge manual (fila → constructor) pot ser preferible.
-:::
-
-### 6.9. Practicar amb PDO
-
-Crea un fitxer temporal `public/prova-pdo.php` amb este codi i obri `http://localhost:8080/prova-pdo.php`:
-
-```php
-<?php
-use App\Model\Lead;
-require_once __DIR__ . '/../vendor/autoload.php';
-
-$dsn = 'mysql:host=db;dbname=techleads;charset=utf8mb4';
-$opcions = [
-    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-    PDO::ATTR_EMULATE_PREPARES   => false,
-];
-
-try {
-    $pdo = new PDO($dsn, 'techleads', 'techleads', $opcions);
-
-    // 1. Llistar tots els leads
-    echo '<h3>Tots els leads</h3><pre>';
-    print_r($pdo->query('SELECT id, nom, serveis, estat FROM leads')->fetchAll());
-    echo '</pre>';
-
-    // 2. Un lead pel seu id (consulta preparada)
-    $stmt = $pdo->prepare('SELECT * FROM leads WHERE id = :id');
-    $stmt->execute(['id' => 1]);
-    echo '<h3>Lead 1</h3><pre>';
-    print_r($stmt->fetch());
-    echo '</pre>';
-
-    // 3. Inserir i eliminar un lead de prova
-    $stmt = $pdo->prepare(
-        'INSERT INTO leads (nom, email, serveis, pressupost) VALUES (:nom, :email, :serveis, :pressupost)'
-    );
-    $stmt->execute([
-        'nom'        => 'Prova',
-        'email'      => 'prova@exemple.com',
-        'serveis'    => json_encode(['SEO']),
-        'pressupost' => 100,
-    ]);
-    $idNou = (int) $pdo->lastInsertId();
-    echo "<p>Lead inserit amb id $idNou</p>";
-
-    $stmt = $pdo->prepare('DELETE FROM leads WHERE id = :id');
-    $stmt->execute(['id' => $idNou]);
-    echo '<p>Files eliminades: ' . $stmt->rowCount() . '</p>';
-
-    // 4. Convertir files en objectes Lead
-    $stmt = $pdo->query('SELECT id, nom, email, telefon, empresa, serveis, pressupost, missatge, document, estat FROM leads');
-    foreach ($stmt->fetchAll(PDO::FETCH_CLASS | PDO::FETCH_PROPS_LATE, Lead::class) as $lead) {
-        echo $lead->getNom() . ': ' . implode(', ', $lead->getServeis()) . '<br>';
-    }
-} catch (PDOException $e) {
-    echo '<p>Error: ' . $e->getMessage() . '</p>';
-}
-```
-
-Has de vore els tres leads d'exemple del punt 2, el detall del lead 1, i que la fila de prova s'insereix i s'elimina.
-
-Després, experimenta:
-
-- Canvia el `host` per `localhost` i observa l'error.
-- Canvia el nom d'una columna per un de inexistent i observa el missatge.
-- Prova a canviar `'id' => 1` per `'id' => '1 OR 1=1'` en la consulta preparada: només tornarà el lead 1 (o cap), mai tots. Compara-ho amb concatenar el valor a l'SQL.
-
-**Esborra el fitxer** quan acabes: no ha de quedar cap credencial en una pàgina pública.
-
----
-
-📌 **A recordar:** PDO es connecta amb un DSN (`mysql:host=db;dbname=techleads;charset=utf8mb4`) i s'ha de configurar amb excepcions, `FETCH_ASSOC` i `EMULATE_PREPARES` desactivat. Les dades externes **sempre** van en consultes preparades (`prepare` + `execute`), mai concatenades. `lastInsertId()` dona l'`id` generat, i els errors es capturen amb `PDOException`.
-
-📖 Documentació oficial
-
-[PHP: PDO](https://www.php.net/manual/es/book.pdo.php) · [PHP: Sentències preparades](https://www.php.net/manual/es/pdo.prepared-statements.php) · [PHP: PDOException](https://www.php.net/manual/es/class.pdoexception.php) · [OWASP: Injecció SQL](https://owasp.org/www-community/attacks/SQL_Injection)
 
 ## 7. La classe `DBConnection` i la injecció de dependències
 
@@ -1498,6 +1247,10 @@ Els punts clau:
 Esta classe té **una sola responsabilitat**: crear i entregar la connexió. No fa consultes ni sap res de leads. Cada classe fa una sola cosa.
 :::
 
+::: info Nota
+`FETCH_ASSOC` és el mode per defecte per a consultes soltes (com un `COUNT(*)`). **No podem posar-hi `FETCH_CLASS`**: este mode necessita saber **quina classe** construir, i `LeadDAO` i `UsuariDAO` en necessiten de diferents. Per això la classe s'indica a cada consulta (punt 8). Si es posara `FETCH_CLASS` per defecte, PDO donaria l'error *No fetch class specified*.
+:::
+
 ### 7.5. On es crea la connexió: el punt d'arrancada
 
 Algú ha de crear l'objecte `DBConnection` i passar-lo als DAO. Eixe lloc ha de ser **un sol punt** de l'aplicació, no cada pàgina per separat. Crea `config/bootstrap.php`:
@@ -1538,7 +1291,7 @@ Fins ara cada pàgina començava amb `require_once` de l'autoload i `session_sta
 
 ### 7.6. Comprovar la connexió
 
-Modifica el fitxer temporal `public/prova-pdo.php` (o crea'n un de nou `public/prova-connexio.php`) amb este codi:
+Crea un fitxer temporal `public/prova-connexio.php`:
 
 ```php
 <?php
@@ -1562,20 +1315,18 @@ Obri `http://localhost:8080/prova-connexio.php`. Has de vore el nombre de leads 
 
 `fetchColumn()` és una drecera de PDO per a llegir **un únic valor** (la primera columna de la primera fila), ideal per a `COUNT(*)`.
 
-Proves per a entendre l'error:
+Si en lloc d'això apareix un error, consulta la taula de la secció 6.5. Els dos més habituals ací són:
+
+- **`Access denied ... (using password: YES)`**: la connexió arriba a MySQL, però l'usuari `techleads` no existix o té una altra contrasenya. Passa quan el volum `db_data` ja existia abans de les variables `MYSQL_*` del `docker-compose.yml`. Segueix l'avís del punt 1.2.
+- **`Connection refused`**: MySQL encara està arrancant. Espera uns segons i recarrega.
+
+Per a entendre els errors, prova també:
 
 - Canvia la contrasenya a `config/database.php` i recarrega: veuràs un `Access denied`.
 - Canvia el `host` a `localhost`: veuràs que no es pot connectar.
 
-Restaura els valors correctes i **esborra els fitxers de prova** (`prova-model.php`, `prova-pdo.php`, `prova-connexio.php`).
+Restaura els valors correctes i **esborra els fitxers de prova** (`prova-model.php` i `prova-connexio.php`).
 
----
-
-📌 **A recordar:** `DBConnection` guarda les dades de connexió i crea l'objecte `PDO` només quan es necessita (*lazy*). La **injecció de dependències** consistix a passar les dependències a una classe pel constructor en lloc de crear-les a dins. El punt d'arrancada (`config/bootstrap.php`) construïx els objectes de l'aplicació de fora cap a dins: connexió → DAO → pàgines.
-
-📖 Documentació oficial
-
-[PHP: Constructors i destructors](https://www.php.net/manual/es/language.oop5.decon.php) · [PHP: `include`/`require` i valors retornats](https://www.php.net/manual/es/function.include.php) · [PHP-DI: Understanding dependency injection](https://php-di.org/doc/understanding-di.html)
 
 ## 8. Els DAO: `LeadDAO` i `UsuariDAO`
 
@@ -1590,7 +1341,43 @@ Ara ho unim tot. Un **DAO** (*Data Access Object*) és la classe que s'encarrega
 
 Els DAO substituiran `GestorLead` (i l'array `$usuaris`) de la unitat 3.
 
-### 8.1. `LeadDAO`
+### 8.1. De fila a objecte: `FETCH_CLASS`
+
+Fins ara hem rebut les files com a arrays. Però la nostra aplicació treballa amb objectes `Lead`. PDO pot fer la conversió per nosaltres amb el mode `PDO::FETCH_CLASS`: crea un objecte de la classe indicada i copia cada columna a la propietat amb el mateix nom.
+
+```php
+$stmt = $pdo->query('SELECT id, nom, email, telefon, empresa, serveis, pressupost, missatge, document, estat FROM leads');
+
+$leads = $stmt->fetchAll(PDO::FETCH_CLASS | PDO::FETCH_PROPS_LATE, Lead::class);
+```
+
+Per a obtindre **un sol** objecte, s'indica el mode abans d'executar la consulta:
+
+```php
+$stmt = $pdo->prepare('SELECT id, nom, email, telefon, empresa, serveis, pressupost, missatge, document, estat FROM leads WHERE id = :id');
+$stmt->setFetchMode(PDO::FETCH_CLASS | PDO::FETCH_PROPS_LATE, Lead::class);
+$stmt->execute(['id' => 1]);
+
+$lead = $stmt->fetch();   // un objecte Lead, o false si no existeix
+```
+
+Hi ha tres detalls importants:
+
+- **`PDO::FETCH_PROPS_LATE`**: per defecte, PDO omple les propietats i **després** crida al constructor, que les sobreescriuria amb els valors per defecte. Amb este indicador l'ordre és el contrari: primer el constructor i després les dades de la base de dades. Sense ell, tots els leads eixirien buits.
+- **Propietats `private`**: PDO les pot escriure directament, sense passar pels *setters*.
+- **Conversió de tipus**: `pressupost` arriba de MySQL com a cadena (`"4500.00"`), però com que la propietat és `float`, PHP la converteix. La columna `serveis` arriba com a text JSON i es guarda tal qual: `getServeis()` s'encarrega de decodificar-la (punt 4).
+
+::: warning Atenció
+Si la consulta retorna una columna que **no té propietat** a la classe (per exemple, `data_creacio` amb un `SELECT *`), PHP 8.2 o superior mostra un avís de propietat dinàmica obsoleta. Per això indiquem les columnes una a una en lloc d'usar `SELECT *`.
+:::
+
+**I per a escriure?** `FETCH_CLASS` només serveix per a **llegir** (fila → objecte). PDO no té cap equivalent per a `INSERT` o `UPDATE`: els valors s'han de passar a `execute()` en un array. Per això el model té el mètode `toArray()` (punt 4), que fa el camí invers: objecte → array amb una clau per columna.
+
+::: info Nota
+`FETCH_CLASS` acobla els noms de les propietats als noms de les columnes: si canvies el nom d'una columna, has de canviar la propietat. En classes amb conversions més complexes, el mapatge manual (fila → constructor) pot ser preferible.
+:::
+
+### 8.2. `LeadDAO`
 
 Crea `src/DAO/LeadDAO.php`:
 
@@ -1646,11 +1433,15 @@ class LeadDAO implements IDbAccess
         $lead = $this->comprovarLead($entitat);
         $pdo = $this->connexio->getPDO();
 
+        // L'id el genera MySQL: no s'envia
+        $parametres = $lead->toArray();
+        unset($parametres['id']);
+
         $stmt = $pdo->prepare(
             'INSERT INTO leads (nom, email, telefon, empresa, serveis, pressupost, missatge, document, estat)
              VALUES (:nom, :email, :telefon, :empresa, :serveis, :pressupost, :missatge, :document, :estat)'
         );
-        $stmt->execute($this->obtenirParametres($lead));
+        $stmt->execute($parametres);
 
         return (int) $pdo->lastInsertId();
     }
@@ -1670,7 +1461,7 @@ class LeadDAO implements IDbAccess
                  document = :document, estat = :estat
              WHERE id = :id'
         );
-        $stmt->execute($this->obtenirParametres($lead) + ['id' => $lead->getId()]);
+        $stmt->execute($lead->toArray());
     }
 
     public function delete(int $id): void
@@ -1690,24 +1481,6 @@ class LeadDAO implements IDbAccess
 
         return $entitat;
     }
-
-    /**
-     * Converteix un Lead en els paràmetres de les consultes.
-     */
-    private function obtenirParametres(Lead $lead): array
-    {
-        return [
-            'nom'        => $lead->getNom(),
-            'email'      => $lead->getEmail(),
-            'telefon'    => $lead->getTelefon(),
-            'empresa'    => $lead->getEmpresa(),
-            'serveis'    => json_encode($lead->getServeis(), JSON_UNESCAPED_UNICODE),
-            'pressupost' => $lead->getPressupost(),
-            'missatge'   => $lead->getMissatge(),
-            'document'   => $lead->getDocument(),
-            'estat'      => $lead->getEstat(),
-        ];
-    }
 }
 ```
 
@@ -1715,43 +1488,20 @@ Algunes claus per a entendre la classe:
 
 - **`implements IDbAccess`** + **`@implements IDbAccess<Lead>`**: la classe signa el contracte del punt 5 i indica a l'editor que treballa amb `Lead`.
 - **El constructor rep `DBConnection`**: és la injecció de dependències del punt 7. El DAO **no sap** on està la base de dades ni quines credencials hi ha.
-- **`fetchAll(self::MODE, Lead::class)`**: PDO construïx directament els objectes `Lead` (punt 6.8). No cal cap bucle ni cap conversió manual dins del DAO.
+- **Llegir**: `fetchAll(self::MODE, Lead::class)` i `setFetchMode()` fan que PDO construïsca els objectes `Lead` (apartat 8.1). No cal cap bucle ni cap conversió manual.
 - **`COLUMNES`**: enumera les columnes que volem, perquè coincidisquen amb les propietats de `Lead`. És una constant escrita per nosaltres, no una dada de l'usuari, per això es pot concatenar a l'SQL amb seguretat.
+- **Escriure**: `$lead->toArray()` dona l'array de paràmetres. Els noms de les claus han de coincidir **exactament** amb els marcadors de la consulta. A `insert()` cal llevar l'`id`, perquè no apareix a l'`INSERT` i PDO rebutja els paràmetres que sobren. A `update()` sí que hi és, perquè el necessita el `WHERE`.
+- **`lastInsertId()`** retorna l'`id` generat per `AUTO_INCREMENT`. Ho fa en forma de cadena, per això el convertim a `int`.
 - **`findById()` retorna `?Lead`**: `fetch()` dona `false` si no hi ha cap fila i el convertim en `null`. El tipus de retorn és més concret que `?object` de la interfície, i és vàlid.
 - **`comprovarLead()`** conté el `instanceof` del punt 5. Si algú intenta passar-li un `Usuari`, llança una excepció clara. Retorna l'objecte ja com a `Lead`, de manera que a partir d'eixe moment l'editor coneix el tipus.
-- **`obtenirParametres()`** evita repetir els nou paràmetres a `insert()` i a `update()`. A `update()` s'hi afig l'`id` amb l'operador `+` d'arrays (unió).
 - **L'ordre del llistat**: del lead més recent al més antic. `id DESC` desfà els empats quan dos leads s'han creat en el mateix segon.
+
+::: danger Error crític
+Un `UPDATE` o `DELETE` **sense `WHERE`** afecta **totes les files** de la taula. Comprova sempre la clàusula `WHERE` abans d'executar.
+:::
 
 ::: info Nota
 Fixa't que **tota la lògica SQL està en esta classe**. Les pàgines no tindran ni una sola consulta: només cridaran a `findAll()`, `insert()`, etc.
-:::
-
-::: tip Bona pràctica
-Els mètodes `private` (`comprovarLead`, `obtenirParametres`) són detalls interns del DAO. Des de fora, només es veu el contracte públic de `IDbAccess`.
-:::
-
-### 8.2. Un ajust a `Usuari`
-
-Al punt 4 vam decidir que `Usuari` **no exposara** el hash de la contrasenya. Ara, però, el DAO necessita llegir-lo per a **guardar-lo** en la base de dades. Afig este mètode a `src/Model/Usuari.php`:
-
-```php
-    /**
-     * Retorna el hash de la contrasenya. Només l'ha d'usar el DAO per a guardar-lo.
-     */
-    public function getHash(): string
-    {
-        return $this->contrasenya;
-    }
-```
-
-La comprovació de contrasenyes continua fent-se **només** amb `verificarContrasenya()`: el hash no s'utilitza per a res més.
-
-::: warning Atenció
-`Usuari` guarda **sempre el hash**, mai la contrasenya en text pla. Per tant, el hash s'ha de calcular **abans** de crear l'objecte:
-
-```php
-$usuari = new Usuari('pau', password_hash('secret123', PASSWORD_DEFAULT), Usuari::ROL_COMERCIAL);
-```
 :::
 
 ### 8.3. `UsuariDAO`
@@ -1823,14 +1573,13 @@ class UsuariDAO implements IDbAccess
         $usuari = $this->comprovarUsuari($entitat);
         $pdo = $this->connexio->getPDO();
 
+        $parametres = $usuari->toArray();
+        unset($parametres['id']);
+
         $stmt = $pdo->prepare(
             'INSERT INTO usuaris (usuari, contrasenya, rol) VALUES (:usuari, :contrasenya, :rol)'
         );
-        $stmt->execute([
-            'usuari'      => $usuari->getUsuari(),
-            'contrasenya' => $usuari->getHash(),
-            'rol'         => $usuari->getRol(),
-        ]);
+        $stmt->execute($parametres);
 
         return (int) $pdo->lastInsertId();
     }
@@ -1846,12 +1595,7 @@ class UsuariDAO implements IDbAccess
         $stmt = $this->connexio->getPDO()->prepare(
             'UPDATE usuaris SET usuari = :usuari, contrasenya = :contrasenya, rol = :rol WHERE id = :id'
         );
-        $stmt->execute([
-            'usuari'      => $usuari->getUsuari(),
-            'contrasenya' => $usuari->getHash(),
-            'rol'         => $usuari->getRol(),
-            'id'          => $usuari->getId(),
-        ]);
+        $stmt->execute($usuari->toArray());
     }
 
     public function delete(int $id): void
@@ -1874,8 +1618,14 @@ class UsuariDAO implements IDbAccess
 `findByUsuari()` és un exemple de com un DAO pot **ampliar** el contracte amb consultes pròpies. Estes consultes no estan a la interfície perquè no tenen sentit per a totes les entitats (un `Lead` no té «nom d'accés»).
 
 ::: info Nota
+`insert()` guarda el hash que ja porta l'objecte `Usuari` (punt 4): el DAO mai calcula ni veu la contrasenya en text pla.
+:::
+
+::: info Nota
 Si s'intenta fer `insert()` d'un usuari el nom del qual ja existeix, MySQL llançarà una `PDOException` amb codi `23000` (clau duplicada), gràcies a la restricció `UNIQUE` del punt 2. El DAO no la captura: qui el use decidirà què mostrar a l'usuari.
 :::
+
+
 
 ### 8.4. Connectar els DAO al punt d'arrancada
 
@@ -1992,15 +1742,6 @@ Resultat esperat:
 6. Al final, una excepció: `InvalidArgumentException: LeadDAO només accepta objectes Lead.`, que és el que volem veure.
 
 **Esborra els fitxers de prova** quan acabes.
-
----
-
-📌 **A recordar:** un DAO implementa `IDbAccess` per a una entitat: executa les consultes i deixa que PDO construïsca els objectes amb `FETCH_CLASS | FETCH_PROPS_LATE`. Per això el model ha de tindre propietats amb el nom de les columnes i un constructor sense paràmetres obligatoris. Comprova amb `instanceof` que rep l'entitat correcta, rep `DBConnection` pel constructor i es construïx a `bootstrap.php`.
-
-📖 Documentació oficial
-
-[PHP: Interfícies d'objectes](https://www.php.net/manual/es/language.oop5.interfaces.php) · [PHP: `json_encode`](https://www.php.net/manual/es/function.json-encode.php) · [PHP: `json_decode`](https://www.php.net/manual/es/function.json-decode.php) · [PHP: PDOStatement::fetch](https://www.php.net/manual/es/pdostatement.fetch.php)
-
 
 ## 9. Funcions auxiliars: pujar i eliminar arxius
 
@@ -2132,8 +1873,8 @@ function eliminarArxiu(string $carpeta, ?string $nomArxiu): void
 ```
 
 - Accepta `?string` perquè un lead pot no tindre document (`null`): en eixe cas no fa res.
-- **`basename()`** s'queda només amb el nom de l'arxiu. Encara que el nom vinga de la nostra base de dades, no es deu confiar mai en una ruta per a esborrar fitxers.
-
+- **`basename()`** es queda només amb el nom de l'arxiu. Encara que el nom vinga de la nostra base de dades, no es deu confiar mai en una ruta per a esborrar fitxers.
+  
 ### 9.4. La carpeta de pujades
 
 Les pàgines estan a profunditats diferents (`public/` i `public/dashboard/`), de manera que escriure la ruta de `pujades/` en cada una seria propens a errors. La definim **una sola vegada** com a constant, al final de `config/bootstrap.php`:
@@ -2211,13 +1952,6 @@ La prova de l'arxiu renomenat és la més reveladora: demostra per què mirem el
 
 **Esborra el fitxer** `prova-arxiu.php` quan acabes.
 
----
-
-📌 **A recordar:** les funcions auxiliars viuen a `src/helpers.php` i es carreguen soles amb Composer. `pujarArxiu()` valida el tipus **real** (amb `finfo`), la grandària i guarda l'arxiu amb un nom únic; retorna el nom, `null` si no hi ha arxiu, o llança una `RuntimeException`. `eliminarArxiu()` esborra de manera segura l'arxiu d'un lead eliminat o d'un lead que no s'ha pogut guardar.
-
-📖 Documentació oficial
-
-[PHP: Pujada de fitxers](https://www.php.net/manual/es/features.file-upload.php) · [PHP: finfo](https://www.php.net/manual/es/class.finfo.php) · [PHP: move_uploaded_file](https://www.php.net/manual/es/function.move-uploaded-file.php) · [PHP: Excepcions](https://www.php.net/manual/es/language.exceptions.php)
 
 ## 10. El CRUD de leads
 
@@ -2331,7 +2065,7 @@ Compara-ho amb la unitat 3. La lògica és la mateixa, però ara:
 
 - **El llistat** ve de `$leadDAO->findAll()`, en lloc de `GestorLead::obtenerListaLeads()`.
 - **Avançar l'estat** és un procés en tres passos que ja vam preparar: es **recupera** el lead (`findById`), el **model** aplica la seua regla de negoci (`avancarEstat()`) i el DAO el **guarda** (`update`). Abans era `GestorLead::avancarEstat($id)`.
-- **Les errades de MySQL** es capturen: es registren amb `error_log()` i l'usuari només veu un missatge genèric, tal com vam dir al punt 6.7.
+- **Les errades de MySQL** es capturen: es registren amb `error_log()` i l'usuari només veu un missatge genèric, tal com vam dir al punt 6.5.
 
 Dins de `<main>`, afig just a l'inici el missatge d'error:
 
@@ -2531,12 +2265,6 @@ Encara **no envies el formulari públic**: `processar_lead.php` continua cridant
 :::
 
 ---
-
-📌 **A recordar:** les pàgines no contenen SQL: usen els DAO que `bootstrap.php` els proporciona. Un avançament d'estat és «recuperar, canviar el model, guardar» (`findById` → `avancarEstat` → `update`). Les dades que arriben per la URL es validen (`filter_input`), les que es mostren s'escapen (`e()`) i els errors de base de dades es registren i es mostra un missatge genèric.
-
-📖 Documentació oficial
-
-[PHP: `filter_input`](https://www.php.net/manual/es/function.filter-input.php) · [PHP: `http_response_code`](https://www.php.net/manual/es/function.http-response-code.php) · [PHP: `error_log`](https://www.php.net/manual/es/function.error-log.php) · [PHP: `nl2br`](https://www.php.net/manual/es/function.nl2br.php)
 
 ### 10.6. Peces comunes: validació i utilitats
 
@@ -3026,10 +2754,232 @@ Fes el recorregut sencer i mira cada resultat també a **phpMyAdmin** i a la car
 | Eliminar un lead amb document | Confirmació; la fila desapareix de la taula i l'arxiu de `pujades/` |
 | Escriure `leads.php?accio=eliminar&id=1` a la barra d'adreces | No passa res: només s'accepta `POST` |
 
----
 
-📌 **A recordar:** les pàgines no tenen SQL; usen `$leadDAO`. Crear és `insert()`, llegir `findAll()` i `findById()`, editar `update()` (amb un `Lead` nou que conserva `id` i `estat`) i eliminar `delete()`. Les operacions que modifiquen dades van sempre per `POST`. Les dades del formulari es validen i es filtren al servidor, i si falla la base de dades es desfà el que s'havia fet amb els arxius.
+## 11. Login contra la base de dades
 
-📖 Documentació oficial
+Només queda una peça que continua funcionant com a la unitat 3: l'autenticació. `login.php` encara comprova les credencials amb l'array de `config/usuaris.php`. Ara que tenim la taula `usuaris` i `UsuariDAO`, l'array ja no fa falta.
 
-[PHP: `filter_var`](https://www.php.net/manual/es/function.filter-var.php) · [PHP: `unlink`](https://www.php.net/manual/es/function.unlink.php) · [PHP: Variables de servidor (`$_SERVER`)](https://www.php.net/manual/es/reserved.variables.server.php) · [OWASP: CSRF](https://owasp.org/www-community/attacks/csrf)
+| Abans (unitat 3) | Ara (unitat 4) |
+| --- | --- |
+| Array `$usuaris` a `config/usuaris.php` | Taula `usuaris` |
+| `password_verify()` sobre el hash de l'array | `Usuari::verificarContrasenya()` |
+| Buscar al array: `$usuaris[$usuari]` | `UsuariDAO::findByUsuari()` |
+| Comprovació de sessió repetida a cada pàgina | Funció `requereixLogin()` |
+
+### 11.1. Reescriure `login.php`
+
+Substituïx **tot el que hi ha abans de `<!DOCTYPE html>`** (el bloc PHP inicial) a `public/dashboard/login.php` per:
+
+```php
+<?php
+
+require_once __DIR__ . '/../../config/bootstrap.php';
+
+// Si l'usuari ja està autenticat, anem directament al panell
+if (!empty($_SESSION['usuari'])) {
+    header('Location: leads.php');
+    exit;
+}
+
+$errorBD = null;
+
+try {
+    // Si hi ha la cookie «recorda'm», comprovem que l'usuari encara existix
+    if (!empty($_COOKIE['usuari']) && $usuariDAO->findByUsuari($_COOKIE['usuari']) !== null) {
+        $_SESSION['usuari'] = $_COOKIE['usuari'];
+        session_regenerate_id(true);
+        header('Location: leads.php');
+        exit;
+    }
+
+    // Autenticar l'usuari
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $usuari = $_POST['usuari'] ?? '';
+        $contrasenya = $_POST['contrasenya'] ?? '';
+
+        $usuariBD = $usuariDAO->findByUsuari($usuari);
+
+        if ($usuariBD !== null && $usuariBD->verificarContrasenya($contrasenya)) {
+            $_SESSION['usuari'] = $usuariBD->getUsuari();
+            session_regenerate_id(true);
+
+            // Per seguretat, en una aplicació real la cookie guardaria un token, no l'usuari
+            if (!empty($_POST['recordam'])) {
+                setcookie('usuari', $usuariBD->getUsuari(), time() + 3600 * 24 * 30, '/', secure: false, httponly: true);
+            }
+
+            header('Location: leads.php');
+            exit;
+        }
+
+        $usuarioValido = false;
+    }
+} catch (PDOException $e) {
+    error_log($e->getMessage());
+    $errorBD = 'No s\'ha pogut accedir a la base de dades.';
+}
+?>
+```
+
+Compara-ho amb la unitat 3. L'estructura és la mateixa; canvia **d'on ve l'usuari** i **qui comprova la contrasenya**:
+
+- **`findByUsuari()` busca i `verificarContrasenya()` comprova.** El DAO sap trobar l'usuari a la base de dades; el model sap verificar la seua pròpia contrasenya. Ni la pàgina ni el DAO toquen el hash.
+- **Un sol missatge d'error** tant si l'usuari no existix com si la contrasenya és incorrecta: no s'ha de revelar quin dels dos ha fallat.
+- **La cookie «recorda'm»** ara comprova a la base de dades que l'usuari encara existix. Si l'han eliminat, la cookie deixa de servir.
+- **`session_regenerate_id(true)`** canvia l'identificador de sessió en iniciar-la, per a evitar la fixació de sessió. Ja el teníem a la unitat 3.
+- **Els errors de MySQL** es capturen com a la resta de pàgines: es registren i es mostra un missatge genèric.
+
+La vista ja mostra el missatge d'«usuari o contrasenya incorrectes» quan `$usuarioValido` és `false`. Afig just a continuació l'avís d'error de base de dades:
+
+```php
+<?php if ($errorBD !== null): ?>
+    <div class="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
+        <?= e($errorBD) ?>
+    </div>
+<?php endif; ?>
+```
+
+::: danger Error crític
+La cookie «recorda'm» guarda el **nom d'usuari** i, quan existix, el login s'accepta sense contrasenya. Qualsevol persona pot crear a mà una cookie `usuari=marc` amb les eines del navegador i entrar com a `marc`. A la unitat 3 ja ho vam deixar així per simplificar, i ací també. En una aplicació real, la cookie ha de guardar un **token aleatori** de llarga durada, associat a l'usuari a la base de dades, que es puga revocar. Frameworks com Laravel ho gestionen per nosaltres.
+:::
+
+### 11.2. La funció `requereixLogin()`
+
+Les pàgines del panell (`leads.php`, `lead.php` i `editar.php`) repetixen este bloc al principi:
+
+```php
+if (empty($_SESSION['usuari'])) {
+    header('Location: login.php');
+    exit;
+}
+```
+
+Tres còpies del mateix codi són una invitació a l'error: si algun dia canvia la comprovació, caldrà recordar tocar-les totes. El passem a una funció. Afig-la al final de `src/helpers.php`:
+
+```php
+/**
+ * Comprova que hi ha un usuari autenticat. Si no, redirigix al login.
+ */
+function requereixLogin(): void
+{
+    if (empty($_SESSION['usuari'])) {
+        header('Location: login.php');
+        exit;
+    }
+}
+```
+
+I a les tres pàgines, substituïx el bloc `if` per una sola línia, just darrere del `require_once` del `bootstrap.php`:
+
+```php
+requereixLogin();
+```
+
+::: info Nota
+`requereixLogin()` necessita que la sessió ja estiga iniciada, i això ho fa `bootstrap.php`. La ruta `login.php` és relativa, i funciona perquè les tres pàgines estan a la mateixa carpeta que el login (`public/dashboard/`).
+:::
+
+### 11.3. Retirar `config/usuaris.php`
+
+Ja no queda res que use l'array. Comprova-ho abans d'esborrar-lo. Des de l'arrel del projecte:
+
+```bash
+grep -rn "usuaris.php" public src config
+```
+
+Si no apareix cap resultat, **elimina** el fitxer `config/usuaris.php`. La carpeta `config/` queda amb dos fitxers: `bootstrap.php` i `database.php`.
+
+### 11.4. Crear usuaris des del codi
+
+Fins ara els usuaris `ana` i `marc` els vam inserir amb SQL al punt 2. Veiem com es crea un usuari des de PHP, amb el `insert()` de `UsuariDAO`. Crea un fitxer temporal `public/prova-usuari.php`:
+
+```php
+<?php
+
+use App\Model\Usuari;
+
+require_once __DIR__ . '/../config/bootstrap.php';
+
+try {
+    $usuari = new Usuari('pau', password_hash('secret123', PASSWORD_DEFAULT));
+    $id = $usuariDAO->insert($usuari);
+
+    echo "Usuari creat amb id $id";
+} catch (PDOException $e) {
+    echo 'Error: ' . $e->getMessage();
+}
+```
+
+Obri `http://localhost:8080/prova-usuari.php`:
+
+- La primera vegada, crea l'usuari `pau`. Comprova a phpMyAdmin que la columna `contrasenya` conté un **hash** (comença per `$2y$`) i no `secret123`.
+- La segona vegada apareix un error `SQLSTATE[23000] ... Duplicate entry 'pau'`: la restricció `UNIQUE` del punt 2 impedix duplicar-lo.
+
+Prova després a entrar al panell amb `pau` / `secret123`. **Esborra el fitxer** quan acabes: cada visita intentaria crear l'usuari de nou.
+
+### 11.5. Comprovar el login
+
+| Prova | Resultat esperat |
+| --- | --- |
+| Entrar amb `ana` / `contrasenya123` | Accés al llistat |
+| Contrasenya incorrecta | «Usuari o contrasenya incorrectes» |
+| Usuari que no existix | **El mateix** missatge |
+| Obrir `dashboard/leads.php` sense sessió | Redirigix al login |
+| Entrar marcant «Recorda'm», tancar el navegador i tornar a `login.php` | Entra directament |
+| Tancar la sessió | Torna al login; la cookie s'esborra |
+| Aturar MySQL (`docker compose stop db`) i intentar entrar | Missatge d'error de base de dades, sense errors de PHP |
+| Entrar com `pau` | Accés al llistat |
+
+### 11.6. L'estructura final del projecte
+
+Així queda el projecte en acabar la unitat:
+
+```
+projecte/
+├── Dockerfile
+├── docker-compose.yml
+├── composer.json
+├── .gitignore
+├── config/
+│   ├── bootstrap.php
+│   └── database.php
+├── databases
+│   └── base-de-dades.sql
+├── public/
+│   ├── index.php
+│   ├── processar_lead.php
+│   ├── pujades/
+│   └── dashboard/
+│       ├── login.php
+│       ├── logout.php
+│       ├── leads.php
+│       ├── lead.php
+│       └── editar.php
+├── src/
+│   ├── helpers.php
+│   ├── Database/
+│   │   └── DBConnection.php
+│   ├── DAO/
+│   │   ├── IDbAccess.php
+│   │   ├── LeadDAO.php
+│   │   └── UsuariDAO.php
+│   └── Model/
+│       ├── Lead.php
+│       └── Usuari.php
+├── vistes/
+│   ├── capcalera.php
+│   ├── peu.php
+│   ├── dashboard_capcalera.php
+│   └── dashboard_peu.php
+└── vendor/
+```
+
+Els fitxers `GestorLead.php`, `usuaris.php` i tots els `prova-*.php` han desaparegut. Cada capa té una responsabilitat:
+
+| Capa | Responsabilitat |
+| --- | --- |
+| `public/` | Pàgines: reben peticions, validen i mostren |
+| `src/Model/` | Les dades i les seues regles |
+| `src/DAO/` | L'accés a MySQL |
+| `src/Database/` | La connexió |
+| `config/` | Configuració i punt d'arrancada |
