@@ -2228,12 +2228,12 @@ if (empty($_SESSION['usuari'])) {
 }
 
 // L'id ve de la URL: s'ha de validar com a enter
-$id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
-
-if ($id === null || $id === false) {
+if (!isset($_GET['id']) || !ctype_digit($_GET['id']) || (int) $_GET['id'] <= 0) {
     header('Location: leads.php');
     exit;
 }
+
+$id = (int) $_GET['id'];
 
 $errorBD = null;
 $lead = null;
@@ -2536,17 +2536,14 @@ use App\Model\Lead;
 
 require_once __DIR__ . '/../../config/bootstrap.php';
 
-if (empty($_SESSION['usuari'])) {
-    header('Location: login.php');
-    exit;
-}
+requereixLogin();
 
-$id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
-
-if ($id === null || $id === false) {
+if (!isset($_GET['id']) || !ctype_digit($_GET['id']) || (int) $_GET['id'] <= 0) {
     header('Location: leads.php');
     exit;
 }
+
+$id = (int) $_GET['id'];
 
 $errorBD = null;
 $errors = [];

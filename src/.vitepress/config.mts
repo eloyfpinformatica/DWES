@@ -34,6 +34,7 @@ export default defineConfig({
               { text: '1. Introducció', link: '/contenidos/1-introduccion' },
               { text: '2. PHP Bàsic', link: '/contenidos/2-php-basic' },
               { text: '3. PHP Avançat', link: '/contenidos/3-php-avancat' },
+              { text: '4. Accés a dades', link: '/contenidos/4-acces-a-dades' },
 
             ]
           },
@@ -56,6 +57,7 @@ export default defineConfig({
               { text: '1. Introducció', link: '/contenidos/1-introduccion' },
               { text: '2. PHP Bàsic', link: '/contenidos/2-php-basic' },
               { text: '3. PHP Avançat', link: '/contenidos/3-php-avancat' },
+              { text: '4. Accés a dades', link: '/contenidos/4-acces-a-dades' },
 
             ]
         },
