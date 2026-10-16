@@ -17,7 +17,8 @@
 
 :::
 
-
+![u4_arquitectura](./media/u4_arquitectura.png)
+![u4_fluxe_dades](./media/u4_fluxe_dades.png)
 ## 1. Entorn de desenvolupament amb Docker
 
 Fins ara hem treballat amb PHP, però sense guardar res de manera permanent: els leads vivien a `$_SESSION` i es perdien en tancar el navegador. En esta unitat els guardarem en una **base de dades MySQL**. Per a això necessitem tres peces funcionant juntes:
@@ -1337,6 +1338,8 @@ Restaura els valors correctes i **esborra els fitxers de prova** (`prova-model.p
 ## 8. Els DAO: `LeadDAO` i `UsuariDAO`
 
 Ara ho unim tot. Un **DAO** (*Data Access Object*) és la classe que s'encarrega d'**accedir a la base de dades per a una entitat concreta**: sap quines consultes cal fer i converteix files en objectes del model i objectes en files.
+
+![u4_DAO](./media/u4_DAO.png)
 
 | Peça | Responsabilitat |
 | --- | --- |
