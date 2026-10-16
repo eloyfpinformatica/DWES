@@ -3079,3 +3079,17 @@ Els fitxers `GestorLead.php`, `usuaris.php` i tots els `prova-*.php` han desapar
 | `src/DAO/` | L'accés a MySQL |
 | `src/Database/` | La connexió |
 | `config/` | Configuració i punt d'arrancada |
+
+## 12. Exercicis
+
+Els exercicis d'aquesta unitat es correspondran en el seguiment de la unitat. Caldrà fer les següents captures de pantalla:
+
+1. Captura `prova-model.php` (punt 5.5)
+2. Captura `prova-connexio.php` (punt 7.6)
+3. Captura `prova-dao.php` (punt 8.6)
+4. Captura `prova-arxiu.php` (punt 9.6)
+5. Captura `prova-usuari.php` (punt  11.4)
+6. Captura final de `index.php`
+7. Captura final de `dashboard/leads.php`
+8. Captura final de `dashboard/lead.php`
+9. Captura final de `dashboard/editar.php`
