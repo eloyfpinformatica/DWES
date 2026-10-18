@@ -194,6 +194,8 @@ Indica al `LLEGIMME.md` quina ampliació has fet i com provar-la.
 ## 10. Plantilles
 
 ::: tip `lead.php` Historial de notes i formulari
+```php
+
 <?php
 /*
  * FRAGMENT PER A public/dashboard/lead.php
@@ -281,9 +283,11 @@ Indica al `LLEGIMME.md` quina ampliació has fet i com provar-la.
         </ul>
     <?php endif; ?>
 </section>
+```
 :::
 
 ::: tip `leads.php` Columna per a mostrar el número de notes
+```php
 <?php
 /*
  * FRAGMENTS PER A public/dashboard/leads.php
@@ -316,4 +320,5 @@ Indica al `LLEGIMME.md` quina ampliació has fet i com provar-la.
         </span>
     <?php endif; ?>
 </td>
+```
 :::
