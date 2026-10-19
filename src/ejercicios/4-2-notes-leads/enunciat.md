@@ -75,16 +75,16 @@ Crea `src/DAO/NotaDAO.php` sota el namespace `App\DAO`. Ha d'implementar o adapt
 
 | Mètode                          | Funció                                                       |
 | ------------------------------- | ------------------------------------------------------------ |
-| `crear(Nota $nota)`             | Insereix una nota nova                                       |
-| `obtenirPerLead(int $leadId)`   | Retorna les notes d'un lead, amb el nom de l'autor (`JOIN` amb `usuaris`) i ordenades per data |
-| `obtenirPerId(int $id)`         | Retorna una nota concreta (necessari per a comprovar permisos) |
-| `eliminar(int $id)`             | Elimina una nota                                             |
+| `insert(object $nota)`          | Insereix una nota nova                                       |
+| `findByLead(int $leadId)`       | Retorna les notes d'un lead, amb el nom de l'autor (`JOIN` amb `usuaris`) i ordenades per data |
+| `findById(int $id)`             | Retorna una nota concreta (necessari per a comprovar permisos) |
+| `delete(int $id)`               | Elimina una nota                                             |
 | `comptarPerLead()` o equivalent | Permet obtenir el nombre de notes de cada lead per al llistat |
 
 Requisits:
 
 - **Totes** les consultes amb valors externs han de ser **consultes preparades**.
-- Per al recompte al llistat, evita el problema de les «N+1 consultes»: resol-ho amb una única consulta (`LEFT JOIN` + `GROUP BY`, o una subconsulta) en lloc de consultar el DAO una vegada per cada lead.
+- Per al recompte al llistat, evita el problema de les «N+1 consultes»: resol-ho amb una única consulta (`LEFT JOIN` + `GROUP BY`, o una subconsulta) en lloc de consultar el DAO una vegada per cada lead. Utilitza `PDO::FETCH_KEY_PAIR` per obtenir els valor en un array `clau => valor` (`'lead_id' => 'num_notes'`)
 
 Registra el nou DAO a `config/bootstrap.php`, junt amb els ja existents.
 
@@ -100,7 +100,6 @@ Requisits generals:
 - Totes les pàgines noves del panell han de cridar a `requereixLogin()`.
 - Tot el contingut dinàmic mostrat en HTML s'ha d'escapar amb `e()`.
 - Les operacions que modifiquen dades (afegir i eliminar) s'han de fer per **POST**, mai per GET.
-- Els missatges i el text de la interfície han d'estar **en valencià/català**, seguint l'estil existent.
 - Manté l'estructura de capes: les vistes no han de contindre consultes SQL; aquestes pertanyen als DAO.
 - Reutilitza les cabeceres i peus de `vistes/` i l'estil Tailwind que ja utilitza el projecte.
 
@@ -193,36 +192,23 @@ Indica al `LLEGIMME.md` quina ampliació has fet i com provar-la.
 
 ## 10. Plantilles
 
-::: tip `lead.php` Historial de notes i formulari
+::: details `lead.php` Historial de notes i formulari
 ```php
 
 <?php
-/*
- * FRAGMENT PER A public/dashboard/lead.php
- * Apega'l dins del contingut de la pàgina, després de les dades del lead.
- *
- * Variables que ha de preparar el controlador (part PHP superior de lead.php):
- *   $lead         -> el lead actual (només s'usa getId())
- *   $notes        -> array d'objectes Nota (NotaDAO::obtenirPerLead)
- *   $usuariId     -> id de l'usuari de la sessió
- *   $esAdmin      -> true si el rol és 'administrador'
- *   $errorNota    -> missatge d'error de validació (o null)
- *   $valorNota    -> text anterior escrit per l'usuari (o '')
- *
- * Adapta els getters (getText, getAutorNom...) a l'estil del teu model Nota.
- */
+// *** per completar en la plantilla
 ?>
 
 <section id="notes" class="mt-12">
     <h2 class="text-2xl font-semibold text-slate-900 mb-6">
-        Notes de seguiment
-        <span class="ml-2 text-base font-normal text-slate-500">(<?= count($notes) ?>)</span>
+        ***Notes de seguiment
+        <span class="ml-2 text-base font-normal text-slate-500">2</span>
     </h2>
 
     <!-- Formulari per afegir una nota -->
     <form action="afegir_nota.php" method="POST"
           class="bg-white border border-slate-200 rounded-xl p-6 mb-8 shadow-sm">
-        <input type="hidden" name="lead_id" value="<?= e((string) $lead->getId()) ?>">
+        <input type="hidden" name="lead_id" value="***id del lead***">
 
         <label for="text" class="block text-base font-medium text-slate-700 mb-2">
             Afig una nota
@@ -230,11 +216,11 @@ Indica al `LLEGIMME.md` quina ampliació has fet i com provar-la.
         <textarea id="text" name="text" rows="4" maxlength="500" required
                   placeholder="Ex.: He telefonat al client, torne a cridar dijous."
                   class="w-full rounded-lg border border-slate-300 px-4 py-3 text-base leading-relaxed
-                         focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"><?= e($valorNota ?? '') ?></textarea>
+                         focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">***text de la nota si hi ha error***</textarea>
 
-        <?php if (!empty($errorNota)): ?>
-            <p class="mt-2 text-sm text-red-600"><?= e($errorNota) ?></p>
-        <?php endif; ?>
+        <!-- Només mostrar si hi ha errors -->
+            <p class="mt-2 text-sm text-red-600">***error del text de la nota***</p>
+        
 
         <div class="mt-4 flex items-center justify-between">
             <span class="text-sm text-slate-500">Màxim 500 caràcters</span>
@@ -247,57 +233,45 @@ Indica al `LLEGIMME.md` quina ampliació has fet i com provar-la.
     </form>
 
     <!-- Historial de notes -->
-    <?php if (empty($notes)): ?>
+    <!-- Mostrar si no hi ha notes -->
         <p class="rounded-xl border border-dashed border-slate-300 p-6 text-center text-slate-500">
             Encara no hi ha notes per a aquest lead.
         </p>
-    <?php else: ?>
+    <!-- Mostrar si hi ha notes -->
         <ul class="space-y-4">
-            <?php foreach ($notes as $nota): ?>
                 <li class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
                     <div class="flex items-start justify-between gap-4">
                         <div class="text-sm text-slate-500">
-                            <span class="font-medium text-slate-800"><?= e($nota->getAutorNom()) ?></span>
+                            <span class="font-medium text-slate-800">***nom usuari que ha fet la nota***</span>
                             ·
-                            <time datetime="<?= e($nota->getDataCreacio()) ?>">
-                                <?= e(date('d/m/Y H:i', strtotime($nota->getDataCreacio()))) ?>
+                            <time datetime="***data i hora en format dd/mm/yyyy***">
+                                ***data i hora en format dd/mm/yyyy***
                             </time>
                         </div>
 
-                        <?php if ($esAdmin || $nota->getUsuariId() === $usuariId): ?>
+                        <!-- Només mostrar el botó per eliminar si és administrador o el propietari de la nota-->
                             <form action="eliminar_nota.php" method="POST"
                                   onsubmit="return confirm('Segur que vols eliminar aquesta nota?');">
-                                <input type="hidden" name="nota_id" value="<?= e((string) $nota->getId()) ?>">
-                                <input type="hidden" name="lead_id" value="<?= e((string) $lead->getId()) ?>">
+                                <input type="hidden" name="nota_id" value="***id de la nota***">
+                                <input type="hidden" name="lead_id" value="***id del lead ***>
                                 <button type="submit"
                                         class="text-sm text-red-600 hover:text-red-800 hover:underline">
                                     Eliminar
                                 </button>
                             </form>
-                        <?php endif; ?>
+                        
                     </div>
 
-                    <p class="mt-3 text-base leading-relaxed text-slate-800 whitespace-pre-line"><?= e($nota->getText()) ?></p>
+                    <p class="mt-3 text-base leading-relaxed text-slate-800 whitespace-pre-line">***text de la nota***</p>
                 </li>
-            <?php endforeach; ?>
         </ul>
-    <?php endif; ?>
 </section>
 ```
 :::
 
-::: tip `leads.php` Columna per a mostrar el número de notes
+::: details `leads.php` Columna per a mostrar el número de notes
 ```php
 <?php
-/*
- * FRAGMENTS PER A public/dashboard/leads.php
- *
- * Variable que ha de preparar el controlador (part PHP superior de leads.php):
- *   $notesPerLead -> array [lead_id => nombre_de_notes], obtingut amb UNA sola
- *                    consulta (NotaDAO::comptarPerLead). Exemple:
- *                    $notesPerLead = $notaDAO->comptarPerLead();
- */
-?>
 
 <!-- 1) Capçalera de la taula: afig aquesta columna on et semble (p. ex. abans d'"Estat") -->
 <th scope="col" class="px-4 py-3 text-center text-sm font-semibold text-slate-700">
@@ -305,20 +279,18 @@ Indica al `LLEGIMME.md` quina ampliació has fet i com provar-la.
 </th>
 
 <!-- 2) Cel·la dins del bucle foreach dels leads (en la mateixa posició que la capçalera) -->
-<?php $numNotes = $notesPerLead[$lead->getId()] ?? 0; ?>
 <td class="px-4 py-4 text-center">
-    <?php if ($numNotes > 0): ?>
-        <a href="lead.php?id=<?= e((string) $lead->getId()) ?>#notes"
+        <!-- Si hi ha notes -->
+        <a href="lead.php?id=***#notes"
            class="inline-flex items-center rounded-full bg-indigo-100 px-3 py-1 text-sm font-medium
                   text-indigo-700 hover:bg-indigo-200"
            title="Veure les notes d'aquest lead">
-            <?= e((string) $numNotes) ?>
+            ***
         </a>
-    <?php else: ?>
+        <!-- Si NO hi ha notes -->
         <span class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-500">
             0
         </span>
-    <?php endif; ?>
 </td>
 ```
 :::
