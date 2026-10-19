@@ -84,7 +84,7 @@ Crea `src/DAO/NotaDAO.php` sota el namespace `App\DAO`. Ha d'implementar o adapt
 Requisits:
 
 - **Totes** les consultes amb valors externs han de ser **consultes preparades**.
-- Per al recompte al llistat, evita el problema de les «N+1 consultes»: resol-ho amb una única consulta (`LEFT JOIN` + `GROUP BY`, o una subconsulta) en lloc de consultar el DAO una vegada per cada lead. Utilitza `PDO::FETCH_KEY_PAIR` per obtenir els valor en un array `clau => valor` (`'lead_id' => 'num_notes'`)
+- Per al recompte al llistat, evita el problema de les «N+1 consultes»: resol-ho amb una única consulta (`GROUP BY`, o una subconsulta) en lloc de consultar el DAO una vegada per cada lead. Utilitza `PDO::FETCH_KEY_PAIR` per obtenir els valor en un array `clau => valor` (`'lead_id' => 'num_notes'`)
 
 Registra el nou DAO a `config/bootstrap.php`, junt amb els ja existents.
 
@@ -101,8 +101,6 @@ Requisits generals:
 - Tot el contingut dinàmic mostrat en HTML s'ha d'escapar amb `e()`.
 - Les operacions que modifiquen dades (afegir i eliminar) s'han de fer per **POST**, mai per GET.
 - Manté l'estructura de capes: les vistes no han de contindre consultes SQL; aquestes pertanyen als DAO.
-- Reutilitza les cabeceres i peus de `vistes/` i l'estil Tailwind que ja utilitza el projecte.
-
 ### 4.5. Seguretat
 
 Abans de lliurar, revisa expressament aquests punts:
@@ -125,78 +123,13 @@ Abans de lliurar, revisa expressament aquests punts:
 8. Afig el recompte de notes al llistat.
 9. Revisa la seguretat i elimina el codi de proves que no siga necessari.
 
-## 6. Lliurament
-
-Has de lliurar:
-
-- El **codi font del projecte** complet (comprimit en `.zip` o mitjançant el repositori que s'indique), sense la carpeta `vendor/` ni documents pujats de prova.
-- El **script SQL actualitzat** amb la taula `notes` i les dades d'exemple.
-- Un breu fitxer **`LLEGIMME.md`** (màxim una pàgina) que incloga:
-  - Els passos per a posar en marxa el projecte i importar la base de dades.
-  - Una llista dels fitxers que has creat o modificat.
-  - Les decisions de disseny que has pres (per exemple, l'ordre de les notes o els índexs definits).
-  - Qualsevol limitació coneguda o apartat que no hagues pogut completar.
-
-**Data límit de lliurament:** *\[a completar pel professorat\]*
-
-## 7. Criteris d'avaluació
-
-La puntuació total és de **10 punts**.
-
-| Apartat                                                      | Punts |
-| ------------------------------------------------------------ | ----- |
-| Base de dades: taula, claus foranes, tipus, restriccions i dades d'exemple | 1,5   |
-| Model `Nota`                                                 | 1     |
-| `NotaDAO`: mètodes, consultes preparades i `JOIN`            | 2     |
-| Integració a `bootstrap.php` i estructura per capes          | 0,5   |
-| Vista de detall: llistat i formulari de notes                | 1,5   |
-| Alta i eliminació: validació, permisos i redirecció          | 1,5   |
-| Recompte de notes al llistat (sense consultes N+1)           | 1     |
-| Seguretat (escapament, POST, comprovacions de sessió i permisos) | 0,5   |
-| Qualitat del codi, convencions i `LLEGIMME.md`               | 0,5   |
-
-### Rúbrica orientativa per nivells
-
-| Apartat           | Excel·lent                                                   | Adequat                                                      | Insuficient                                       |
-| ----------------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------- |
-| **Base de dades** | Claus foranes amb `ON DELETE CASCADE`, tipus adequats, índexs i dades de prova | Taula funcional però sense algun detall (índex, cascada o dades) | Taula sense claus foranes o amb tipus incorrectes |
-| **DAO**           | Totes les consultes preparades, `JOIN` correcte i recompte eficient | Funciona però alguna consulta és millorable                  | Consultes concatenades o mètodes que falten       |
-| **Permisos**      | Comprovats en el servidor per a autor i administrador        | Comprovats només a la vista (s'amaga el botó)                | Sense comprovació                                 |
-| **Seguretat**     | Tot escapat, tot per POST, entrada validada                  | Algun punt aïllat sense revisar                              | Sortida sense escapar o operacions per GET        |
-| **Estructura**    | Capes respectades, cap SQL a les vistes                      | Alguna barreja puntual                                       | SQL i lògica barrejats a les vistes               |
-
-### Penalitzacions
-
-- El projecte no arranca o no es pot instal·lar seguint el `LLEGIMME.md`: fins a **−2 punts**.
-- Codi copiat sense comprendre'l o idèntic al d'un altre company: la pràctica es considera **no superada**.
-- Text d'interfície en un idioma diferent del valencià/català: fins a **−0,5 punts**.
-
-## 8. Ampliacions opcionals (fins a +1 punt)
-
-Si has acabat amb temps, pots triar **una** d'aquestes ampliacions:
-
-1. **Protecció CSRF** als formularis d'alta i eliminació de notes (token de sessió verificat al servidor).
-2. **Paginació o botó «Mostra'n més»** a l'historial quan hi haja moltes notes.
-3. **Notes fixades:** afig un camp `fixada` perquè una nota important aparega sempre al capdamunt.
-4. **Transacció PDO** per a un cas combinat: en canviar l'estat d'un lead a `tancat`, crea automàticament una nota de sistema i fes-ho de forma atòmica.
-
-Indica al `LLEGIMME.md` quina ampliació has fet i com provar-la.
-
-## 9. Consells finals
-
-- Fes commits o còpies de seguretat freqüents abans de tocar fitxers que ja funcionen.
-- Prova sempre amb **dos usuaris diferents** (un `comercial` i un `administrador`) per a verificar els permisos.
-- Prova també amb textos «incòmodes»: buit, només espais, 501 caràcters, comentaris HTML i cometes.
-- Si alguna cosa no et funciona, activa els errors de PDO i llig el missatge complet abans de preguntar.
-
-
-## 10. Plantilles
+## 6. Plantilles
 
 ::: details `lead.php` Historial de notes i formulari
 ```php
 
 <?php
-// *** per completar en la plantilla
+// Text entre {{ }} per completar amb PHP en la plantilla
 ?>
 
 <section id="notes" class="mt-12">
@@ -208,7 +141,7 @@ Indica al `LLEGIMME.md` quina ampliació has fet i com provar-la.
     <!-- Formulari per afegir una nota -->
     <form action="afegir_nota.php" method="POST"
           class="bg-white border border-slate-200 rounded-xl p-6 mb-8 shadow-sm">
-        <input type="hidden" name="lead_id" value="***id del lead***">
+        <input type="hidden" name="lead_id" value="{{id_del_lead}}">
 
         <label for="text" class="block text-base font-medium text-slate-700 mb-2">
             Afig una nota
@@ -216,10 +149,10 @@ Indica al `LLEGIMME.md` quina ampliació has fet i com provar-la.
         <textarea id="text" name="text" rows="4" maxlength="500" required
                   placeholder="Ex.: He telefonat al client, torne a cridar dijous."
                   class="w-full rounded-lg border border-slate-300 px-4 py-3 text-base leading-relaxed
-                         focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">***text de la nota si hi ha error***</textarea>
+                         focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">{{text de la nota si hi ha error}}</textarea>
 
         <!-- Només mostrar si hi ha errors -->
-            <p class="mt-2 text-sm text-red-600">***error del text de la nota***</p>
+            <p class="mt-2 text-sm text-red-600">{{error_del_formulari_nota}}</p>
         
 
         <div class="mt-4 flex items-center justify-between">
@@ -244,16 +177,16 @@ Indica al `LLEGIMME.md` quina ampliació has fet i com provar-la.
                         <div class="text-sm text-slate-500">
                             <span class="font-medium text-slate-800">***nom usuari que ha fet la nota***</span>
                             ·
-                            <time datetime="***data i hora en format dd/mm/yyyy***">
-                                ***data i hora en format dd/mm/yyyy***
+                            <time datetime="{{data i hora en format dd/mm/yyyy}}">
+                                {{data i hora en format dd/mm/yyyy}}
                             </time>
                         </div>
 
                         <!-- Només mostrar el botó per eliminar si és administrador o el propietari de la nota-->
                             <form action="eliminar_nota.php" method="POST"
                                   onsubmit="return confirm('Segur que vols eliminar aquesta nota?');">
-                                <input type="hidden" name="nota_id" value="***id de la nota***">
-                                <input type="hidden" name="lead_id" value="***id del lead ***>
+                                <input type="hidden" name="nota_id" value="{{id de la nota}}">
+                                <input type="hidden" name="lead_id" value="{{id del lead}}>
                                 <button type="submit"
                                         class="text-sm text-red-600 hover:text-red-800 hover:underline">
                                     Eliminar
@@ -262,35 +195,44 @@ Indica al `LLEGIMME.md` quina ampliació has fet i com provar-la.
                         
                     </div>
 
-                    <p class="mt-3 text-base leading-relaxed text-slate-800 whitespace-pre-line">***text de la nota***</p>
+                    <p class="mt-3 text-base leading-relaxed text-slate-800 whitespace-pre-line">{{text_de_la_nota}}</p>
                 </li>
         </ul>
 </section>
 ```
 :::
 
-::: details `leads.php` Columna per a mostrar el número de notes
-```php
-<?php
 
-<!-- 1) Capçalera de la taula: afig aquesta columna on et semble (p. ex. abans d'"Estat") -->
-<th scope="col" class="px-4 py-3 text-center text-sm font-semibold text-slate-700">
-    Notes
-</th>
+## 7. Lliurament
 
-<!-- 2) Cel·la dins del bucle foreach dels leads (en la mateixa posició que la capçalera) -->
-<td class="px-4 py-4 text-center">
-        <!-- Si hi ha notes -->
-        <a href="lead.php?id=***#notes"
-           class="inline-flex items-center rounded-full bg-indigo-100 px-3 py-1 text-sm font-medium
-                  text-indigo-700 hover:bg-indigo-200"
-           title="Veure les notes d'aquest lead">
-            ***
-        </a>
-        <!-- Si NO hi ha notes -->
-        <span class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-500">
-            0
-        </span>
-</td>
-```
-:::
+Has de lliurar:
+
+- El **codi font del projecte** complet (comprimit en `.zip` o mitjançant el repositori que s'indique).
+- El **script SQL actualitzat** amb la taula `notes` i les dades d'exemple.
+
+
+## 8. Criteris d'avaluació
+
+### Rúbrica orientativa per nivells
+
+| Apartat           | Excel·lent                                                   | Adequat                                                      | Insuficient                                       |
+| ----------------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------- |
+| **Base de dades** | Claus foranes amb `ON DELETE CASCADE`, tipus adequats, índexs i dades de prova | Taula funcional però sense algun detall (índex, cascada o dades) | Taula sense claus foranes o amb tipus incorrectes |
+| **DAO**           | Totes les consultes preparades, `JOIN` correcte i recompte eficient | Funciona però alguna consulta és millorable                  | Consultes concatenades o mètodes que falten       |
+| **Permisos**      | Comprovats en el servidor per a autor i administrador        | Comprovats només a la vista (s'amaga el botó)                | Sense comprovació                                 |
+| **Seguretat**     | Tot escapat, tot per POST, entrada validada                  | Algun punt aïllat sense revisar                              | Sortida sense escapar o operacions per GET        |
+| **Estructura**    | Capes respectades, cap SQL a les vistes                      | Alguna barreja puntual                                       | SQL i lògica barrejats a les vistes               |
+
+### Penalitzacions
+
+- El projecte no arranca o no es pot instal·lar seguint el `LLEGIMME.md`: fins a **−2 punts**.
+- Codi copiat sense comprendre'l o idèntic al d'un altre company: la pràctica es considera **no superada**.
+
+## 9. Consells finals
+
+- Fes commits o còpies de seguretat freqüents abans de tocar fitxers que ja funcionen.
+- Prova sempre amb **dos usuaris diferents** (un `comercial` i un `administrador`) per a verificar els permisos.
+- Prova també amb textos «incòmodes»: buit, només espais, 501 caràcters, comentaris HTML i cometes.
+- Si alguna cosa no et funciona, activa els errors de PDO i llig el missatge complet abans de preguntar.
+
+
