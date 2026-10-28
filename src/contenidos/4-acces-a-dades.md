@@ -1552,8 +1552,6 @@ Algunes claus per a entendre la classe:
 - **`implements IDbAccess`** + **`@implements IDbAccess<Lead>`**: la classe signa el contracte del punt 5 i indica a l'editor que treballa amb `Lead`.
 - **El constructor rep `DBConnection`**: és la injecció de dependències del punt 7. El DAO **no sap** on està la base de dades ni quines credencials hi ha.
 - **Llegir**: `fetchAll(self::MODE, Lead::class)` i `setFetchMode()` fan que PDO construïsca els objectes `Lead` (apartat 8.1). No cal cap bucle ni cap conversió manual.
-- **`COLUMNES`**: enumera les columnes que volem, perquè coincidisquen amb les propietats de `Lead`. És una constant escrita per nosaltres, no una dada de l'usuari, per això es pot concatenar a l'SQL amb seguretat.
-- **Escriure**: `$lead->toArray()` dona l'array de paràmetres. Els noms de les claus han de coincidir **exactament** amb els marcadors de la consulta. A `insert()` cal llevar l'`id`, perquè no apareix a l'`INSERT` i PDO rebutja els paràmetres que sobren. A `update()` sí que hi és, perquè el necessita el `WHERE`.
 - **`lastInsertId()`** retorna l'`id` generat per `AUTO_INCREMENT`. Ho fa en forma de cadena, per això el convertim a `int`.
 - **`findById()` retorna `?Lead`**: `fetch()` dona `false` si no hi ha cap fila i el convertim en `null`. El tipus de retorn és més concret que `?object` de la interfície, i és vàlid.
 - **`comprovarLead()`** conté el `instanceof` del punt 5. Si algú intenta passar-li un `Usuari`, llança una excepció clara. Retorna l'objecte ja com a `Lead`, de manera que a partir d'eixe moment l'editor coneix el tipus.
@@ -2339,7 +2337,6 @@ require_once __DIR__ . '/../../vistes/dashboard_capcalera.php';
 
 Els punts que convé comentar:
 
-- **`filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT)`** llig `$_GET['id']` i el valida com a enter. Retorna `null` si no existeix i `false` si no és un enter. Un valor com `1 OR 1=1` o `abc` es rebutja ací, abans d'arribar al DAO.
 - **Tres resultats possibles**: la base de dades falla (`$errorBD`), el lead no existeix (`$lead === null`, amb codi HTTP 404) o es mostra el lead.
 - **`e()` a totes les dades** que venen de l'usuari: sense escapar, un lead amb `<script>` al missatge s'executaria en el panell.
 - **`nl2br(e(...))`** conserva els salts de línia del missatge. L'ordre importa: primer s'escapa i després s'afigen els `<br>`.

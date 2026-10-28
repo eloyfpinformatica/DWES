@@ -1,12 +1,21 @@
 # Pràctica: Notes internes de seguiment per lead
 
-**Mòdul:** Desenvolupament Web en Entorn Servidor (DWES) · CFGS DAW **Projecte base:** TechLeads **Modalitat:** individual **Durada estimada:** 2 sessions de classe + treball autònom
+**Mòdul:** Desenvolupament Web en Entorn Servidor (DWES) · CFGS DAW 
+
+**Projecte base:** TechLeads 
+
+**Modalitat:** individual 
+
+**Durada estimada:** 2 sessions de classe + treball autònom
 
 ## 1. Context
 
 L'equip comercial de TechLeads gestiona les sol·licituds que arriben des del formulari públic. Fins ara, l'aplicació només permet veure i editar les dades que el client ha enviat, però **no hi ha cap lloc on els comercials puguen deixar constància del seguiment** que fan de cada lead: una trucada, un correu enviat, un acord pendent, etc.
 
 El teu encàrrec és ampliar l'aplicació perquè cada lead tinga un **historial de notes internes** que només veuran els usuaris autenticats del panell privat.
+
+![Detall lead amb notes](../../contenidos/media/U4_P2_detall_lead.png)
+
 
 ## 2. Objectius d'aprenentatge
 

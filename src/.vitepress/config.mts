@@ -54,30 +54,42 @@ export default defineConfig({
           text: '📚 Unitats',
           collapsed: false,
           items: [
-              { text: '1. Introducció', link: '/contenidos/1-introduccion' },
-              { text: '2. PHP Bàsic', link: '/contenidos/2-php-basic' },
-              { text: '3. PHP Avançat', link: '/contenidos/3-php-avancat' },
-              { text: '4. Accés a dades', link: '/contenidos/4-acces-a-dades' },
+            {
+              text: '1. Introducció',
+              link: '/contenidos/1-introduccion'
+            },
+            {
+              text: '2. PHP Bàsic',
+              link: '/contenidos/2-php-basic'
+            },
+            {
+              text: '3. PHP Avançat',
+              link: '/contenidos/3-php-avancat'
+            },
+            {
+              text: '4. Accés a dades',
+              link: '/contenidos/4-acces-a-dades'
+            },
 
-            ]
+            // Unitat 5 amb subtemes
+            
+          ]
         },
-        /* {
-               text: '🗂️ Ejercicios',
-               collapsed: true,
-               items: [
-                 { text: 'Inicio', link: '/ejercicios/' },
-                 { text: 'Ejercicio', link: '/ejercicios/ejercicio' },
-                 { text: 'Final', link: '/ejercicios/final' }
-               ]
-             },*/
+
+        // Logos del centre
         {
           items: [
-            //{ text: '<img src="/LMSGI/img/logo-autor.png" class="logo-anim" style="vertical-align:middle; height:165px; margin:0 auto;">', link: '' },
-            { text: '<img src="/DWES/img/logo-gva.png" class="logo" style="vertical-align:middle; height:60px; margin:0 auto;">', link: '' },
-            { text: '<img src="/DWES/img/logo-centro.png" class="logo" style="vertical-align:middle; height:90px; margin:0 auto;">', link: '' }
+            {
+              text: '<img src="/DWES/img/logo-gva.png" class="logo" style="vertical-align:middle; height:60px; margin:0 auto;">',
+              link: ''
+            },
+            {
+              text: '<img src="/DWES/img/logo-centro.png" class="logo" style="vertical-align:middle; height:90px; margin:0 auto;">',
+              link: ''
+            }
           ]
         }
-      ],
+      ]
     },
     footer: {
       message: '<img src="/DWES/img/logo-autor.png" alt="Autor" style="height:75px; margin: 0 auto; display:block;" />',
