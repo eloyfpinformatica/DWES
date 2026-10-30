@@ -22,7 +22,7 @@ import {
   useId,
   useSlots,
   watch
-} from "./chunk-TGLERUJR.js";
+} from "./chunk-6CCHZG4T.js";
 import "./chunk-EQCVQC35.js";
 
 // node_modules/vitepress-plugin-tabs/dist/client/browser/index.js

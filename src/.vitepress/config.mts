@@ -35,6 +35,7 @@ export default defineConfig({
               { text: '2. PHP Bàsic', link: '/contenidos/2-php-basic' },
               { text: '3. PHP Avançat', link: '/contenidos/3-php-avancat' },
               { text: '4. Accés a dades', link: '/contenidos/4-acces-a-dades' },
+              { text: '5. Frameworks. Laravel', link: '/contenidos/5-frameworks-laravel/' },
 
             ]
           },
@@ -52,7 +53,7 @@ export default defineConfig({
       '/': [
         {
           text: '📚 Unitats',
-          collapsed: false,
+          collapsed: true,
           items: [
             {
               text: '1. Introducció',
@@ -72,7 +73,21 @@ export default defineConfig({
             },
 
             // Unitat 5 amb subtemes
-            
+            {
+              text: '5. Frameworks. Laravel',
+              link: '/contenidos/5-frameworks-laravel/',
+              collapsed: true,
+              items: [
+                { text: 'Bloc 1. Introducció i Laravel Sail', link: '/contenidos/5-frameworks-laravel/5-1-introduccio-i-sail' },
+                { text: 'Bloc 2. Rutes i vistes', link: '/contenidos/5-frameworks-laravel/5-2-rutes-i-vistes' },
+                { text: 'Bloc 3. Controladors', link: '/contenidos/5-frameworks-laravel/5-3-controladors' },
+                { text: 'Bloc 4. Models de dades', link: '/contenidos/5-frameworks-laravel/5-4-models-de-dades' },
+                { text: 'Bloc 5. Formularis', link: '/contenidos/5-frameworks-laravel/5-5-formularis' },
+                { text: 'Bloc 6. Autenticació', link: '/contenidos/5-frameworks-laravel/5-6-autenticacio' },
+                { text: 'Bloc 7. Arxius, correus, sessions i cookies', link: '/contenidos/5-frameworks-laravel/5-7-arxius-correus-sessions-i-cookies' },
+                { text: 'Bloc 8. IA, agents i projecte final', link: '/contenidos/5-frameworks-laravel/5-8-ia-agents-i-projecte-final' }
+              ]
+            },
           ]
         },
 
