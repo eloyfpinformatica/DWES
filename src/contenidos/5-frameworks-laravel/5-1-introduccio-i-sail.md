@@ -549,3 +549,12 @@ Ara repassa la llista. Tot ha de complir-se:
 ::: tip Bona pràctica
 Si alguna casella no es compleix, busca l'error de la taula 6.1 abans de continuar: cada bloc **parteix del projecte funcionant** del bloc anterior. Al bloc 2 començarem a construir les rutes i les vistes de l'aplicació amb components Blade.
 :::
+
+## Exercicis
+
+Realitza les següents captures de pantalla i afegeix-les en un document de text. Fes el lliurament de la tasca en **Aules** i en format **pdf**.
+
+1. http://localhost
+2. http://localhost:8025
+3. http://localhost:8080
+4. Resultat d'executar en la terminal: `sail artisan route:list`

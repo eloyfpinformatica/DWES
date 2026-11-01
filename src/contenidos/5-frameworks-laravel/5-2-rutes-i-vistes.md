@@ -773,6 +773,8 @@ Els grups també serveixen per a aplicar un **middleware** a totes les rutes alh
 
 ### 6.4. Comprovar que funciona
 
+**Atenció!** Les captures de pantalla d'aquestes comprovacions es corresponen a la tasca a realitzar en aquest bloc.
+
 1. Executa `sail artisan route:list`. Han d'aparéixer, cadascuna amb el seu nom: `home`, `labels.show`, `login`, `register`, `panel.index` i `panel.labels.index`.
 2. Obri <http://localhost>. Fes clic en el nom d'un producte: has d'anar a `/etiquetes/1` (o 2, o 3) i vore la pàgina de detall amb el títol gran. El títol de la pestanya ha de ser el nom del producte seguit del d'Etiquetes.
 3. Al detall de l'Ametla (`/etiquetes/3`), no ha d'aparéixer línia de varietat.
@@ -780,3 +782,8 @@ Els grups també serveixen per a aplicar un **middleware** a totes les rutes alh
 5. Fes clic en «Accedeix» a la barra i en el botó blau de la portada: han de portar a `/accedir` i a `/registre`, amb el text provisional. Obri també `/panell` i `/panell/etiquetes`.
 6. **La prova del nom.** A `routes/web.php`, canvia `'/etiquetes/{id}'` per `'/e/{id}'` i recarrega la portada: els enllaços de les targetes ara apunten a `/e/1`, i **continuen funcionant**, perquè s'han generat amb `route()`. Torna-ho a deixar com estava.
 7. Obri Tinker (`sail artisan tinker`) i executa `route('labels.show', ['id' => 2])`: ha de tornar una URL acabada en `/etiquetes/2`. Ix amb `exit`.
+
+
+## Exercicis
+
+Realitza les captures de pantalla corresponent a l'apartat 6.4. Fes el lliurament de la tasca en **Aules** i en format **pdf**.
