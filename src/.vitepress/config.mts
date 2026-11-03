@@ -53,7 +53,7 @@ export default defineConfig({
       '/': [
         {
           text: '📚 Unitats',
-          collapsed: true,
+          collapsed: false,
           items: [
             {
               text: '1. Introducció',

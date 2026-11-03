@@ -713,21 +713,10 @@ Ja no calen les declaracions de propietats ni les assignacions dins del construc
             : $this->serveis;
     }
 
-    /**
-     * Converteix el lead en un array columna => valor.
-     * És el camí invers de FETCH_CLASS: el DAO l'usa per a guardar.
-     */
-    public function toArray(): array
-    {
-        $dades = get_object_vars($this);
-        $dades['serveis'] = json_encode($this->getServeis(), JSON_UNESCAPED_UNICODE);
-
-        return $dades;
-    }
 ```
 
 - **`array|string $serveis`**: el constructor rep un array (`['Web', 'SEO']`), però PDO hi deixarà el text de la columna (`'["Web","SEO"]'`). Amb un tipus unió, la propietat admet les dos coses i `getServeis()` sempre retorna un array.
-- **`toArray()`** usa `get_object_vars($this)`, que dins de la classe retorna **totes les propietats**, també les privades. Els seus noms coincidixen amb els de les columnes, i només cal convertir `serveis` a text JSON.
+
 
 La resta de mètodes (`getNom()`, `avancarEstat()`, etc.) no canvien.
 
@@ -804,17 +793,13 @@ class Usuari
         return password_verify($contrasenya, $this->contrasenya);
     }
 
-    public function toArray(): array
-    {
-        return get_object_vars($this);
-    }
 }
 
 ```
 
 Observa dos decisions:
 
-- **La contrasenya no té *getter*.** La comprovació es fa amb `verificarContrasenya()`, que usa `password_verify()` internament, com ja fèiem a `login.php`. El hash només ix de la classe dins de `toArray()`, que és el que necessita el DAO per a guardar-lo.
+- **La contrasenya no té *getter*.** La comprovació es fa amb `verificarContrasenya()`, que usa `password_verify()` internament, com ja fèiem a `login.php`. 
 - **Les propietats es diuen com les columnes** de la taula `usuaris`, perquè PDO les puga omplir.
 
 ::: warning Atenció
