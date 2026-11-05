@@ -826,7 +826,7 @@ Crea `resources/views/auth/login.blade.php`:
             <x-input label="Correu electrònic" name="email" type="email" autocomplete="email" />
             <x-input label="Contrasenya" name="password" type="password" autocomplete="current-password" />
 
-            <x-button type="submit" class="w-full">Entra</x-button>
+            <x-button type="submit" class="w-full  mt-4">Entra</x-button>
         </form>
 
         <p class="mt-8 text-ink/70">
@@ -859,7 +859,7 @@ Crea `resources/views/auth/register.blade.php`:
             <x-input label="Contrasenya" name="password" type="password" autocomplete="new-password" />
             <x-input label="Repetix la contrasenya" name="password_confirmation" type="password" autocomplete="new-password" />
 
-            <x-button type="submit" class="w-full">Crea el compte</x-button>
+            <x-button type="submit" class="w-full  mt-4">Crea el compte</x-button>
         </form>
 
         <p class="mt-8 text-ink/70">
