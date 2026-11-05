@@ -62,7 +62,8 @@ class SampleLabels
 
 Copia els tres arrays que tens ara a `routes/web.php` dins de `all()`, sense canviar-los. `find()` torna l'etiqueta amb eixe `id`, o `null` si no existix.
 
-Els mètodes són `static` perquè la classe no guarda estat: només ofereix dades. Es parega al DAO de la unitat 4 ([els DAO `LeadDAO` i `UsuariDAO`](/contenidos/4-acces-a-dades#_8-els-dao-leaddao-i-usuaridao)): qui la use no sap d'on venen les dades. Al bloc 4 esborrarem esta classe i la substituirà Eloquent.
+
+Es pareix al DAO de la unitat 4 ([els DAO `LeadDAO` i `UsuariDAO`](/contenidos/4-acces-a-dades#_8-els-dao-leaddao-i-usuaridao)): qui la use no sap d'on venen les dades.
 
 ::: info Nota
 Esta classe és **provisional**: fa de model fins que arribem a la base de dades. Al bloc 4 la substituirà el model `Label` d'Eloquent i la esborrarem. Els controladors, en canvi, es queden: només canviaran la línia que demana les dades.
@@ -72,43 +73,32 @@ Esta classe és **provisional**: fa de model fins que arribem a la base de dades
 
 A `routes/web.php`, canvia el següent:
 
-1. Esborra la variable `$labels` de dalt (els tres arrays) i afig l'`use` de la classe, just després de l'`use` de `Route`:
+1. Esborra la variable `$labels` de dalt i afig l'`use` de la classe:
 
 ```php
 use App\Support\SampleLabels;
 ```
 
-2. A la ruta `home`, treu el `use ($labels)` i passa les dades des de la classe:
+2. A les rutes `home` i `panel.labels.index`, treu el `use ($labels)` de la funció i passa les dades des de la classe:
 
 ```php
-Route::get('/', function () {
-    return view('home', ['labels' => SampleLabels::all()]);
-})->name('home');
+return view('home', ['labels' => SampleLabels::all()]);
 ```
 
-3. A la ruta `labels.show`, treu també el `use ($labels)` i substituïx la cerca amb `collect()` per la de la classe:
+3. A la ruta `labels.show`, treu també el `use ($labels)` i busca l'etiqueta amb la classe nova. L'`id` arriba com a text, per això el convertim a enter:
 
 ```php
-Route::get('/etiquetes/{id}', function (string $id) {
-    $label = SampleLabels::find((int) $id);
-
-    if ($label === null) {
-        abort(404);
-    }
-
-    return view('labels.show', ['label' => $label]);
-})->whereNumber('id')
-    ->name('labels.show');
+$label = SampleLabels::find((int) $id);
 ```
 
-El `abort(404)` es queda igual i les vistes no es toquen. Les rutes `login`, `register` i les del panell no usen `$labels`, així que no canvien.
+El `abort(404)` es queda igual, i les vistes no es toquen.
 
 ### 1.4. Comprovar que funciona
 
 1. Obri <http://localhost>. Han d'aparéixer les mateixes tres etiquetes de sempre.
 2. Obri una etiqueta des de la portada (<http://localhost/etiquetes/1>). Ha de mostrar el detall igual que abans.
-3. Obri <http://localhost/etiquetes/99>. Ha d'eixir la pàgina 404.
-4. Obri <http://localhost/panell/etiquetes>. Ha de continuar mostrant el text provisional «Les meues etiquetes (privat)»: encara no depén de les dades de mostra (ho canviarem al punt 4).
+3. Obri <http://localhost/etiquetes/99>. Ha de eixir la pàgina 404.
+4. Obri <http://localhost/panell/etiquetes>. Han d'eixir les mateixes tres etiquetes.
 5. Executa `sail artisan route:list`. Les rutes i els noms han de ser els mateixos.
 
 ## 2. El primer controlador: `LabelController`
@@ -125,6 +115,9 @@ sail artisan make:controller LabelController
 
 Crea l'arxiu `app/Http/Controllers/LabelController.php` amb una classe buida. Per convenció, el nom va en singular, en *CamelCase* i acabat en `Controller`.
 
+::: info Nota
+Segons com vinga generat, la classe pot portar o no `extends Controller`. No fa falta: Laravel no obliga que un controlador herete d'una classe base.
+:::
 
 ### 2.2. El mètode `show`
 
@@ -154,6 +147,7 @@ class LabelController
 ```
 
 És el mateix codi que tenia la funció anònima de la ruta `labels.show`, ara dins d'un mètode:
+
 - **`string $id`**: Laravel passa al mètode el valor de `{id}` de la URL. Els paràmetres de la ruta s'injecten **per ordre**, no pel nom; però usem el mateix nom (`$id`) per claredat, i perquè al bloc 4, amb el binding implícit, sí que haurà de coincidir.
 - **`: View`**: indica que el mètode torna una vista (cal l'`use Illuminate\View\View;`). No és obligatori, però documenta què torna.
 - **`abort(404)`**: funciona igual que dins d'una closure.
@@ -180,7 +174,6 @@ El `whereNumber` i el `name` es queden tal com estaven: **el nom de la ruta no c
 2. Des de la portada, fes clic en una etiqueta: ha d'obrir el seu detall.
 3. Obri <http://localhost/etiquetes/99>. Ha d'eixir la pàgina 404.
 4. Executa `sail artisan route:list`. A la ruta `etiquetes/{id}` ha d'aparéixer el controlador (`LabelController@show`) en lloc d'una funció anònima.
-
 
 ## 3. Controlador d'una sola acció: `HomeController`
 
@@ -239,10 +232,11 @@ Usa un controlador d'una sola acció quan una pàgina fa una única cosa i no pe
 2. Fes clic en una etiqueta: ha de portar al seu detall (el controlador del punt 2).
 3. Comprova que l'enllaç «Etiquetes» o el logo de la barra (el que apunta a `route('home')`) continua portant a la portada: el nom de la ruta no ha canviat.
 4. Executa `sail artisan route:list`. A la ruta `/` ha d'aparéixer `HomeController`, sense mètode.
+5. 
 
 ## 4. El controlador del panell: `Panel\LabelController`
 
-Queda el llistat del panell. Ara mateix la ruta `panel.labels.index` només torna un text provisional; la convertim en una pàgina real, amb un controlador propi. El panell és la part privada de l'aplicació, on cada usuari gestionarà les seues etiquetes. Per separar-lo de la part pública, el controlador viurà en una **subcarpeta** pròpia, `Panel`, igual que ja tenim `resources/views/panel/` per a les vistes i el prefix `panel.` per als noms de ruta.
+Queda l'última funció anònima: el llistat del panell. El panell és la part privada de l'aplicació, on cada usuari gestionarà les seues etiquetes. Per separar-lo de la part pública, el controlador viurà en una **subcarpeta** pròpia, `Panel`, igual que ja tenim `resources/views/panel/` per a les vistes i el prefix `panel.` per als noms de ruta.
 
 ### 4.1. Crear el controlador dins de la carpeta `Panel`
 
@@ -281,7 +275,6 @@ class LabelController
     }
 }
 ```
-Fins ara este llistat no eixia a cap lloc: la ruta tornava un text. Ací és la primera vegada que el panell pinta la vista `panel/labels/index.blade.php` del bloc 2, amb les mateixes etiquetes de mostra.
 
 `index` és el nom que es fa servir per convenció per a un llistat. Al punt 7 vorem d'on ve. Al bloc 5 i al 6 anirem afegint ací els mètodes per a crear, editar i eliminar.
 
@@ -293,15 +286,14 @@ Si a `routes/web.php` importàrem `Panel\LabelController` amb un `use`, xocaria 
 use App\Http\Controllers\Panel;
 
 Route::prefix('panell')->name('panel.')->group(function () {
-    Route::get('/', function () {
-        return 'Panell privat (provisional)';
-    })->name('index');
+    // La ruta panel.index (el redirect) es queda igual
 
-    Route::get('etiquetes', [Panel\LabelController::class, 'index'])
+    Route::get('/etiquetes', [Panel\LabelController::class, 'index'])
         ->name('labels.index');
 });
 ```
-Fixa't que a les rutes ara apareixen `LabelController` (el públic) i `Panel\LabelController` (el privat): el prefix `Panel\` diu de quina part parlem. La URL i el nom de la ruta (`panel.labels.index`) són els que ja tenies: només canvia qui respon, que abans era un text provisional i ara és el controlador. La ruta `panel.index` continua com a text provisional; no la toquem en este bloc.
+
+Fixa't que a les rutes ara apareixen `LabelController` (el públic) i `Panel\LabelController` (el privat): el prefix `Panel\` diu de quina part parlem. La URL i el nom de la ruta (`panel.labels.index`) són els que ja tenies: només canvia qui respon.
 
 ::: info Nota
 Una alternativa és importar la classe amb un àlies: `use App\Http\Controllers\Panel\LabelController as PanelLabelController;`. Funciona igual, però obliga a recordar un nom que no coincidix amb el de la classe. Per això preferim importar la carpeta.
@@ -315,14 +307,16 @@ De moment el panell és públic: qualsevol persona pot entrar-hi i veu totes les
 
 ### 4.4. Comprovar que funciona
 
-1. Obri <http://localhost/panell/etiquetes>. Ara han d'aparéixer les tres etiquetes amb els botons «Veure» i «Editar», en lloc del text provisional.
-2. Obri <http://localhost/panell>. Ha de continuar mostrant el text «Panell privat (provisional)».
+1. Obri <http://localhost/panell/etiquetes>. Han d'aparéixer les tres etiquetes amb els botons «Veure» i «Editar».
+2. Obri <http://localhost/panell>. Ha de redirigir-te a `/panell/etiquetes`.
 3. Fes clic a «Veure» d'una etiqueta: ha de portar al detall (el `LabelController` públic).
-4. Executa `sail artisan route:list`. Les rutes `home`, `labels.show` i `panel.labels.index` han de mostrar el seu controlador; `login`, `register` i `panel.index` continuen sent funcions anònimes provisionals. Els noms de les rutes han de ser els mateixos.
+4. Executa `sail artisan route:list`. Cap ruta ha de mostrar ja `Closure`, i les rutes del panell han de conservar els noms `panel.index` i `panel.labels.index`.
+
+
 
 ## 5. Un `routes/web.php` net
 
-Ja no queda cap funció anònima que use dades: només tres textos provisionals. Este punt és una revisió: deixem l'arxiu ordenat i comprovem el resultat amb `route:list`.
+Ja no queda cap funció anònima amb lògica a les rutes. Este punt és una revisió: deixem l'arxiu ordenat i comprovem el resultat amb `route:list`.
 
 ### 5.1. Com ha de quedar l'arxiu
 
@@ -343,18 +337,18 @@ Route::get('/etiquetes/{id}', [LabelController::class, 'show'])
     ->whereNumber('id')
     ->name('labels.show');
 
-// ... les rutes login i register (text provisional), com les tens
+// ... les rutes login i register (Route::view), com les tens
 
 // Panell
 Route::prefix('panell')->name('panel.')->group(function () {
-    // ... la ruta panel.index (text provisional), com la tens
+    // ... la ruta panel.index (el redirect), com la tens
 
-    Route::get('etiquetes', [Panel\LabelController::class, 'index'])
+    Route::get('/etiquetes', [Panel\LabelController::class, 'index'])
         ->name('labels.index');
 });
 ```
 
-Si ho comparem amb el bloc 2, la diferència és que **ja no hi ha dades ni decisions**: cada línia diu quina URL, quin controlador i quin nom. Només queden tres textos provisionals (`login`, `register` i `panel.index`), que es substituiran quan tinguen la seua lògica real, als blocs 5 i 6.
+Si ho comparem amb el bloc 2, la diferència és que **ja no hi ha dades ni decisions**: cada línia diu quina URL, quin controlador i quin nom. Si vols saber què fa una pàgina, vas al controlador; si vols saber quines pàgines hi ha, ho tens tot ací.
 
 ::: info Nota
 Quan un controlador tinga diverses rutes (als blocs 5 i 6, el del panell tindrà crear, editar, eliminar...), podràs escriure'l una sola vegada amb `Route::controller()` i indicar després només el nom del mètode:
@@ -384,13 +378,13 @@ El primer amaga les rutes que afigen paquets de tercers i deixa només les nostr
 
 1. Executa `sail artisan route:list --except-vendor`. Han d'aparéixer els noms `home`, `labels.show`, `login`, `register`, `panel.index` i `panel.labels.index`, sense cap canvi respecte al bloc 2.
 2. Executa `sail artisan route:list --path=panell`. Han d'eixir només les dos rutes del panell.
-3. Busca `function (` a `routes/web.php`. Ha d'aparéixer quatre vegades: les tres rutes provisionals (`login`, `register` i `panel.index`) i la del `group` del panell. Cap ha de portar dades.
-4. Recorre l'aplicació: portada, detall d'una etiqueta i panell (`/panell/etiquetes`). Tot ha de funcionar igual, sense haver tocat cap vista. `/accedir`, `/registre` i `/panell` han de mostrar els seus textos provisionals.
+3. Busca `function (` a `routes/web.php`. Només ha d'aparéixer una vegada, la del `group` del panell.
+4. Recorre l'aplicació: portada, detall d'una etiqueta, panell, `/accedir` i `/registre`. Tot ha de funcionar igual que abans, sense haver tocat cap vista.
 
 
 ## 6. Què rep i què retorna un mètode de controlador
 
-Un mètode de controlador és una funció normal: rep una sèrie de valors i en torna un altre. Laravel és qui el crida amb els valors correctes.
+Un mètode de controlador és una funció normal: rep unes coses i en torna una. Laravel és qui el crida amb els valors correctes.
 
 ### 6.1. Què pot rebre
 
@@ -446,6 +440,7 @@ dd($request->path(), $request->method(), $request->query('prova'));
 2. Obri <http://localhost/etiquetes/1?prova=hola>. Ha de mostrar tres valors: `"etiquetes/1"`, `"GET"` i `"hola"`.
 3. Obri <http://localhost/etiquetes/1>, sense la part `?prova=hola`. El tercer valor ha de ser `null`.
 4. **Esborra la línia `dd(...)`, el paràmetre `Request $request` i l'`use`**, i deixa el mètode tal com estava al punt 2. Comprova que <http://localhost/etiquetes/1> torna a mostrar el detall.
+
 
 ## 7. Controladors de recurs
 
@@ -529,8 +524,8 @@ Quan alguna cosa falle, llig el missatge d'error complet i executa `sail artisan
 ### 8.2. Llista de comprovació
 
 - [ ] `sail artisan route:list --except-vendor` mostra els sis noms: `home`, `labels.show`, `login`, `register`, `panel.index` i `panel.labels.index`.
-- [ ] La portada, el detall (`/etiquetes/1`) i el panell (`/panell/etiquetes`) funcionen; `/etiquetes/99` dona 404; i `/accedir`, `/registre` i `/panell` mostren els seus textos provisionals.
-- [ ] `routes/web.php` només té `use`, rutes i tres textos provisionals (`login`, `register` i `panel.index`): cap dada ni lògica.
+- [ ] La portada, el detall (`/etiquetes/1`), el panell, `/accedir` i `/registre` funcionen igual que al bloc 2, i `/etiquetes/99` dona 404.
+- [ ] `routes/web.php` només té `use`, rutes i la funció anònima del `group` del panell: cap lògica ni dades.
 - [ ] `LabelController` (`show`), `HomeController` (`__invoke`) i `Panel\LabelController` (`index`) existixen i cada ruta apunta al seu.
 - [ ] `Panel\LabelController` està a `app/Http/Controllers/Panel/` i el seu namespace és `App\Http\Controllers\Panel`.
 - [ ] Només els tres controladors fan servir `SampleLabels`: a `routes/web.php` ja no apareix.
@@ -578,23 +573,20 @@ Route::get('/etiquetes/{id}', [LabelController::class, 'show'])
     ->whereNumber('id')
     ->name('labels.show');
 
-Route::get('/accedir', function () {
-    return 'Formulari d\'accés (provisional)';
-})->name('login');
-
-Route::get('/registre', function () {
-    return 'Formulari de registre (provisional)';
-})->name('register');
+Route::view('/accedir', 'auth.login')->name('login');
+Route::view('/registre', 'auth.register')->name('register');
 
 // Panell
 Route::prefix('panell')->name('panel.')->group(function () {
-    Route::get('/', function () {
-        return 'Panell privat (provisional)';
-    })->name('index');
+    Route::redirect('/', '/panell/etiquetes')->name('index');
 
-    Route::get('etiquetes', [Panel\LabelController::class, 'index'])
+    Route::get('/etiquetes', [Panel\LabelController::class, 'index'])
         ->name('labels.index');
 });
 ```
 
 :::
+
+## Exercicis
+
+Realitza les captures de pantalla corresponent a l'apartat 8.2. Fes el lliurament de la tasca en **Aules** i en format **pdf**.
