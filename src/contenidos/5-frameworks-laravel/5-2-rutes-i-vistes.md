@@ -787,3 +787,381 @@ Els grups també serveixen per a aplicar un **middleware** a totes les rutes alh
 ## Exercicis
 
 Realitza les captures de pantalla corresponent a l'apartat 6.4. Fes el lliurament de la tasca en **Aules** i en format **pdf**.
+
+## 7. Maquetar les pàgines del projecte
+
+Ja tenim la portada pública i el detall d'una etiqueta. Falten les pàgines de la zona privada: **accedir**, **registrar-se** i **les meues etiquetes**. Ací només les maquetem, amb els components que ja tenim: encara no processen res, això arribarà als blocs 5 i 6.
+
+### 7.1. Un component per als camps: `<x-input>`
+
+Els dos formularis tindran camps de text amb la mateixa estructura: una etiqueta (`<label>`) i un `<input>`. Un component ens estalvia repetir-la. Crea `resources/views/components/input.blade.php`:
+
+```blade
+@props(['label', 'name', 'type' => 'text'])
+
+<div>
+    <label for="{{ $name }}" class="block text-sm font-semibold text-ink">{{ $label }}</label>
+
+    <input
+        id="{{ $name }}"
+        name="{{ $name }}"
+        type="{{ $type }}"
+        {{ $attributes->merge(['class' => 'mt-2 block w-full rounded-xl border border-ink/20 bg-white px-4 py-3 text-lg text-ink placeholder:text-ink/40 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20']) }}
+    >
+</div>
+```
+
+- **`label`, `name` i `type`** són paràmetres declarats a `@props`. El `name` s'usa dues vegades: com a `name` de l'`<input>` (la clau amb què arribarà la dada al servidor) i com a `id`, perquè el `<label for>` el lligue amb el camp.
+- La resta d'atributs (`placeholder`, `autocomplete`, `required`...) van a `$attributes` i s'imprimixen dins de l'`<input>` gràcies a `merge()`, igual que al botó del punt 4.4.
+
+### 7.2. La pàgina d'accés
+
+Crea `resources/views/auth/login.blade.php`:
+
+```blade
+<x-layout>
+    <x-slot:title>Accedeix</x-slot>
+
+    <div class="mx-auto max-w-md">
+        <h1 class="font-serif text-4xl font-semibold tracking-tight text-ink">Accedeix</h1>
+        <p class="mt-3 text-lg text-ink/70">Entra per a crear i gestionar les teues etiquetes.</p>
+
+        <form method="POST" action="#" class="mt-10 space-y-6">
+            <x-input label="Correu electrònic" name="email" type="email" autocomplete="email" />
+            <x-input label="Contrasenya" name="password" type="password" autocomplete="current-password" />
+
+            <x-button type="submit" class="w-full">Entra</x-button>
+        </form>
+
+        <p class="mt-8 text-ink/70">
+            Encara no tens compte?
+            <a href="{{ route('register') }}" class="font-semibold text-brand hover:underline">Registra't</a>
+        </p>
+    </div>
+</x-layout>
+```
+
+::: warning Atenció
+Este formulari **encara no funciona**: no té ruta `POST`, ni `@csrf`, ni validació. No premes el botó. Al bloc 5 aprendrem a rebre formularis i, al bloc 6, a autenticar l'usuari.
+:::
+
+### 7.3. La pàgina de registre
+
+Crea `resources/views/auth/register.blade.php`:
+
+```blade
+<x-layout>
+    <x-slot:title>Registra't</x-slot>
+
+    <div class="mx-auto max-w-md">
+        <h1 class="font-serif text-4xl font-semibold tracking-tight text-ink">Crea el teu compte</h1>
+        <p class="mt-3 text-lg text-ink/70">Registra't per a començar a crear etiquetes.</p>
+
+        <form method="POST" action="#" class="mt-10 space-y-6">
+            <x-input label="Nom" name="name" autocomplete="name" />
+            <x-input label="Correu electrònic" name="email" type="email" autocomplete="email" />
+            <x-input label="Contrasenya" name="password" type="password" autocomplete="new-password" />
+            <x-input label="Repetix la contrasenya" name="password_confirmation" type="password" autocomplete="new-password" />
+
+            <x-button type="submit" class="w-full">Crea el compte</x-button>
+        </form>
+
+        <p class="mt-8 text-ink/70">
+            Ja tens compte?
+            <a href="{{ route('login') }}" class="font-semibold text-brand hover:underline">Accedeix</a>
+        </p>
+    </div>
+</x-layout>
+```
+
+El camp de confirmació es diu `password_confirmation` perquè és el nom que Laravel espera quan al bloc 5 validem que les dos contrasenyes coincidixen.
+
+Ara substituïm les rutes provisionals del punt 6. A `routes/web.php`, **canvia** les dos rutes `/accedir` i `/registre` per:
+
+```php
+Route::view('/accedir', 'auth.login')->name('login');
+Route::view('/registre', 'auth.register')->name('register');
+```
+
+Els noms (`login` i `register`) no canvien, així que cap enllaç s'ha de tocar: és l'avantatge de les rutes amb nom.
+
+### 7.4. El panell: les meues etiquetes
+
+Reutilitzem la targeta del punt 4.3. Esta vegada, el slot `footer` portarà **accions** en lloc de l'autor i la data. Crea `resources/views/panel/labels/index.blade.php`:
+
+```blade
+<x-layout>
+    <x-slot:title>Les meues etiquetes</x-slot>
+
+    <div class="flex flex-wrap items-end justify-between gap-6">
+        <div>
+            <h1 class="font-serif text-5xl font-semibold tracking-tight text-ink">Les meues etiquetes</h1>
+            <div class="mt-6 h-1 w-16 rounded-full bg-accent"></div>
+        </div>
+
+        <x-button href="#">Nova etiqueta</x-button>
+    </div>
+
+    <div class="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        @forelse ($labels as $label)
+            <x-label-card :label="$label">
+                <x-slot:footer>
+                    <div class="flex gap-6 font-semibold">
+                        <a href="{{ route('labels.show', ['id' => $label['id']]) }}" class="text-brand hover:underline">Veure</a>
+                        <a href="#" class="text-brand hover:underline">Editar</a>
+                    </div>
+                </x-slot>
+            </x-label-card>
+        @empty
+            <p class="text-lg text-ink/60">Encara no has creat cap etiqueta.</p>
+        @endforelse
+    </div>
+</x-layout>
+```
+
+Els enllaços «Nova etiqueta» i «Editar» apunten a `#` fins que tinguem els formularis (bloc 5).
+
+::: info Nota
+Hem deixat **sense** el botó d'eliminar a propòsit. Esborrar no pot ser un enllaç: ha de ser un formulari amb el mètode `DELETE` i comprovar que l'etiqueta és de l'usuari. Ho farem als blocs 5 i 6.
+:::
+
+Ara substituïx, a `routes/web.php`, el grup `panel` del punt 6 per este:
+
+```php
+Route::prefix('panell')->name('panel.')->group(function () use ($labels) {
+    Route::redirect('/', '/panell/etiquetes')->name('index');
+
+    Route::get('/etiquetes', function () use ($labels) {
+        return view('panel.labels.index', ['labels' => $labels]);
+    })->name('labels.index');
+});
+```
+
+- **`Route::redirect('/', '/panell/etiquetes')`** fa que entrar a `/panell` envie directament al llistat.
+- De moment el llistat mostra **totes** les etiquetes de mostra. Al bloc 4 només es veuran les de l'usuari amb sessió iniciada.
+
+::: warning Atenció
+Ara mateix qualsevol persona pot entrar al panell. No li hem posat cap protecció. Al bloc 6 el tancarem amb el middleware `auth`.
+:::
+
+Per últim, afig l'enllaç al panell a la barra. A `resources/views/components/layout.blade.php`, dins del `<div class="flex items-center gap-6">`:
+
+```blade
+<a href="{{ route('panel.labels.index') }}" class="text-ink/70 transition hover:text-brand">Les meues etiquetes</a>
+```
+
+Posa'l entre «Etiquetes» i «Accedeix». Al bloc 6, la barra mostrarà un o altre segons si l'usuari ha iniciat sessió.
+
+### 7.5. Comprovar que funciona
+
+1. Executa `sail artisan route:list`. Han d'aparéixer `login`, `register`, `panel.index` i `panel.labels.index`, ara sense text provisional.
+2. Obri <http://localhost/accedir>. Ha d'aparéixer un formulari estret i centrat amb dos camps i un botó blau a tot l'ample. En fer clic en un camp, la vora ha de passar a **blau** amb un halo suau.
+3. Fes clic en «Registra't»: has d'anar a `/registre`, amb **quatre** camps. El camp de contrasenya ha de mostrar punts en lloc del text.
+4. Fes clic a l'etiqueta «Correu electrònic»: el cursor ha d'entrar en el camp (el `<label for>` el lliga amb el seu `id`).
+5. Obri <http://localhost/panell>. La barra d'adreces ha de canviar a `/panell/etiquetes` (la redirecció) i han d'aparéixer les targetes, amb **Veure** i **Editar** al peu. «Veure» ha de portar al detall de l'etiqueta.
+6. **La prova del component.** A `input.blade.php`, canvia `rounded-xl` per `rounded-none` i recarrega `/accedir` i `/registre`: els camps de **les dos pàgines** han de canviar alhora. Torna-ho a deixar com estava.
+7. Redueix l'ample de la finestra: el formulari s'adapta i les targetes passen d'una columna a tres segons l'ample.
+8. (Només per a vore l'error) Prem el botó «Entra» de `/accedir`: Laravel mostra un error de mètode no permés (**405**), perquè la ruta `/accedir` només accepta `GET`. És el comportament esperat fins al bloc 6.
+
+
+## 8. Pàgina 404, errors comuns i punt de control
+
+### 8.1. Una pàgina 404 pròpia
+
+Ja hem vist el 404 de Laravel en `/etiquetes/99` i en `/etiquetes/abc`: funciona, però està en anglés i no s'assembla a la nostra aplicació. Per a personalitzar-lo només cal crear una vista amb el **codi de l'error com a nom** dins de `resources/views/errors`. Laravel l'usa sola per a **tots** els 404 de l'aplicació, tant els de `abort(404)` com els de les rutes que no existixen.
+
+Crea `resources/views/errors/404.blade.php`:
+
+```blade
+<x-layout>
+    <x-slot:title>Pàgina no trobada</x-slot>
+
+    <div class="mx-auto max-w-xl py-12 text-center">
+        <p class="font-serif text-8xl font-semibold tracking-tight text-brand">404</p>
+        <div class="mx-auto mt-8 h-1 w-16 rounded-full bg-accent"></div>
+
+        <h1 class="mt-8 font-serif text-4xl font-semibold tracking-tight text-ink">Esta pàgina no existix</h1>
+        <p class="mt-4 text-xl leading-relaxed text-ink/70">Pot ser que l'etiqueta s'haja eliminat o que l'enllaç no siga correcte.</p>
+
+        <x-button :href="route('home')" class="mt-10">Torna a la portada</x-button>
+    </div>
+</x-layout>
+```
+
+És una vista Blade normal: usa el mateix `<x-layout>` i els mateixos components que la resta de l'aplicació, així que la barra i el peu continuen apareixent.
+
+::: info Nota
+El mateix mecanisme val per a la resta de codis: `403.blade.php`, `500.blade.php`... Si vols partir de les plantilles que porta Laravel, `sail artisan vendor:publish --tag=laravel-errors` les copia a `resources/views/errors` perquè les edites. Nosaltres només personalitzarem el 404.
+:::
+
+**Comprovar-ho.** Obri <http://localhost/no-existix> i <http://localhost/etiquetes/99>: les dos han de mostrar la nostra pàgina, amb el **404** gran en blau, el filet taronja i el botó de tornada. Fes clic en el botó: has d'arribar a la portada.
+
+### 8.2. Errors comuns i la seua causa
+
+| Error o símptoma                                                                 | Causa probable                                                                                 | Solució                                                                                          |
+|----------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------|
+| `Undefined variable $labels`                                                     | La ruta no passa `labels` a la vista, o falta el `use ($labels)` a la funció anònima           | Comprova `view('home', ['labels' => $labels])` i el `use ($labels)` (punt 3.2)                    |
+| `Undefined array key "titol"`                                                    | La clau no existix a l'array de mostra                                                         | Revisa el nom de la clau (`product`, `variety`, `category`...)                                    |
+| `View [labels.show] not found`                                                   | El nom o la carpeta no coincidix amb l'arxiu                                                   | Ha d'estar a `resources/views/labels/show.blade.php` (punt 3.1)                                  |
+| `View [welcome] not found`                                                       | Alguna ruta torna encara la vista esborrada al punt 5                                          | Canvia-la per `home`                                                                             |
+| Es veuen les etiquetes `<em>` escrites al text                                   | <code v-pre>{{ }}</code> escapa l'HTML. És el comportament **correcte**                        | Usa <code v-pre>{!! !!}</code> només amb contingut propi, mai d'un usuari                         |
+| `<x-badg>` es mostra com a text o dona error de component no trobat              | El nom de l'etiqueta no coincidix amb l'arxiu de `resources/views/components`                  | Corregix el nom (`badge.blade.php` → `<x-badge>`)                                                |
+| Error en llegir una clau de `$label`, que és un text i no un array               | Falta els dos punts en passar l'expressió: `label="$label"` en lloc de `:label="$label"`       | Escriu `:label="$label"` (punt 4.2)                                                               |
+| Una classe passada des de fora no té efecte                                      | Xoca amb una del component, i guanya la que va més tard al CSS de Tailwind                     | Edita el component en lloc de sobreescriure'l (punt 4.4)                                          |
+| Les classes de Tailwind o els colors `brand`/`accent` no es veuen               | Vite no està en marxa, o falta el bloc `@theme` a `app.css`                                    | `sail npm run dev` i revisa el punt 4.1                                                           |
+| El peu de la pàgina queda a mitja finestra                                       | Falta `flex min-h-screen flex-col` al `<body>` o `flex-1` al `<main>` del layout               | Revisa el punt 5.1                                                                                |
+| Error de ruta no definida en cridar `route('...')`                               | El nom no coincidix amb cap ruta (error de lletra, o falta el prefix `panel.`)                 | Compara amb `sail artisan route:list`                                                             |
+| El nom de la ruta del panell és `panelindex`                                     | Falta el punt final a `name('panel.')`                                                         | Escriu `->name('panel.')` (punt 6.3)                                                              |
+| `/etiquetes/abc` o `/etiquetes/99` donen 404                                     | `whereNumber` rebutja el text, i `abort(404)` rebutja l'`id` inexistent. És el comportament **correcte** | Cap: és el que volem                                                              |
+| En fer clic a l'etiqueta d'un camp, el cursor no entra al camp                   | El `for` del `<label>` no coincidix amb l'`id` de l'`<input>`                                  | Usa `<x-input>`, que els fa coincidir (punt 7.1)                                                 |
+| Error 405 en premer «Entra» o «Crea el compte»                                   | El formulari fa un `POST`, però la ruta només accepta `GET`                                    | Cap per ara: al bloc 6 afegirem la ruta `POST`                                                    |
+
+### 8.3. Punt de control
+
+#### Llista de comprovació
+
+Tot ha de complir-se abans de passar al bloc 3:
+
+- [ ] `sail npm run dev` està en marxa i les pàgines es veuen amb fons blanc, text negre i els colors blau i taronja.
+- [ ] <http://localhost> mostra la barra, el títol serif, el botó blau i **tres targetes**. Fer clic en un producte porta al seu detall.
+- [ ] `/etiquetes/1`, `/etiquetes/2` i `/etiquetes/3` mostren cada etiqueta; `/etiquetes/99` i `/etiquetes/abc` mostren la **pàgina 404 pròpia**.
+- [ ] `/accedir` i `/registre` mostren els formularis i s'enllacen entre ells.
+- [ ] `/panell` redirigix a `/panell/etiquetes`, que mostra les targetes amb «Veure» i «Editar».
+- [ ] La barra de navegació és la mateixa a totes les pàgines i el peu queda sempre al final.
+- [ ] `sail artisan route:list` mostra les rutes `home`, `labels.show`, `login`, `register`, `panel.index` i `panel.labels.index`.
+- [ ] Cap enllaç del projecte està escrit a mà: tots usen `route()`.
+- [ ] La vista `welcome.blade.php` ja no existix.
+
+#### Estructura que ha d'haver quedat
+
+```text
+resources/
+├── css/app.css                    (amb el bloc @theme)
+└── views/
+    ├── auth/
+    │   ├── login.blade.php
+    │   └── register.blade.php
+    ├── components/
+    │   ├── badge.blade.php
+    │   ├── button.blade.php
+    │   ├── input.blade.php
+    │   ├── label-card.blade.php
+    │   └── layout.blade.php
+    ├── errors/
+    │   └── 404.blade.php
+    ├── labels/
+    │   └── show.blade.php
+    ├── panel/
+    │   └── labels/
+    │       └── index.blade.php
+    └── home.blade.php
+routes/web.php
+```
+
+Alguns arxius han anat canviant al llarg del bloc. Si t'has perdut, compara'ls amb esta versió final:
+
+::: details 📄 routes/web.php (final)
+```php
+<?php
+
+use Illuminate\Support\Facades\Route;
+
+$labels = [
+    // Les tres etiquetes de mostra del punt 3.2
+];
+
+Route::get('/', function () use ($labels) {
+    return view('home', ['labels' => $labels]);
+})->name('home');
+
+Route::get('/etiquetes/{id}', function (string $id) use ($labels) {
+    $label = collect($labels)->firstWhere('id', (int) $id);
+
+    if ($label === null) {
+        abort(404);
+    }
+
+    return view('labels.show', ['label' => $label]);
+})->whereNumber('id')->name('labels.show');
+
+Route::view('/accedir', 'auth.login')->name('login');
+Route::view('/registre', 'auth.register')->name('register');
+
+Route::prefix('panell')->name('panel.')->group(function () use ($labels) {
+    Route::redirect('/', '/panell/etiquetes')->name('index');
+
+    Route::get('/etiquetes', function () use ($labels) {
+        return view('panel.labels.index', ['labels' => $labels]);
+    })->name('labels.index');
+});
+```
+:::
+
+::: details 📄 components/label-card.blade.php (final)
+```blade
+@props(['label'])
+
+<article {{ $attributes->merge(['class' => 'flex h-full flex-col rounded-2xl border border-ink/10 bg-white p-6']) }}>
+    <div class="flex-1">
+        <x-badge>{{ $label['category'] }}</x-badge>
+
+        <h2 class="mt-4 font-serif text-3xl font-semibold tracking-tight text-ink">
+            <a href="{{ route('labels.show', ['id' => $label['id']]) }}" class="transition hover:text-brand">{{ $label['product'] }}</a>
+        </h2>
+
+        @if ($label['variety'])
+            <p class="text-lg text-ink/60">{{ $label['variety'] }}</p>
+        @endif
+
+        <p class="mt-4 leading-relaxed text-ink/70">{{ $label['description'] }}</p>
+    </div>
+
+    @isset($footer)
+        <footer class="mt-6 border-t border-ink/10 pt-4 text-sm text-ink/60">
+            {{ $footer }}
+        </footer>
+    @endisset
+</article>
+```
+:::
+
+::: details 📄 components/layout.blade.php (final)
+```blade
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>@isset($title){{ $title }} · @endisset{{ config('app.name') }}</title>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+</head>
+<body class="flex min-h-screen flex-col bg-white text-ink antialiased">
+    <header class="border-b border-ink/10">
+        <nav class="mx-auto flex max-w-5xl items-center justify-between px-6 py-5">
+            <a href="{{ route('home') }}" class="font-serif text-2xl font-semibold tracking-tight text-ink">{{ config('app.name') }}</a>
+
+            <div class="flex items-center gap-6">
+                <a href="{{ route('home') }}" class="text-ink/70 transition hover:text-brand">Etiquetes</a>
+                <a href="{{ route('panel.labels.index') }}" class="text-ink/70 transition hover:text-brand">Les meues etiquetes</a>
+                <a href="{{ route('login') }}" class="text-ink/70 transition hover:text-brand">Accedeix</a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="mx-auto w-full max-w-5xl flex-1 px-6 py-16">
+        {{ $slot }}
+    </main>
+
+    <footer class="border-t border-ink/10">
+        <div class="mx-auto max-w-5xl px-6 py-8 text-sm text-ink/60">
+            © {{ date('Y') }} {{ config('app.name') }} · Projecte de la unitat 5 de DWES
+        </div>
+    </footer>
+</body>
+</html>
+```
+:::
+
+::: tip Bona pràctica
+Si alguna casella no es compleix, busca l'error a la taula 8.2 abans de continuar: cada bloc **parteix del projecte funcionant** del bloc anterior. Al bloc 3 traurem la lògica de `routes/web.php` i la portarem a **controladors**, perquè el fitxer de rutes torne a ser només això: un llistat de rutes.
+:::
