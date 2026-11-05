@@ -784,10 +784,6 @@ Els grups també serveixen per a aplicar un **middleware** a totes les rutes alh
 7. Obri Tinker (`sail artisan tinker`) i executa `route('labels.show', ['id' => 2])`: ha de tornar una URL acabada en `/etiquetes/2`. Ix amb `exit`.
 
 
-## Exercicis
-
-Realitza les captures de pantalla corresponent a l'apartat 6.4. Fes el lliurament de la tasca en **Aules** i en format **pdf**.
-
 ## 7. Maquetar les pàgines del projecte
 
 Ja tenim la portada pública i el detall d'una etiqueta. Falten les pàgines de la zona privada: **accedir**, **registrar-se** i **les meues etiquetes**. Ací només les maquetem, amb els components que ja tenim: encara no processen res, això arribarà als blocs 5 i 6.
@@ -1165,3 +1161,7 @@ Route::prefix('panell')->name('panel.')->group(function () use ($labels) {
 ::: tip Bona pràctica
 Si alguna casella no es compleix, busca l'error a la taula 8.2 abans de continuar: cada bloc **parteix del projecte funcionant** del bloc anterior. Al bloc 3 traurem la lògica de `routes/web.php` i la portarem a **controladors**, perquè el fitxer de rutes torne a ser només això: un llistat de rutes.
 :::
+
+## Exercicis
+
+Realitza les captures de pantalla corresponent a l'apartat 8.3. Fes el lliurament de la tasca en **Aules** i en format **pdf**.

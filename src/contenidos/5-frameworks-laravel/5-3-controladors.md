@@ -242,7 +242,7 @@ Usa un controlador d'una sola acció quan una pàgina fa una única cosa i no pe
 
 ## 4. El controlador del panell: `Panel\LabelController`
 
-Queda el llistat del panell. Ara mateix la ruta `panel.labels.index` només torna un text provisional, i la vista del panell encara no existix. En este punt creem les dos coses: un controlador propi i la seua vista. El panell és la part privada de l'aplicació, on cada usuari gestionarà les seues etiquetes. Per separar-lo de la part pública, el controlador viurà en una **subcarpeta** pròpia, `Panel`, igual que tindrem `resources/views/panel/` per a les vistes i el prefix `panel.` per als noms de ruta.
+Queda el llistat del panell. Ara mateix la ruta `panel.labels.index` només torna un text provisional; la convertim en una pàgina real, amb un controlador propi. El panell és la part privada de l'aplicació, on cada usuari gestionarà les seues etiquetes. Per separar-lo de la part pública, el controlador viurà en una **subcarpeta** pròpia, `Panel`, igual que ja tenim `resources/views/panel/` per a les vistes i el prefix `panel.` per als noms de ruta.
 
 ### 4.1. Crear el controlador dins de la carpeta `Panel`
 
@@ -281,44 +281,11 @@ class LabelController
     }
 }
 ```
+Fins ara este llistat no eixia a cap lloc: la ruta tornava un text. Ací és la primera vegada que el panell pinta la vista `panel/labels/index.blade.php` del bloc 2, amb les mateixes etiquetes de mostra.
 
 `index` és el nom que es fa servir per convenció per a un llistat. Al punt 7 vorem d'on ve. Al bloc 5 i al 6 anirem afegint ací els mètodes per a crear, editar i eliminar.
 
-La vista `panel.labels.index` correspon a l'arxiu `resources/views/panel/labels/index.blade.php`, que creem a continuació.
-
-### 4.3. La vista del panell
-
-Crea l'arxiu `resources/views/panel/labels/index.blade.php`. Reutilitza el layout i la targeta del bloc 2, i afig a cada targeta els botons «Veure» i «Editar» amb el slot `footer`:
-
-```blade
-<x-layout>
-    <x-slot:title>Les meues etiquetes</x-slot:title>
-
-    <div class="mb-10 flex items-end justify-between gap-4">
-        <h1 class="font-serif text-4xl">Les meues etiquetes</h1>
-        <x-button href="#">Nova etiqueta</x-button>
-    </div>
-
-    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        @foreach ($labels as $label)
-            <x-label-card :label="$label">
-                <x-slot:footer>
-                    <x-button :href="route('labels.show', ['id' => $label['id']])">Veure</x-button>
-                    <x-button href="#">Editar</x-button>
-                </x-slot:footer>
-            </x-label-card>
-        @endforeach
-    </div>
-</x-layout>
-```
-
-Fixa't en tres coses:
-
-- L'enllaç «Veure» no s'escriu a mà: usa `route('labels.show', ['id' => ...])`, com sempre.
-- «Nova etiqueta» i «Editar» apunten a `#`: encara no tenen pàgina. Les farem als blocs 5 i 6.
-- La quadrícula (`grid ...`) ha de tindre l'aspecte de la portada: si la de `home.blade.php` és diferent, copia-la d'allí.
-
-### 4.4. Apuntar la ruta al controlador
+### 4.3. Apuntar la ruta al controlador
 
 Si a `routes/web.php` importàrem `Panel\LabelController` amb un `use`, xocaria amb el `LabelController` públic, que ja està importat. La solució més clara és importar **la carpeta** (el namespace `Panel`) i escriure el nom complet a partir d'ella. Afig l'`use` i canvia només la funció anònima del llistat, dins del grup `panell`:
 
@@ -334,7 +301,6 @@ Route::prefix('panell')->name('panel.')->group(function () {
         ->name('labels.index');
 });
 ```
-
 Fixa't que a les rutes ara apareixen `LabelController` (el públic) i `Panel\LabelController` (el privat): el prefix `Panel\` diu de quina part parlem. La URL i el nom de la ruta (`panel.labels.index`) són els que ja tenies: només canvia qui respon, que abans era un text provisional i ara és el controlador. La ruta `panel.index` continua com a text provisional; no la toquem en este bloc.
 
 ::: info Nota
@@ -347,13 +313,12 @@ Ara que cap ruta usa `SampleLabels`, **esborra l'`use App\Support\SampleLabels;`
 De moment el panell és públic: qualsevol persona pot entrar-hi i veu totes les etiquetes. És provisional; al bloc 6 el protegirem amb autenticació.
 :::
 
-### 4.5. Comprovar que funciona
+### 4.4. Comprovar que funciona
 
-1. Obri <http://localhost/panell/etiquetes>. Han d'aparéixer les tres etiquetes amb els botons «Veure» i «Editar», en lloc del text provisional.
+1. Obri <http://localhost/panell/etiquetes>. Ara han d'aparéixer les tres etiquetes amb els botons «Veure» i «Editar», en lloc del text provisional.
 2. Obri <http://localhost/panell>. Ha de continuar mostrant el text «Panell privat (provisional)».
 3. Fes clic a «Veure» d'una etiqueta: ha de portar al detall (el `LabelController` públic).
 4. Executa `sail artisan route:list`. Les rutes `home`, `labels.show` i `panel.labels.index` han de mostrar el seu controlador; `login`, `register` i `panel.index` continuen sent funcions anònimes provisionals. Els noms de les rutes han de ser els mateixos.
-
 
 ## 5. Un `routes/web.php` net
 
@@ -554,14 +519,12 @@ Quan alguna cosa falle, llig el missatge d'error complet i executa `sail artisan
 | `Class "App\Http\Controllers\SampleLabels" not found` (o `...\Panel\SampleLabels`) | Falta `use App\Support\SampleLabels;` al controlador | Afig l'`use` a dalt de l'arxiu (punts 2 a 4) |
 | `Target class [LabelController] does not exist` (o `[HomeController]`) | Falta l'`use` del controlador a `routes/web.php` | Afig-lo a dalt de l'arxiu (punts 2 i 3) |
 | `Target class [Panel\LabelController] does not exist` | Falta `use App\Http\Controllers\Panel;` a les rutes, o el `namespace` de l'arxiu no és `App\Http\Controllers\Panel` | Revisa l'`use` i la primera línia del controlador (punt 4) |
-| `View [panel.labels.index] not found` | L'arxiu de la vista no està a `resources/views/panel/labels/index.blade.php` | Comprova la carpeta i el nom de l'arxiu (punt 4.3) |
-| `Cannot use App\Http\Controllers\Panel\LabelController as LabelController because the name is already in use` | S'ha importat la classe del panell amb `use` i xoca amb el `LabelController` públic | Importa la carpeta (`use App\Http\Controllers\Panel;`) i escriu `Panel\LabelController::class` (punt 4.4) |
+| `Cannot use App\Http\Controllers\Panel\LabelController as LabelController because the name is already in use` | S'ha importat la classe del panell amb `use` i xoca amb el `LabelController` públic | Importa la carpeta (`use App\Http\Controllers\Panel;`) i escriu `Panel\LabelController::class` (punt 4.3) |
 | `Invalid route action: [App\Http\Controllers\HomeController]` | La ruta apunta només a la classe, però el controlador no té `__invoke` | Afig `__invoke`, o indica el mètode amb `[LabelController::class, 'show']` (punts 2 i 3) |
 | `Method App\Http\Controllers\LabelController::show does not exist` | El nom del mètode de la ruta no coincidix amb el del controlador (error de lletra) | Compara'ls lletra a lletra (punt 2) |
 | `Target class [App\Http\Controllers\Request] does not exist` | Falta `use Illuminate\Http\Request;` | Afig l'`use` (punt 6) |
 | En obrir una ruta apareix un bolcat de dades en lloc de la pàgina | S'ha oblidat la línia `dd(...)` de la prova | Esborra-la (punt 6.3) |
 | Una redirecció no fa res | Falta el `return` davant de `redirect()->route(...)` | Escriu `return redirect()->...` (punt 6.2) |
-
 
 ### 8.2. Llista de comprovació
 
@@ -572,7 +535,6 @@ Quan alguna cosa falle, llig el missatge d'error complet i executa `sail artisan
 - [ ] `Panel\LabelController` està a `app/Http/Controllers/Panel/` i el seu namespace és `App\Http\Controllers\Panel`.
 - [ ] Només els tres controladors fan servir `SampleLabels`: a `routes/web.php` ja no apareix.
 - [ ] No ha quedat cap `dd(...)` ni cap paràmetre `Request` sobrant de la prova del punt 6.
-- [ ] Existix la vista resources/views/panel/labels/index.blade.php.
 - [ ] No s'ha modificat cap vista en este bloc.
 
 ::: tip IA com a tutor
@@ -591,15 +553,10 @@ app/
 │       ├── LabelController.php
 │       └── Panel/
 │           └── LabelController.php
-├── Support/
-│    └── SampleLabels.php
-├── resources
-│    └── views
-│        └── panel
-│            └── labels
-│                └── index.blade.php
-└── routes/
-    └── web.php            (modificat)
+└── Support/
+    └── SampleLabels.php
+routes/
+└── web.php            (modificat)
 ```
 
 L'únic arxiu que ha canviat diverses vegades al llarg del bloc és `routes/web.php`; este és el resultat final:
