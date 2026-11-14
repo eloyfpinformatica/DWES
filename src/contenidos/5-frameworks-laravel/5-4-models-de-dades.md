@@ -1,3 +1,9 @@
+# Bloc 4. Models de Dades
+
+## Temporalització
+
+7 hores
+
 ## 1. De les dades de mostra a la base de dades
 
 Fins ara les etiquetes vivien en tres arrays dins de `SampleLabels`. Era una solució provisional: les dades es perden si canviem el codi, no es poden crear etiquetes noves i no hi ha usuaris reals. En este bloc les dades passen a una **base de dades MySQL** i les controlem amb tres peces de Laravel: migracions, models Eloquent i seeders.
@@ -196,6 +202,18 @@ Quan executem `migrate`, Laravel només aplica les que encara no s'han executat:
 
 ::: warning Atenció
 **No edites una migració que ja s'ha executat** esperant que la taula canvie: Laravel la dona per aplicada i no la tornarà a executar. En desenvolupament, refés-ho tot amb `sail artisan migrate:fresh` (esborra totes les dades) o desfés-la amb `migrate:rollback`, corregix-la i torna a executar `migrate`. En una aplicació real, amb dades de veritat, es crea una **migració nova** que modifique la taula.
+
+Per a modificar una taula existent, creem una nova migració: `sail artisan make:migration add_phone_to_users_table`. Dins de l'arxiu utilitzem 
+```php
+Schema::table('users', function (Blueprint $table) { 
+    $table->string('phone')->nullable(); 
+});
+```
+en el mètode `up()` per a afegir la columna. 
+
+En el mètode `down()` definim com desfer el canvi, per exemple, mitjançant `$table->dropColumn('phone');`. 
+
+Finalment, executem `sail artisan migrate` per a aplicar els canvis.
 :::
 
 Executa-les:
@@ -239,6 +257,18 @@ Eloquent també suposa que la clau primària es diu `id` i que la taula té `cre
 ### 3.2. Quins camps es poden omplir: `Fillable`
 
 Un model Eloquent està **protegit per defecte** contra l'assignació massiva: si el crees amb `Category::create([...])` o l'ompli amb `fill([...])`, **només s'accepten els camps que has declarat** com a *fillable*; la resta es descarten en silenci. Cal declarar-ho a cada model amb l'atribut `Fillable`.
+
+::: info Per què utilitzem `create()` 
+Utilitzem `create()` perquè ens permet crear un registre nou en la base de dades assignant tots els camps en una única operació, sense haver d'assignar cada propietat del model individualment. Per exemple, en lloc de fer:
+```php
+$category = new Category();
+$category->name = $variable;
+$category->save();
+```
+podem escriure directament `Category::create(['name' => $variable]);`. 
+
+Això fa que el codi siga més senzill, llegible i fàcil de mantindre, especialment quan treballem amb models que tenen molts camps.
+:::
 
 Substituïx el contingut de `app/Models/Category.php`:
 
@@ -303,6 +333,8 @@ sail artisan tinker
 Dins de Tinker, prova aquestes ordres d'una en una (cadascuna mostra el resultat):
 
 ```php
+use App\Models\Category;
+    
 Category::create(['name' => 'Fruites']);
 Category::create(['name' => 'Verdures']);
 
@@ -337,9 +369,9 @@ Si Tinker diu que no troba la classe `Category`, escriu el nom complet: `App\Mod
 ### 3.4. Comprovar que funciona
 
 1. Executa `sail artisan model:show Label`. Ha de mostrar el model, la seua taula (`labels`) i les seues columnes.
-2. Entra en Tinker i crea les dos categories del punt 3.3. `Category::all()` n'ha de tornar dos.
+2. Entra en Tinker i crea les dos categories del punt 3.3. `App\Models\ategory::all()` n'ha de tornar dos.
 3. Comprova que la taula `labels` també està enllaçada al model: `Label::count()` ha de tornar `0`, sense error.
-4. Prova la protecció: `Category::create(['name' => 'Fruits secs', 'id' => 99])`. Mira l'`id` de la fila creada: **no** és 99, perquè `id` no és `Fillable` i s'ha descartat.
+4. Prova la protecció: `App\Models\Category::create(['name' => 'Fruits secs', 'id' => 99])`. Mira l'`id` de la fila creada: **no** és 99, perquè `id` no és `Fillable` i s'ha descartat.
 5. Obri phpMyAdmin (<http://localhost:8080>) i mira la taula `categories`: les files han d'estar-hi, amb `created_at` i `updated_at` omplits sense haver-los escrit tu.
 6. Obri la portada <http://localhost/>: continua igual (encara usa `SampleLabels`).
 
@@ -425,7 +457,7 @@ sail artisan tinker
 
 ```php
 $user = User::factory()->create();
-$category = Category::first();
+$category = App\Models\Category::first();
 ```
 
 `Category::first()` torna la primera categoria; si no en tens cap (perquè has refet la base de dades), crea-la amb `Category::create(['name' => 'Fruites'])`.
@@ -777,3 +809,855 @@ public function run(): void
 4. En Tinker (`sail artisan tinker`): `Label::first()->category->name` i `Label::first()->user->name` han de tornar un nom coherent amb el producte. `User::count()` ha de tornar `3`.
 5. Executa `Label::factory()->create()` en Tinker i després `User::count()`: ha de tornar `4`, perquè sense `recycle` la factory crea un usuari nou. Torna a la situació neta amb `sail artisan migrate:fresh --seed`.
 6. Obri la portada <http://localhost/>: continua igual (encara usa `SampleLabels`; el canvi arriba al punt 7).
+
+
+## 7. Els controladors passen a Eloquent
+
+Les dades ja viuen a la base de dades. Ara els tres controladors deixen de demanar-les a `SampleLabels` i les demanen als models. Com que al bloc 3 vam deixar als controladors la responsabilitat de buscar les dades, el canvi és xicotet: una línia per controlador, més el canvi de la ruta del detall.
+
+::: warning Atenció
+Este punt i el següent són **un sol canvi** repartit en dos passos: ací canviem els controladors i al punt 8 les vistes. Entre els dos, les pàgines que mostren etiquetes **donaran error**, perquè les vistes encara esperen arrays. No proves el navegador fins al punt 8.5.
+:::
+
+### 7.1. Portada i panell: `Label::all()`
+
+A la unitat 4, obtindre totes les files volia dir un mètode del [DAO](/contenidos/4-acces-a-dades#_8-els-dao-leaddao-i-usuaridao) amb la seua consulta SQL i el bucle que convertia cada fila en un objecte. Ara és una sola crida: `Label::all()` torna **una col·lecció de models `Label`**, un per cada fila de la taula `labels`.
+
+A `app/Http/Controllers/HomeController.php`, substituïx l'`use` de `SampleLabels` i la línia del `return`:
+
+```php
+use App\Models\Label;
+
+// ...
+
+return view('home', ['labels' => Label::all()]);
+```
+
+I el mateix a `app/Http/Controllers/Panel/LabelController.php`:
+
+```php
+use App\Models\Label;
+
+// ...
+
+return view('panel.labels.index', ['labels' => Label::all()]);
+```
+
+La vista continua rebent una variable `labels`, igual que abans. El que canvia és el seu contingut: ja no són arrays, sinó objectes `Label` (punt 8).
+
+::: info Nota
+Al controlador del panell, `App\Models\Label` no xoca amb la classe `LabelController`: són noms diferents. El conflicte de noms que vam resoldre al bloc 3 era entre els dos `LabelController`, no amb el model.
+:::
+
+### 7.2. Binding implícit: `/etiquetes/{label}`
+
+Fins ara, el detall d'una etiqueta rebia l'`id` com a text, el buscava a mà i, si no el trobava, feia `abort(404)`. Laravel pot fer tot això per nosaltres: si el paràmetre de la ruta i la variable del controlador **tenen el mateix nom** i la variable porta el tipus d'un model Eloquent, Laravel busca el model amb eixe valor i l'injecta. Es diu **binding implícit** (*implicit route model binding*).
+
+A `routes/web.php`, canvia la ruta del detall:
+
+```php
+Route::get('/etiquetes/{label}', [LabelController::class, 'show'])
+    ->whereNumber('label')
+    ->name('labels.show');
+```
+
+Tres canvis, i un que **no** hi és:
+
+- El paràmetre passa de `{id}` a **`{label}`**.
+- El `whereNumber` s'ha de referir al **nom nou**: `whereNumber('label')`. Continua evitant que `/etiquetes/abc` arribe a consultar la base de dades.
+- **El nom de la ruta, `labels.show`, no canvia.**
+
+Ara, a `app/Http/Controllers/LabelController.php`, substituïx tot el contingut per este:
+
+```php
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Label;
+use Illuminate\View\View;
+
+class LabelController extends Controller
+{
+    public function show(Label $label): View
+    {
+        return view('labels.show', ['label' => $label]);
+    }
+}
+```
+
+- **`Label $label`**: el tipus (`Label`) li diu a Laravel quin model ha de buscar, i el nom (`$label`) ha de **coincidir amb `{label}`** de la ruta. Com vam avançar al bloc 3, els paràmetres normals s'injecten per ordre, però el binding implícit és l'excepció: ací **sí que importa el nom**.
+- Laravel busca l'etiqueta per la seua clau primària (`id`) i, si no existix, genera sol una resposta **404**: ja no cal l'`abort(404)` ni la conversió `(int) $id`. La pàgina `errors/404.blade.php` continua sent la que es mostra.
+- El mètode queda en una sola línia: rebre l'etiqueta i passar-la a la vista.
+
+::: info Nota
+Per defecte, el binding busca per `id`. Si algun dia volguérem URL amb un camp llegible (per exemple, un `slug`), s'indicaria la columna a la ruta: `{label:slug}`. Nosaltres mantenim l'`id` perquè és el més senzill.
+:::
+
+### 7.3. Esborrar `SampleLabels` i `app/Support`
+
+`SampleLabels` va nàixer com a solució provisional: feia de model i de DAO mentre no teníem base de dades. Ara que cap controlador la usa, s'ha d'eliminar. Una classe que ja no usa ningú només serveix per a confondre.
+
+Des de l'arrel del projecte, esborra l'arxiu i la carpeta (que queda buida):
+
+```bash
+rm -r app/Support
+```
+
+També pots fer-ho des de l'editor. Després, comprova que **no queda cap referència** a la classe:
+
+```bash
+grep -rn "SampleLabels" app routes resources
+```
+
+No ha d'eixir res. Si apareix alguna línia, és un `use` o una crida que s'havia quedat sense canviar: arregla-la amb `Label` (punts 7.1 i 7.2).
+
+### 7.4. Comprovar que funciona
+
+Com hem avisat al principi del punt, les vistes encara no estan adaptades: **la portada i el panell no funcionaran fins al punt 8.5**. Per això les comprovacions d'ara no passen per les vistes amb etiquetes.
+
+1. Executa `grep -rn "SampleLabels" app routes resources`. No ha d'eixir cap línia.
+2. Executa `sail artisan route:list`. La ruta del detall ha d'aparéixer amb la URI `etiquetes/{label}` (i no `etiquetes/{id}`), amb el nom `labels.show` i el controlador `LabelController`.
+3. Obri <http://localhost/etiquetes/9999>. Com no hi ha cap etiqueta amb eixe `id`, Laravel ha de mostrar la pàgina **404** que vam crear al bloc 3.
+4. Obri <http://localhost/etiquetes/abc>. També ha d'eixir la pàgina 404, perquè el `whereNumber('label')` no deixa passar un valor que no és un número.
+5. Obri la portada <http://localhost/>. **Ha de donar un error**, i és el que esperem: cada targeta genera el seu enllaç amb `route('labels.show', ['id' => ...])`, i la ruta ara espera el paràmetre `label`. Llig el missatge de l'error i comprova que parla d'eixe enllaç. Ho arreglem al punt 8.3.
+
+## 8. Adaptar les vistes: d'arrays a objectes
+
+Els controladors ja envien models `Label`, però les vistes encara els lligen com si foren arrays. Este punt tanca el canvi que vam obrir al punt 7: en acabar, el projecte tornarà a funcionar, ara amb dades de la base de dades.
+
+### 8.1. De `$label['product']` a `$label->product`
+
+Un array s'indexa amb claus (`$label['product']`); un model Eloquent exposa les columnes com a **propietats** (`$label->product`). Estos són els canvis, segons el cas:
+
+| Abans (array) | Ara (model) | Punt |
+|---|---|---|
+| `$label['product']`, `['variety']`, `['description']` | `$label->product`, `->variety`, `->description` | 8.1 |
+| `$label['category']` | `$label->category->name` | 8.2 |
+| `$label['author']` | `$label->user->name` | 8.2 |
+| `$label['date']` | `$label->created_at->format('d/m/Y')` | 8.2 |
+| `route('labels.show', ['id' => $label['id']])` | `route('labels.show', ['label' => $label])` | 8.3 |
+
+Comencem pels canvis directes, que només canvien la sintaxi. A `resources/views/components/label-card.blade.php`:
+
+```blade
+@if ($label->variety)
+    <p class="text-lg text-ink/60">{{ $label->variety }}</p>
+@endif
+
+<p class="mt-4 leading-relaxed text-ink/70">{{ $label->description }}</p>
+```
+
+La línia del títol (`<a href=...>`) la deixem per al punt 8.3, perquè canvia en dos llocs a la vegada.
+
+A `resources/views/labels/show.blade.php`:
+
+```blade
+<x-slot:title>{{ $label->product }}</x-slot>
+```
+
+```blade
+<h1 class="mt-6 font-serif text-5xl font-semibold tracking-tight text-ink sm:text-6xl">{{ $label->product }}</h1>
+
+@if ($label->variety)
+    <p class="mt-2 text-2xl text-ink/60">{{ $label->variety }}</p>
+@endif
+```
+
+```blade
+<p class="mt-8 text-xl leading-relaxed text-ink/80">{{ $label->description }}</p>
+```
+
+### 8.2. Dates amb Carbon, autor i categoria per relació
+
+**Autor i categoria.** Ja no són un text dins de l'array, sinó **relacions** (punt 4): `$label->user` és el model de l'autor i `$label->category` el de la categoria. Per a mostrar el nom, hi accedim a través d'elles.
+
+A `label-card.blade.php`, el distintiu de la categoria:
+
+```blade
+<x-badge>{{ $label->category->name }}</x-badge>
+```
+
+A `labels/show.blade.php`, el mateix distintiu:
+
+```blade
+<x-badge>{{ $label->category->name }}</x-badge>
+```
+
+**Dates.** Eloquent converteix `created_at` i `updated_at` en objectes **Carbon** automàticament; un objecte Carbon té mètodes per a formatar-lo. Els usem per a mostrar la data de publicació en format `dd/mm/aaaa`.
+
+A `home.blade.php`, el peu de la targeta:
+
+```blade
+<x-slot:footer>
+    {{ $label->user->name }} · {{ $label->created_at->format('d/m/Y') }}
+</x-slot>
+```
+
+I a `labels/show.blade.php`, l'última línia de l'`<article>`:
+
+```blade
+<p class="mt-10 text-ink/60">{{ $label->user->name }} · {{ $label->created_at->format('d/m/Y') }}</p>
+```
+
+`packaged_at`, en canvi, és una columna nostra: Eloquent no la convertix sola, i tornaria un text (`2026-11-02`). Hem d'indicar-li que és una data. A `app/Models/Label.php`, afig el mètode `casts()` **dins de la classe**:
+
+```php
+protected function casts(): array
+{
+    return [
+        'packaged_at' => 'date',
+    ];
+}
+```
+
+Un *cast* diu com s'ha de convertir una columna en llegir-la. Ara `$label->packaged_at` és un objecte Carbon, i podem formatar-lo igual que `created_at`. Aprofitem-ho per a mostrar-lo al detall: a `labels/show.blade.php`, afig esta línia **entre** la descripció i la línia de l'autor:
+
+```blade
+<p class="mt-6 text-ink/60">{{ number_format($label->net_weight_g, 0, ',', '.') }} g · Envasat el {{ $label->packaged_at->format('d/m/Y') }}</p>
+```
+
+`number_format` escriu el pes amb punt de milers (`1.500 g`).
+
+::: info Nota
+El format que posaríem dins del *cast* (`'datetime:Y-m-d'`) només afecta a com es **serialitza** el model quan es convertix en JSON o en un array. Per a pintar la data en una vista, el que usem és `format()`.
+:::
+
+::: tip Bona pràctica
+Accedir a `$label->user` i a `$label->category` funciona, però cada accés pot fer una consulta a la base de dades. Amb 15 etiquetes no es nota. Això és exactament el que descobrirem, i arreglarem, al punt 10.
+:::
+
+### 8.3. Els enllaços: `route('labels.show', ['label' => $label])`
+
+Al punt 7.4 vam veure l'error: la ruta espera un paràmetre `label` i els enllaços li passaven `id`. Ara els arreglem. A més, en lloc de passar l'`id`, passem **l'etiqueta sencera**: la funció `route()` extrau sola la clau del model (el seu `id`).
+
+A `components/label-card.blade.php`, la línia del títol (ja amb el canvi del producte):
+
+```blade
+<a href="{{ route('labels.show', ['label' => $label]) }}" class="transition hover:text-brand">{{ $label->product }}</a>
+```
+
+I a `panel/labels/index.blade.php`, l'enllaç «Veure»:
+
+```blade
+<a href="{{ route('labels.show', ['label' => $label]) }}" class="text-brand hover:underline">Veure</a>
+```
+
+Així no queda cap enllaç amb `['id' => ...]`. La clau (`label`) és la que posa el nom a la ruta; el valor, l'etiqueta.
+
+### 8.4. Un marcador mentre no hi ha foto
+
+Cada etiqueta tindrà una foto del producte, però no la podrem pujar fins al bloc 7: la columna `photo_path` és buida. Perquè les vistes no hagen de canviar després, creem ara un component que **sempre pinta un marcador** (un quadre amb la inicial del producte). Al bloc 7 només hi afegirem la imatge real.
+
+Crea `resources/views/components/label-photo.blade.php`:
+
+```blade
+@props(['label'])
+
+<div {{ $attributes->merge(['class' => 'flex aspect-[4/3] items-center justify-center rounded-xl bg-ink/5']) }}>
+    <span aria-hidden="true" class="font-serif text-6xl font-semibold text-ink/30">{{ mb_strtoupper(mb_substr($label->product, 0, 1)) }}</span>
+</div>
+```
+
+- És un component anònim amb una propietat, `label`, com els que ja coneixes.
+- Les classes de la propietat `$attributes->merge()` es **sumen** a les que passem des de fora.
+- Usem `mb_substr` i `mb_strtoupper` (en lloc de `substr` i `strtoupper`) perquè també funcionen bé amb lletres accentuades com la «Ç».
+
+Ara l'usem. A `label-card.blade.php`, com a **primer element** dins del `<div class="flex-1">`:
+
+```blade
+<x-label-photo :label="$label" class="mb-6" />
+```
+
+I a `labels/show.blade.php`, com a primer element de l'`<article>`:
+
+```blade
+<x-label-photo :label="$label" class="mb-8 max-w-sm" />
+```
+
+### 8.5. Comprovar que funciona
+
+1. Obri la portada <http://localhost/>. Ha de mostrar 15 targetes, cada una amb el quadre amb la inicial, la categoria, el producte, la varietat (algunes no en tenen), la descripció i un peu amb l'autor i la data.
+2. Fes clic en una etiqueta. El detall ha de mostrar el marcador, la categoria, el producte, la descripció, una línia amb el pes (per exemple, `1.500 g`) i la data d'envasat, i l'autor amb la data de publicació.
+3. Obri el panell <http://localhost/panell/etiquetes>. Ha de mostrar les mateixes etiquetes amb els enllaços «Veure» i «Editar»; «Veure» ha d'obrir el detall.
+4. Obri <http://localhost/etiquetes/9999>: ha de continuar eixint la pàgina 404.
+5. Comprova que l'escapat continua funcionant. En Tinker (`sail artisan tinker`): `App\Models\Label::first()->update(['description' => 'Prova <em>HTML</em>'])`. Recarrega la portada: l'etiqueta ha de mostrar el text amb les etiquetes `<em>` **visibles**, no cursiva. Per a restaurar les dades, executa `sail artisan migrate:fresh --seed`.
+
+::: warning Canvis en els estils
+Recordeu que quan fem algun canvi en els estils o creem nous elements amb classes de Tailwind que no havíem utilitzat prèviament, cal executar `npm run build` per visualitzar el resultat.
+:::
+
+## 9. Paginació de la portada
+
+La portada mostra totes les etiquetes de colp. Amb 15 encara cap, però una aplicació real en tindrà centenars: no té sentit carregar-les totes en cada visita. La solució és la **paginació**: mostrem unes poques per pàgina i afegim uns enllaços per a navegar.
+
+### 9.1. `paginate()` al controlador
+
+A `app/Http/Controllers/HomeController.php`, canvia la línia del `return`:
+
+```php
+return view('home', ['labels' => Label::latest('id')->paginate(6)]);
+```
+
+- **`latest('id')`**: ordena les etiquetes de la més nova a la més antiga. Ordenem per `id` (que no es repetix) i no per `created_at`: les etiquetes de mostra es creen totes en el mateix segon, i amb dates repetides l'ordre podria no ser estable, de manera que una etiqueta podria repetir-se o desaparéixer en canviar de pàgina.
+- **`paginate(6)`**: en lloc de `all()`, torna només les 6 etiquetes de la pàgina actual. Laravel detecta la pàgina pel paràmetre `page` de la URL (`/?page=2`) i calcula sol quines files toca. Per a saber quantes pàgines hi ha, fa a més una consulta que **compta el total** de files.
+
+El resultat ja no és una col·lecció, sinó un **paginador**: es pot recórrer amb `@forelse`, igual que abans, i a més sap en quina pàgina està i quantes n'hi ha. Per això la vista `home.blade.php` continua funcionant sense tocar el bucle.
+
+::: info Nota
+El panell **no** es pagina: continua amb `Label::all()` i mostra totes les etiquetes. La paginació és només de la portada pública.
+:::
+
+### 9.2. Els enllaços i la vista de paginació amb el nostre disseny
+
+A `resources/views/home.blade.php`, afig els enllaços **després de la graella** (després del `</div>` del `grid`) i abans de `</x-layout>`:
+
+```blade
+<div class="mt-12">
+    {{ $labels->links() }}
+</div>
+```
+
+`links()` pinta els enllaços a les altres pàgines. Si hi ha una sola pàgina, no pinta res. Obri la portada i veuràs que ja funcionen, però amb l'aspecte per defecte de Laravel (grisos, ombres, text en anglés), que no encaixa amb el nostre disseny.
+
+Laravel genera estos enllaços amb una vista que podem substituir. Publica-les al projecte:
+
+```bash
+sail artisan vendor:publish --tag=laravel-pagination
+```
+
+L'ordre copia les vistes de paginació a `resources/views/vendor/pagination`. L'arxiu `tailwind.blade.php` és el que Laravel usa per defecte: obri'l i fes-li una ullada, fixant-te en dues coses: rep una variable **`$paginator`** (el paginador) i una altra **`$elements`** (la llista de números de pàgina i punts suspensius).
+
+Ara substituïx **tot el contingut** de `resources/views/vendor/pagination/tailwind.blade.php` per este:
+
+```blade
+@if ($paginator->hasPages())
+    <nav role="navigation" aria-label="Paginació" class="flex flex-wrap items-center justify-center gap-2">
+        @if ($paginator->onFirstPage())
+            <span class="rounded-full border border-ink/10 px-5 py-2 text-ink/30">Anterior</span>
+        @else
+            <a href="{{ $paginator->previousPageUrl() }}" rel="prev" class="rounded-full border border-ink/10 px-5 py-2 text-ink transition hover:border-brand hover:text-brand">Anterior</a>
+        @endif
+
+        @foreach ($elements as $element)
+            @if (is_string($element))
+                <span class="px-2 text-ink/40">{{ $element }}</span>
+            @endif
+
+            @if (is_array($element))
+                @foreach ($element as $page => $url)
+                    @if ($page == $paginator->currentPage())
+                        <span aria-current="page" class="rounded-full bg-brand px-4 py-2 font-semibold text-white">{{ $page }}</span>
+                    @else
+                        <a href="{{ $url }}" aria-label="Ves a la pàgina {{ $page }}" class="rounded-full px-4 py-2 text-ink transition hover:bg-ink/5">{{ $page }}</a>
+                    @endif
+                @endforeach
+            @endif
+        @endforeach
+
+        @if ($paginator->hasMorePages())
+            <a href="{{ $paginator->nextPageUrl() }}" rel="next" class="rounded-full border border-ink/10 px-5 py-2 text-ink transition hover:border-brand hover:text-brand">Següent</a>
+        @else
+            <span class="rounded-full border border-ink/10 px-5 py-2 text-ink/30">Següent</span>
+        @endif
+    </nav>
+@endif
+```
+
+- **`hasPages()`**: si no fan falta diverses pàgines, no pinta res.
+- **«Anterior» i «Següent»**: són enllaços si hi ha pàgina anterior o següent, i un text apagat si no (primera i última pàgina).
+- **`$elements`**: cada element és un text (els punts suspensius `...`) o un array `pàgina => URL`. La pàgina actual es pinta com un botó blau i les altres com enllaços.
+- El disseny és el del projecte: botons amb `rounded-full`, el blau com a color d'acció, **sense ombres** i els textos escrits directament en valencià.
+
+Com és la vista per defecte, **tots els paginadors de l'aplicació** (també els del panell, si més endavant en paginem algun) tindran este mateix aspecte sense tocar res més.
+
+::: tip Bona pràctica
+Les altres vistes que ha publicat Laravel (Bootstrap, versió simple...) no les usem. Pots deixar-les on estan: no molesten.
+:::
+
+### 9.3. Comprovar que funciona
+
+1. Obri la portada <http://localhost/>. Ha de mostrar **6 etiquetes** i, a sota, els enllaços de paginació: «Anterior» apagat, els números 1, 2 i 3 (el 1 en blau) i «Següent» actiu.
+2. Fes clic en «2» (o en «Següent»). La URL ha de ser `http://localhost/?page=2` i ha de mostrar altres 6 etiquetes. Fes clic en «3»: ha de mostrar les 3 últimes, amb «Següent» apagat.
+3. Comprova que **cap etiqueta es repetix** entre pàgines.
+4. Obri el panell <http://localhost/panell/etiquetes>: ha de continuar mostrant les 15 etiquetes, sense paginació.
+5. Comprova que els botons tenen el nostre disseny (cantons arredonits, blau, sense ombres) i no l'aspecte gris per defecte de Laravel.
+
+
+## 10. La trampa: el problema N+1
+
+Este és el fallit típic que genera la IA quan escriu codi amb Eloquent: **funciona**, es veu bé, no dona cap error... i fa moltes més consultes a la base de dades de les que cal. Hi ha una situació real en el nostre projecte, i la tenim ja escrita sense adonar-nos-en.
+
+### 10.1. El codi que genera la IA i per què funciona «bé»
+
+Imagina que li demanes a una IA que escriga la portada:
+
+```text
+Tinc una aplicació Laravel amb els models Label, User i Category (una
+etiqueta pertany a un usuari i a una categoria). Escriu el controlador i
+la vista de la portada: ha de mostrar les etiquetes paginades de 6 en 6 i,
+a cada targeta, el producte, la categoria i l'autor.
+```
+
+Lo normal és que et torne un codi molt paregut al que ja tenim després dels punts 8 i 9. Les línies clau són estes:
+
+```php
+// HomeController
+return view('home', ['labels' => Label::latest('id')->paginate(6)]);
+```
+
+```blade
+{{-- Dins de la graella de la portada, per a cada etiqueta --}}
+{{ $label->category->name }}
+{{ $label->user->name }}
+```
+
+Obri la portada: es veu perfecta. Les 6 targetes, cada una amb la seua categoria i el seu autor, i la paginació funciona. **No hi ha cap error**, i per això és perillós: si només mires el resultat, no te n'adones.
+
+La clau és que `$label->user` i `$label->category` són *lazy loading* (punt 4.2): Eloquent no carrega l'autor ni la categoria fins que els demanes. Com els demanem **dins d'un bucle**, per a cada etiqueta fa una consulta nova a la base de dades.
+
+### 10.2. Detectar-lo
+
+#### Mesurar les consultes
+
+Entra en Tinker (`sail artisan tinker`) i repetix el que fa la portada, comptant les consultes:
+
+```php
+DB::enableQueryLog();
+
+$labels = App\Models\Label::latest('id')->paginate(6);
+
+foreach ($labels as $label) {
+    $label->user->name;
+    $label->category->name;
+}
+
+count(DB::getQueryLog());
+```
+
+El resultat ha de ser al voltant de **14** consultes: 1 per a comptar el total de pàgines, 1 per a les 6 etiquetes, 6 per als autors i 6 per a les categories. Per a veure-les:
+
+```php
+collect(DB::getQueryLog())->pluck('query');
+```
+
+Veuràs la mateixa consulta a `users` i a `categories` repetida, una vegada per etiqueta. Això és el problema **N+1**: 1 consulta per a obtindre N elements, i després N consultes més, una per cada element, per a obtindre les seues relacions.
+
+::: warning Atenció
+Ara són 14 consultes, però el número depén de les etiquetes de la pàgina. Amb 60 etiquetes per pàgina serien unes 122. La pàgina «funciona» mentre n'hi ha poques; quan creix, es torna lenta.
+:::
+
+#### Que l'aplicació et cride l'atenció
+
+Mesurar a mà és útil, però no pots fer-ho per cada pàgina. Laravel ofereix una manera de fer **fallar** el codi que carrega relacions en *lazy loading*, mentre desenvolupes. A `app/Providers/AppServiceProvider.php`, dins del mètode `boot()`:
+
+```php
+use Illuminate\Database\Eloquent\Model;
+
+public function boot(): void
+{
+    Model::preventLazyLoading(! $this->app->isProduction());
+}
+```
+::: warning Error en `isProduction()`
+Pot ser que VSCode marque `isProduction()` com un mètode que no existeix. És un fals positiu. Ignoreu-lo.
+:::
+
+- **`preventLazyLoading()`**: fa que Eloquent llance una excepció (`Illuminate\Database\LazyLoadingViolationException`) quan el codi intenta carregar una relació en *lazy loading*.
+- **`! $this->app->isProduction()`**: només actua fora de producció. Així, si algun cas escapa a la revisió, a producció l'aplicació continua funcionant (lenta, però funcionant) en lloc de trencar-se.
+
+Ara recarrega la portada <http://localhost/>: ha de donar un **error** que parla d'un intent de carregar una relació (`user` o `category`) del model `Label` en *lazy loading*. El codi que abans «funcionava» ara avisa del problema.
+
+### 10.3. La solució: `with()`
+
+La solució és dir-li a Eloquent, **en el moment de consultar**, quines relacions necessitarem. S'anomena *eager loading* (càrrega anticipada) i es fa amb `with()`. A `HomeController.php`:
+
+```php
+return view('home', [
+    'labels' => Label::with(['user', 'category'])->latest('id')->paginate(6),
+]);
+```
+
+Eloquent fa ara una sola consulta addicional **per relació**, no una per etiqueta:
+
+```sql
+select * from users where id in (1, 2, 3)
+select * from categories where id in (1, 2, 4)
+```
+
+Total: comptar, etiquetes, usuaris i categories, o siga **4 consultes**, siguen 6 o 60 les etiquetes de la pàgina.
+
+El panell té el mateix problema: cada targeta mostra la categoria. A `Panel/LabelController.php`:
+
+```php
+return view('panel.labels.index', ['labels' => Label::with('category')->get()]);
+```
+
+Fixa't que al panell només carreguem `category`: l'autor no es mostra, i **només es carrega el que la vista usa**.
+
+::: tip Bona pràctica
+Quan una IA et done codi que recorre models i accedix a les seues relacions dins d'un bucle o d'una vista, fes-te sempre esta pregunta: **quantes consultes fa?** Deixa `preventLazyLoading()` activat mentre desenvolupes i comprova-ho abans de donar el codi per bo. Mirar només que el resultat es veja bé no és revisar.
+:::
+
+::: info Nota
+Laravel també pot carregar les relacions automàticament, sense `with()`: s'activa amb `Model::automaticallyEagerLoadRelationships();` al mateix `boot()`. Ací usem `with()` perquè quede clar què passa i perquè és el que trobaràs en la majoria del codi existent.
+:::
+
+### 10.4. Comprovar que funciona
+
+1. Recarrega la portada <http://localhost/>: ha de tornar a funcionar, amb `preventLazyLoading()` encara activat. Comprova també les pàgines 2 i 3.
+2. Obri el panell <http://localhost/panell/etiquetes>: ha de funcionar.
+3. Obri el detall d'una etiqueta, per exemple <http://localhost/etiquetes/1>: ha de funcionar.
+4. Mesura les consultes de la versió corregida. Ix de Tinker (`quit`) i torna a entrar (així el registre de consultes comença de zero) i executa:
+
+   ```php
+   DB::enableQueryLog();
+
+   $labels = App\Models\Label::with(['user', 'category'])->latest('id')->paginate(6);
+
+   foreach ($labels as $label) {
+       $label->user->name;
+       $label->category->name;
+   }
+
+   count(DB::getQueryLog());
+   ```
+
+   Ha de tornar **4**, en lloc de les 14 de abans.
+
+
+   ## 11. Errors comuns i punt de control
+
+Hem arribat al final del bloc. Abans de passar al següent, repassem els errors que et pots trobar, comprovem que tot està en el seu lloc i deixem constància dels arxius finals.
+
+### 11.1. Errors comuns i la seua causa
+
+| Error o símptoma | Causa probable | Solució |
+|---|---|---|
+| Error de connexió a la base de dades en migrar o en obrir l'aplicació | `DB_HOST` és `localhost` o `127.0.0.1` dins de Sail, en lloc de `mysql` | Posa `DB_HOST=mysql` al `.env` (punt 1.2) |
+| Error de clau forana en executar la migració de `labels` | La migració de `categories` s'executa després perquè té una marca de temps posterior | Fes que `categories` s'execute primer i refés-ho amb `migrate:fresh` (punt 2.1) |
+| He canviat una migració i la taula continua igual | La migració ja estava executada | `sail artisan migrate:fresh`, o `migrate:rollback` i `migrate` (punt 2.4) |
+| Error de classe no trobada en un model, un seeder o un controlador | El `namespace` o el nom de l'arxiu no coincidix amb la classe, o falta un `use` (per exemple, `use App\Models\Label;`) | Revisa el `namespace`, el nom i els `use` (punts 3.1, 5.1, 7.1 i 7.2) |
+| Tinker no troba `Label`, `Category` o `User` | Tinker no importa els models | Escriu el nom complet (`App\Models\Label`) o importa'l amb `use` (punt 3.3) |
+| Una columna queda en blanc o a `NULL` després de `create()`, sense cap error | La columna no està en `#[Fillable]` i Eloquent la descarta en silenci | Afig-la a la llista (punt 3.2) |
+| Error de taula inexistent en consultar un model | El nom del model no encaixa amb el de la taula (per exemple, un model en plural) | Model en singular, o indica la taula amb `#[Table('...')]` (punt 3.1) |
+| `$label->category` o `$label->user` dona error de relació no definida, o un error de columna com `author_id` | El mètode de relació no existix o no es diu `category` / `user` | Defineix-lo amb eixe nom, o passa la clau forana com a segon argument (punt 4.1) |
+| Error d'entrada duplicada a `categories` en executar el seeder dos voltes | S'ha usat `create` en lloc de `firstOrCreate` | Usa `firstOrCreate` (punt 5.1) |
+| `migrate:fresh --seed` acaba bé però `categories` està buida | `DatabaseSeeder` no crida `CategorySeeder` | Afig-lo al `call([...])` (punt 5.1) |
+| La factory falla amb un error de model no trobat | Les categories no existixen (ordre equivocat al seeder) o un nom del catàleg no coincidix amb el del seeder | `CategorySeeder` abans que les etiquetes i noms idèntics (punts 6.2 a 6.4) |
+| `Label::factory()` no existix | Falta `use HasFactory;` al model | Afig el *trait* (punt 6.2) |
+| Hi ha tants usuaris com etiquetes després de sembrar | Falta `recycle(User::all())` | Punt 6.4 |
+| Una etiqueta té un producte en la categoria equivocada | El catàleg generat per la IA no s'ha revisat | Revisa el catàleg (punt 6.3) |
+| Error de classe `App\Support\SampleLabels` no trobada | Queda un `use` o una crida a `SampleLabels` en algun arxiu | `grep -rn "SampleLabels" app routes resources` i canvia-ho per `Label` (punts 7.1 a 7.3) |
+| `/etiquetes/1` dona 404 però l'etiqueta hauria d'existir | La base de dades està buida: s'ha fet `migrate:fresh` sense `--seed` | `sail artisan migrate:fresh --seed` (punt 7.2) |
+| El detall no rep l'etiqueta que toca | El nom del paràmetre de la ruta (`{label}`) i el de la variable del mètode no coincidixen | Que coincidisquen (punt 7.2) |
+| `Missing required parameter for [Route: labels.show] [URI: etiquetes/{label}] [Missing parameter: label].` (`UrlGenerationException`) | Queda un `route('labels.show', ['id' => ...])` en alguna vista o component | Usa `['label' => $label]` a `label-card` i al panell (punt 8.3) |
+| Error en cridar `format()` sobre un text a la vista del detall | Falta el `casts()` de `packaged_at` a `Label` | Punt 8.2 |
+| L'autor o la categoria isquen buits o donen error de propietat | Queda sintaxi d'array (`$label['author']`) o la relació està mal escrita | `$label->user->name` i `$label->category->name` (punt 8.2) |
+| El marcador de la foto no té mida ni estil | Vite no està en marxa | `sail npm run dev` en una terminal apart (punt 8.4) |
+| Error de mètode `links` inexistent a la portada | El controlador continua amb `Label::all()` | `paginate(6)` (punt 9.1) |
+| Els botons de paginació tenen l'aspecte gris per defecte | No s'ha publicat la vista, o s'ha editat un altre arxiu | `vendor:publish` i edita `tailwind.blade.php` (punt 9.2) |
+| Una etiqueta apareix a dues pàgines o en falta alguna | S'ordena per una columna amb valors repetits (`created_at`) | Ordena per `id` (punt 9.1) |
+| `LazyLoadingViolationException` a la portada o al panell | La vista usa una relació que no s'ha carregat amb `with()` | Afig-la al `with()` del controlador (punt 10.3) |
+| La portada «va bé» però fa moltes consultes | Codi sense `with()` i sense `preventLazyLoading()` | Punts 10.2 i 10.3 |
+
+### 11.2. Llista de comprovació
+
+Abans de donar el bloc per tancat, comprova que:
+
+- [ ] `sail artisan migrate:fresh --seed` acaba sense errors.
+- [ ] A phpMyAdmin hi ha 4 categories, 3 usuaris i 15 etiquetes.
+- [ ] `sail artisan model:show Label` mostra les relacions `category` i `user`.
+- [ ] `Label` té `#[Fillable]` amb tots els camps menys `id` i `user_id`, el *trait* `HasFactory` i el `casts()` de `packaged_at`.
+- [ ] `grep -rn "SampleLabels" app routes resources` no mostra res i la carpeta `app/Support` ja no existix.
+- [ ] `grep -rn "'id' =>" resources` i `grep -rn '\$label\[' resources` no mostren res.
+- [ ] `sail artisan route:list` mostra `etiquetes/{label}`, i `/etiquetes/9999` i `/etiquetes/abc` donen 404.
+- [ ] La portada mostra 6 etiquetes amb paginació en 3 pàgines, i el panell les 15.
+- [ ] Les targetes i el detall mostren el marcador de la foto, la categoria, l'autor i la data.
+- [ ] `preventLazyLoading()` està actiu a `AppServiceProvider` i la portada, el panell i el detall funcionen.
+- [ ] La portada fa 4 consultes (mesurat amb Tinker).
+- [ ] Sé explicar per què `$label->user->name` dins d'un bucle fa una consulta per etiqueta i com ho evita `with()`.
+- [ ] He revisat el catàleg de mostra generat amb IA: he comprovat les varietats i les categories.
+
+### 11.3. Arbre d'arxius esperat
+
+Només els arxius nous o modificats en este bloc:
+
+```text
+app/
+├── Http/Controllers/
+│   ├── HomeController.php                   (modificat)
+│   ├── LabelController.php                  (modificat)
+│   └── Panel/LabelController.php            (modificat)
+├── Models/
+│   ├── Category.php                         (nou)
+│   ├── Label.php                            (nou)
+│   └── User.php                             (modificat)
+├── Providers/AppServiceProvider.php         (modificat)
+└── Support/                                 (esborrada)
+database/
+├── factories/LabelFactory.php               (nou)
+├── migrations/
+│   ├── AAAA_MM_DD_HHMMSS_create_categories_table.php   (nou)
+│   └── AAAA_MM_DD_HHMMSS_create_labels_table.php       (nou)
+└── seeders/
+    ├── CategorySeeder.php                   (nou)
+    └── DatabaseSeeder.php                   (modificat)
+resources/views/
+├── components/
+│   ├── label-card.blade.php                 (modificat)
+│   └── label-photo.blade.php                (nou)
+├── labels/show.blade.php                    (modificat)
+├── panel/labels/index.blade.php             (modificat)
+├── vendor/pagination/tailwind.blade.php     (nou, publicat i modificat)
+└── home.blade.php                           (modificat)
+routes/web.php                               (modificat)
+.env o config/app.php                        (modificat: faker_locale)
+```
+
+Els arxius que han canviat al llarg de diversos punts, en la seua versió final:
+
+::: details app/Models/Label.php
+```php
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+#[Fillable([
+    'category_id',
+    'product',
+    'variety',
+    'net_weight_g',
+    'caliber',
+    'origin',
+    'batch',
+    'packer',
+    'product_code',
+    'barcode',
+    'packaged_at',
+    'description',
+    'photo_path',
+])]
+class Label extends Model
+{
+    use HasFactory;
+
+    protected function casts(): array
+    {
+        return [
+            'packaged_at' => 'date',
+        ];
+    }
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class);
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+}
+```
+:::
+
+::: details app/Http/Controllers/HomeController.php
+```php
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Label;
+use Illuminate\View\View;
+
+class HomeController extends Controller
+{
+    public function __invoke(): View
+    {
+        return view('home', [
+            'labels' => Label::with(['user', 'category'])->latest('id')->paginate(6),
+        ]);
+    }
+}
+```
+:::
+
+::: details app/Http/Controllers/Panel/LabelController.php
+```php
+<?php
+
+namespace App\Http\Controllers\Panel;
+
+use App\Http\Controllers\Controller;
+use App\Models\Label;
+use Illuminate\Http\Request;
+use Illuminate\View\View;
+
+class LabelController extends Controller
+{
+    public function index(): View
+    {
+        return view('panel.labels.index', ['labels' => Label::with('category')->get()]);
+    }
+}
+```
+:::
+
+::: details database/seeders/DatabaseSeeder.php
+```php
+<?php
+
+namespace Database\Seeders;
+
+use App\Models\Label;
+use App\Models\User;
+use Illuminate\Database\Seeder;
+
+class DatabaseSeeder extends Seeder
+{
+    public function run(): void
+    {
+        $this->call([
+            CategorySeeder::class,
+        ]);
+
+        User::factory()->create([
+            'name' => 'Usuari de prova',
+            'email' => 'prova@example.com',
+        ]);
+        User::factory()->count(2)->create();
+
+        Label::factory()
+            ->count(15)
+            ->recycle(User::all())
+            ->create();
+    }
+}
+```
+:::
+
+::: details resources/views/components/label-card.blade.php
+```blade
+@props(['label'])
+
+<article {{ $attributes->merge(['class' => 'flex h-full flex-col rounded-2xl border border-ink/10 bg-white p-6']) }}>
+    <div class="flex-1">
+        <x-label-photo :label="$label" class="mb-6" />
+
+        <x-badge>{{ $label->category->name }}</x-badge>
+
+        <h2 class="mt-4 font-serif text-3xl font-semibold tracking-tight text-ink">
+            <a href="{{ route('labels.show', ['label' => $label]) }}" class="transition hover:text-brand">{{ $label->product }}</a>
+        </h2>
+
+        @if ($label->variety)
+            <p class="text-lg text-ink/60">{{ $label->variety }}</p>
+        @endif
+
+        <p class="mt-4 leading-relaxed text-ink/70">{{ $label->description }}</p>
+    </div>
+
+    @isset($footer)
+        <footer class="mt-6 border-t border-ink/10 pt-4 text-sm text-ink/60">
+            {{ $footer }}
+        </footer>
+    @endisset
+</article>
+```
+:::
+
+::: details resources/views/labels/show.blade.php
+```blade
+<x-layout>
+    <x-slot:title>{{ $label->product }}</x-slot>
+
+    <a href="{{ route('home') }}" class="text-ink/60 transition hover:text-brand">← Totes les etiquetes</a>
+
+    <article class="mx-auto mt-10 max-w-2xl">
+        <x-label-photo :label="$label" class="mb-8 max-w-sm" />
+
+        <x-badge>{{ $label->category->name }}</x-badge>
+
+        <h1 class="mt-6 font-serif text-5xl font-semibold tracking-tight text-ink sm:text-6xl">{{ $label->product }}</h1>
+
+        @if ($label->variety)
+            <p class="mt-2 text-2xl text-ink/60">{{ $label->variety }}</p>
+        @endif
+
+        <div class="mt-8 h-1 w-16 rounded-full bg-accent"></div>
+
+        <p class="mt-8 text-xl leading-relaxed text-ink/80">{{ $label->description }}</p>
+        <p class="mt-6 text-ink/60">{{ number_format($label->net_weight_g, 0, ',', '.') }} g · Envasat el {{ $label->packaged_at->format('d/m/Y') }}</p>
+        <p class="mt-10 text-ink/60">{{ $label->user->name }} · {{ $label->created_at->format('d/m/Y') }}</p>
+    </article>
+</x-layout>
+```
+:::
+
+::: details resources/views/home.blade.php
+```blade
+<x-layout>
+    <x-slot:title>Etiquetes publicades</x-slot>
+
+    <h1 class="font-serif text-5xl font-semibold tracking-tight text-ink sm:text-6xl">Etiquetes</h1>
+    <div class="mt-6 h-1 w-16 rounded-full bg-accent"></div>
+    <p class="mt-6 max-w-xl text-xl leading-relaxed text-ink/70">Les últimes etiquetes publicades.</p>
+
+    <x-button :href="route('register')" class="mt-8">Crea la teua etiqueta</x-button>
+
+    <div class="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        @forelse ($labels as $label)
+            <x-label-card :label="$label" class="transition hover:border-brand">
+                <x-slot:footer>
+                    {{ $label->user->name }} · {{ $label->created_at->format('d/m/Y') }}
+                </x-slot>
+            </x-label-card>
+        @empty
+            <p class="text-lg text-ink/60">Encara no hi ha cap etiqueta publicada.</p>
+        @endforelse
+    </div>
+
+    <div class="mt-12">
+        {{ $labels->links() }}
+    </div>
+</x-layout>
+```
+:::
+
+::: details resources/views/panel/labels/index.blade.php
+```blade
+<x-layout>
+    <x-slot:title>Les meues etiquetes</x-slot>
+
+    <div class="flex flex-wrap items-end justify-between gap-6">
+        <div>
+            <h1 class="font-serif text-5xl font-semibold tracking-tight text-ink">Les meues etiquetes</h1>
+            <div class="mt-6 h-1 w-16 rounded-full bg-accent"></div>
+        </div>
+
+        <x-button href="#">Nova etiqueta</x-button>
+    </div>
+
+    <div class="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        @forelse ($labels as $label)
+            <x-label-card :label="$label">
+                <x-slot:footer>
+                    <div class="flex gap-6 font-semibold">
+                        <a href="{{ route('labels.show', ['label' => $label]) }}" class="text-brand hover:underline">Veure</a>
+                        <a href="#" class="text-brand hover:underline">Editar</a>
+                    </div>
+                </x-slot>
+            </x-label-card>
+        @empty
+            <p class="text-lg text-ink/60">Encara no has creat cap etiqueta.</p>
+        @endforelse
+    </div>
+</x-layout>
+```
+:::

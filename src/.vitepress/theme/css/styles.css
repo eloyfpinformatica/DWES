@@ -440,3 +440,105 @@ html {
 .tabs .tab-content> :not([data-tab="Java"]) {
   display: none !important;
 }
+
+/* ==========================================
+   EDUPRESS - DISTRIBUCIÓN DE COLUMNAS
+   ========================================== */
+
+:root {
+  /* Ancho del sidebar izquierdo */
+  --vp-sidebar-width: 240px;
+
+  /* Ancho máximo de la página */
+  --vp-layout-max-width: 1920px;
+}
+
+/* Solo pantallas grandes */
+@media (min-width: 1280px) {
+
+  /* SIDEBAR IZQUIERDO */
+
+  .VPSidebar {
+    width: 240px !important;
+    padding-left: 24px !important;
+    padding-right: 12px !important;
+  }
+
+  /* CONTENIDO CENTRAL */
+
+  .VPContent.has-sidebar {
+    padding-left: 240px !important;
+  }
+
+  .VPDoc {
+    padding-left: 60px !important;
+    padding-right: 20px !important;
+  }
+
+  .VPDoc .container {
+    max-width: none !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  .VPDoc .content {
+    max-width: none !important;
+    flex: 1;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+  }
+
+  .VPDoc .content-container {
+    max-width: none !important;
+  }
+
+  /* SIDEBAR DERECHO */
+
+  .VPDoc.has-aside .aside {
+    width: 240px !important;
+    flex: 0 0 240px !important;
+    padding-left: 10px !important;
+    padding-right: 0 !important;
+  }
+
+  .VPDoc .aside-container {
+    width: 240px !important;
+  }
+
+  /* Eliminar espacios adicionales del índice */
+  .VPDocAside {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+}
+
+/* ==========================================
+   TABLAS A ANCHO COMPLETO
+   ========================================== */
+
+.vp-doc table {
+  display: table;
+  width: 100%;
+  max-width: 100%;
+  border-collapse: collapse;
+}
+
+/* Distribuir las columnas automáticamente */
+.vp-doc th,
+.vp-doc td {
+  box-sizing: border-box;
+}
+
+/* Evitar que las tablas desborden el contenido */
+.vp-doc {
+  min-width: 0;
+}
+
+@media (min-width: 1280px) {
+  .vp-doc table {
+    display: table;
+    width: 100%;
+    max-width: 100%;
+    border-collapse: collapse;
+  }
+}
