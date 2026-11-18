@@ -1104,7 +1104,7 @@ class RegisterRequest extends FormRequest
         ];
     }
 
-    public function messages(): arra    y
+    public function messages(): array
     {
         return [
             'required'           => 'El camp :attribute és obligatori.',
