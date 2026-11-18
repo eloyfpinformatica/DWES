@@ -3069,12 +3069,12 @@ Els fitxers `GestorLead.php`, `usuaris.php` i tots els `prova-*.php` han desapar
 
 Els exercicis d'aquesta unitat es correspondran en el seguiment de la unitat. Caldrà fer les següents captures de pantalla:
 
-1. Captura `prova-model.php` (punt 5.5)
-2. Captura `prova-connexio.php` (punt 7.6)
-3. Captura `prova-dao.php` (punt 8.6)
-4. Captura `prova-arxiu.php` (punt 9.6)
-5. Captura `prova-usuari.php` (punt  11.4)
-6. Captura final de `index.php`
-7. Captura final de `dashboard/leads.php`
-8. Captura final de `dashboard/lead.php`
-9. Captura final de `dashboard/editar.php`
+1. Captura [http://localhost:8080/prova-model.php](http://localhost:8080/prova-model.php) (punt 5.5)
+2. Captura [http://localhost:8080/prova-connexio.php](http://localhost:8080/prova-connexio.php) (punt 7.6)
+3. Captura [http://localhost:8080/prova-dao.php](http://localhost:8080/prova-dao.php) (punt 8.6)
+4. Captura [http://localhost:8080/prova-arxiu.php](http://localhost:8080/prova-arxiu.php) (punt 9.6)
+5. Captura [http://localhost:8080/prova-usuari.php](http://localhost:8080/prova-usuari.php) (punt  11.4)
+6. Captura final de [http://localhost:8080/index.php](http://localhost:8080/index.php)
+7. Captura final de [http://localhost:8080/dashboard/leads.php](http://localhost:8080/dashboard/leads.php)
+8. Captura final de [http://localhost:8080/dashboard/lead.php](http://localhost:8080/dashboard/lead.php)
+9.  Captura final de [http://localhost:8080/dashboard/editar.php](http://localhost:8080/dashboard/editar.php)
