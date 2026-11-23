@@ -1661,3 +1661,405 @@ class DatabaseSeeder extends Seeder
 </x-layout>
 ```
 :::
+
+## Annex 1. Altres relacions: un a un i molts a molts
+
+Al bloc 4 hem treballat la relació **d'un a molts**, que és la que usa el nostre projecte. Ací veiem les altres dos relacions bàsiques de les bases de dades relacionals: la d'**un a un** i la de **molts a molts**, esta última amb **atributs pivot**.
+
+Els exemples són de l'aplicació d'etiquetes, però **no formen part del projecte base**: es proven amb Tinker i, en acabar, es poden desfer (apartat A1.5).
+
+| Relació | Exemple | On va la clau forana | Mètodes del model |
+|---|---|---|---|
+| Un a molts (bloc 4) | Una categoria té moltes etiquetes | `category_id` a `labels` | `hasMany` / `belongsTo` |
+| Un a un | Una etiqueta té **una única** fitxa nutricional | `label_id` (**única**) a `nutrition_facts` | `hasOne` / `belongsTo` |
+| Molts a molts | Una etiqueta pot portar diversos al·lèrgens, i un al·lèrgen apareix en moltes etiquetes | **Taula pivot** `allergen_label`, amb les dos claus | `belongsToMany` als dos costats |
+
+### A1.1. Un a un: la fitxa nutricional
+
+Una relació d'un a un és, en el fons, una d'un a molts en què només es permet **un** fill. Sol usar-se quan unes dades són opcionals o ocupen molt, i no volem omplir la taula principal de columnes buides. No totes les etiquetes tindran fitxa nutricional, així que la guardem en una taula pròpia.
+
+Genera la migració:
+
+```bash
+sail artisan make:migration create_nutrition_facts_table
+```
+
+Substituïx el contingut de l'arxiu generat per este:
+
+```php
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('nutrition_facts', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('label_id')->unique()->constrained()->cascadeOnDelete();
+            $table->unsignedInteger('energy_kcal');
+            $table->decimal('fat_g', 5, 1);
+            $table->decimal('carbs_g', 5, 1);
+            $table->decimal('protein_g', 5, 1);
+            $table->timestamps();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('nutrition_facts');
+    }
+};
+```
+
+La clau de la relació d'un a un és `->unique()` sobre `label_id`: sense ell, la base de dades permetria **diverses** fitxes per a la mateixa etiqueta, i tindríem una relació d'un a molts. Amb ell, és la **base de dades** qui garantix que només n'hi haja una. Les columnes numèriques són els valors per cada 100 g (energia en kcal i la resta en grams, amb un decimal).
+
+Executa la migració:
+
+```bash
+sail artisan migrate
+```
+
+Ara el model. Genera'l:
+
+```bash
+sail artisan make:model NutritionFact
+```
+
+Substituïx el contingut de `app/Models/NutritionFact.php`:
+
+```php
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+#[Fillable(['energy_kcal', 'fat_g', 'carbs_g', 'protein_g'])]
+class NutritionFact extends Model
+{
+    public function label(): BelongsTo
+    {
+        return $this->belongsTo(Label::class);
+    }
+}
+```
+
+Fixa't que `label_id` **no** és `Fillable`: igual que `user_id` a `Label`, no ha de vindre d'un formulari, sinó de la relació. La part del costat de la fitxa és idèntica a la que ja coneixes: un `belongsTo`.
+
+A `app/Models/Label.php`, afig l'`use` a dalt i el mètode **dins de la classe**:
+
+```php
+use Illuminate\Database\Eloquent\Relations\HasOne;
+
+public function nutritionFact(): HasOne
+{
+    return $this->hasOne(NutritionFact::class);
+}
+```
+
+El costat «un» usa **`hasOne`** en lloc de `hasMany`. Eloquent deduïx la clau forana pel nom del model pare: busca `label_id` a la taula `nutrition_facts`. I fixa't en el nom del mètode: va en **singular** (`nutritionFact`), perquè torna **un** model i no una col·lecció.
+
+::: info Nota
+Si una etiqueta no té fitxa, `$label->nutritionFact` val `null`, i accedir a una propietat de `null` dona error. Amb `->withDefault()` al final del `hasOne`, Eloquent torna un model buit en lloc de `null` i el codi de les vistes no necessita comprovar si existix. Ací no ho fem per no complicar l'exemple.
+:::
+
+Prova-ho en Tinker (`sail artisan tinker`):
+
+```php
+$label = App\Models\Label::first();
+
+$label->nutritionFact()->create([
+    'energy_kcal' => 52,
+    'fat_g' => 0.2,
+    'carbs_g' => 13.8,
+    'protein_g' => 0.3,
+]);
+
+$label->nutritionFact->energy_kcal;
+$label->nutritionFact->label->product;
+```
+
+Com al punt 4.2, creem el fill **a través de la relació** (`nutritionFact()` amb parèntesis), de manera que `label_id` s'omple sol. Les dades són d'exemple.
+
+**Comprovar que funciona**
+
+1. `$label->nutritionFact->energy_kcal` ha de tornar `52`, i `$label->nutritionFact->label->product` el producte de l'etiqueta: la relació funciona en els dos sentits.
+2. Torna a executar el `create(...)` anterior amb altres valors. Ha de **fallar** amb un error de la base de dades per un valor duplicat a `label_id`: és la restricció `unique()` impedint una segona fitxa.
+3. A phpMyAdmin, la taula `nutrition_facts` ha de tindre una sola fila.
+
+### A1.2. Molts a molts: la taula pivot
+
+Una etiqueta pot portar diversos al·lèrgens (fruits de closca, cacauets...) i un al·lèrgen apareix en moltes etiquetes. No podem posar un `allergen_id` a `labels` (una etiqueta en tindria un de sol) ni un `label_id` a `allergens` (un al·lèrgen només estaria en una etiqueta). Cal una **tercera taula** que relacione les dos.
+
+::: info Nota
+Una **taula pivot** (o taula intermèdia) és una taula que només existix per a relacionar dos models en una relació de molts a molts: cada fila diu «esta etiqueta té este al·lèrgen». Normalment no té un model propi, i Eloquent la gestiona per nosaltres.
+:::
+
+El nom de la taula pivot es deduïx **ajuntant els noms dels dos models en singular, en ordre alfabètic**: `Allergen` i `Label` donen `allergen_label` (l'«A» va abans que la «L»). Si la nomenes d'una altra manera, Eloquent no la trobarà.
+
+Genera les dos migracions, la dels al·lèrgens primer:
+
+```bash
+sail artisan make:migration create_allergens_table
+sail artisan make:migration create_allergen_label_table
+```
+
+Contingut de la de `allergens`:
+
+```php
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('allergens', function (Blueprint $table) {
+            $table->id();
+            $table->string('name')->unique();
+            $table->timestamps();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('allergens');
+    }
+};
+```
+
+I el de la taula pivot, `allergen_label`:
+
+```php
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('allergen_label', function (Blueprint $table) {
+            $table->foreignId('allergen_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('label_id')->constrained()->cascadeOnDelete();
+            $table->boolean('may_contain_traces')->default(false);
+            $table->timestamps();
+
+            $table->primary(['allergen_id', 'label_id']);
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('allergen_label');
+    }
+};
+```
+
+- **Dos claus foranes**, una per cada costat de la relació. Amb `cascadeOnDelete()`, si s'esborra una etiqueta o un al·lèrgen, desapareixen també les seues files de la pivot.
+- **`may_contain_traces`**: una columna extra que només té sentit en la **relació**, no en l'al·lèrgen ni en l'etiqueta: diu si l'al·lèrgen «hi és» (`false`) o «pot contindre traces» (`true`). És un **atribut pivot**.
+- **`primary(['allergen_id', 'label_id'])`**: una clau primària **composta**, de les dos columnes. Impedix que el mateix al·lèrgen s'associe dos vegades a la mateixa etiqueta.
+
+Executa-les:
+
+```bash
+sail artisan migrate
+```
+
+### A1.3. Els models: `belongsToMany` i els atributs pivot
+
+Genera el model dels al·lèrgens (la taula pivot no en necessita):
+
+```bash
+sail artisan make:model Allergen
+```
+
+Contingut de `app/Models/Allergen.php`:
+
+```php
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+
+#[Fillable(['name'])]
+class Allergen extends Model
+{
+    public function labels(): BelongsToMany
+    {
+        return $this->belongsToMany(Label::class)
+            ->withPivot('may_contain_traces')
+            ->withTimestamps();
+    }
+}
+```
+
+I a `app/Models/Label.php`, afig l'`use` i el mètode **dins de la classe**:
+
+```php
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+
+public function allergens(): BelongsToMany
+{
+    return $this->belongsToMany(Allergen::class)
+        ->withPivot('may_contain_traces')
+        ->withTimestamps();
+}
+```
+
+La relació es defineix **als dos costats** amb el mateix mètode, `belongsToMany` (no hi ha «un» i «molts»: tots dos són «molts»). Cada part fa una cosa:
+
+- **`belongsToMany(Allergen::class)`**: Eloquent busca la taula pivot `allergen_label` i les columnes `allergen_id` i `label_id`.
+- **`withPivot('may_contain_traces')`**: per defecte, de la taula pivot només es lligen les claus. Si volem llegir una columna extra, cal indicar-la ací. Cada costat de la relació ha de declarar-la.
+- **`withTimestamps()`**: fa que Eloquent òmpliga `created_at` i `updated_at` de la pivot en afegir o modificar una fila. La taula ha de tindre les dos columnes, i la nostra les té.
+
+::: info Més professional
+Si volem afegir comportament a la taula pivot (per exemple, un *cast* perquè `may_contain_traces` torne `true` o `false` en lloc d'`1` o `0`), es pot crear un model propi que estenga `Illuminate\Database\Eloquent\Relations\Pivot` i indicar-lo amb `->using(...)` a la relació. Ací usem la versió senzilla.
+:::
+
+Perquè hi haja al·lèrgens amb els quals provar, crea un seeder:
+
+```bash
+sail artisan make:seeder AllergenSeeder
+```
+
+Contingut de `database/seeders/AllergenSeeder.php`:
+
+```php
+<?php
+
+namespace Database\Seeders;
+
+use App\Models\Allergen;
+use Illuminate\Database\Seeder;
+
+class AllergenSeeder extends Seeder
+{
+    public function run(): void
+    {
+        $names = ['Fruits de closca', 'Cacauets', 'Gluten', 'Soja'];
+
+        foreach ($names as $name) {
+            Allergen::firstOrCreate(['name' => $name]);
+        }
+    }
+}
+```
+
+No l'afegim a `DatabaseSeeder`: l'executem a mà, perquè l'annex no condicione el projecte base.
+
+```bash
+sail artisan db:seed --class=AllergenSeeder
+```
+
+### A1.4. Afegir, llevar i sincronitzar al·lèrgens
+
+Les etiquetes de la categoria «Fruits secs» són les més coherents per a provar això. Entra en Tinker i prepara les dades:
+
+```php
+$label = App\Models\Category::where('name', 'Fruits secs')->first()->labels()->first();
+$closca = App\Models\Allergen::where('name', 'Fruits de closca')->first();
+$cacauets = App\Models\Allergen::where('name', 'Cacauets')->first();
+$soja = App\Models\Allergen::where('name', 'Soja')->first();
+```
+
+Si `$label` és `null`, no hi ha cap etiqueta de «Fruits secs» entre les 15 de mostra: executa `sail artisan migrate:fresh --seed`, torna a executar el seeder d'al·lèrgens i comença de nou.
+
+**Afegir amb `attach`**, amb dades pivot opcionals:
+
+```php
+$label->allergens()->attach($closca->id);
+$label->allergens()->attach($cacauets->id, ['may_contain_traces' => true]);
+```
+
+Com sempre, usem la relació **amb parèntesis** (`allergens()`) per a modificar. El segon argument és un array amb els valors de les columnes extra de la pivot.
+
+**Llegir**, amb la propietat `pivot` de cada al·lèrgen:
+
+```php
+foreach ($label->allergens as $allergen) {
+    echo $allergen->name.': '.($allergen->pivot->may_contain_traces ? 'pot contindre traces' : 'conté').PHP_EOL;
+}
+```
+
+`$allergen->pivot` és l'objecte amb les columnes de la taula pivot que hem demanat amb `withPivot`. I des de l'altre costat:
+
+```php
+$closca->labels;
+```
+
+torna totes les etiquetes que porten fruits de closca.
+
+**Modificar i eliminar**:
+
+```php
+$label->allergens()->updateExistingPivot($cacauets->id, ['may_contain_traces' => false]);
+$label->allergens()->detach($cacauets->id);
+```
+
+**Sincronitzar amb `sync`**: deixa la pivot **exactament** amb el que li passes.
+
+```php
+$label->allergens()->sync([
+    $closca->id => ['may_contain_traces' => false],
+    $soja->id => ['may_contain_traces' => true],
+]);
+```
+
+Si ja havies llegit `$label->allergens` abans, Eloquent en té una còpia en memòria: recarrega-la amb `$label->load('allergens');` abans de tornar a llegir.
+
+Estos són els mètodes principals per a gestionar una relació de molts a molts:
+
+| Mètode | Què fa |
+|---|---|
+| `attach($id, [...])` | Afig una fila a la pivot, amb dades extra opcionals |
+| `detach($id)` | Lleva la fila de la pivot; sense argument, les lleva totes. No esborra cap model |
+| `sync([...])` | Deixa la pivot amb **només** els IDs indicats: afig els que falten i lleva els que sobren |
+| `syncWithoutDetaching([...])` | Com `sync`, però sense llevar els que ja hi eren |
+| `toggle([...])` | Si l'ID està relacionat, el lleva; si no, l'afig |
+| `updateExistingPivot($id, [...])` | Modifica els atributs pivot d'una fila existent |
+
+::: tip Bona pràctica
+Si algun dia afegim al formulari de l'etiqueta una llista de caselles d'al·lèrgens, `sync()` és el mètode que et serà útil: rep els IDs marcats i deixa la pivot exactament així, siguen nous o s'hagen desmarcat. Si en mostres els al·lèrgens en un llistat d'etiquetes, carrega'ls amb `with('allergens')` (punt 10): recorda que el *lazy loading* està prohibit en el projecte.
+:::
+
+**Comprovar que funciona**
+
+1. Després dels dos `attach`, el bucle de lectura ha d'escriure «Fruits de closca: conté» i «Cacauets: pot contindre traces». L'ordre pot variar.
+2. `$closca->labels` ha d'incloure l'etiqueta amb què treballes.
+3. Després de `updateExistingPivot` i `detach`, `$label->load('allergens')` i `$label->allergens` han de mostrar només «Fruits de closca».
+4. Després del `sync`, el bucle ha de mostrar «Fruits de closca: conté» i «Soja: pot contindre traces», i res més.
+5. A phpMyAdmin, la taula `allergen_label` ha de tindre exactament eixes dos files, amb `created_at` i `updated_at` omplits.
+
+### A1.5. Errors comuns i com desfer l'annex
+
+| Error o símptoma | Causa probable | Solució |
+|---|---|---|
+| Eloquent no troba la taula pivot | S'ha nomenat de manera diferent a la convenció (per exemple, `label_allergen`) | Ajunta els noms en singular i en ordre alfabètic: `allergen_label` (A1.2) |
+| `$allergen->pivot->may_contain_traces` torna `null` | Falta `withPivot('may_contain_traces')` en la relació del costat des d'on es llig | Afig-lo als dos costats (A1.3) |
+| Una etiqueta pot tindre dues fitxes nutricionals | Falta `->unique()` sobre `label_id` a la migració | Afig-lo i refés amb `migrate:fresh` (A1.1) |
+| Un al·lèrgen apareix dos vegades en la mateixa etiqueta | Falta la clau primària composta de la pivot | Afig `primary([...])` (A1.2) |
+| `LazyLoadingViolationException` en un llistat | Es llig `$label->allergens` per a cada etiqueta sense carregar-los abans | `Label::with('allergens')` (punt 10) |
+
+**Desfer l'annex (opcional).** Les taules de l'annex no són necessàries per al projecte. Si no les vols, desfés les dos tandes de migracions:
+
+```bash
+sail artisan migrate:rollback
+sail artisan migrate:rollback
+```
+
+La primera desfà `allergens` i `allergen_label` (es van executar juntes), i la segona `nutrition_facts`. Els models, els mètodes de `Label` i el seeder queden com a arxius sense ús, i els pots esborrar.
