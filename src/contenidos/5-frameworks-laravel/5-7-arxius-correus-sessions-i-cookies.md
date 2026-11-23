@@ -1,3 +1,5 @@
+# Bloc 7. Arxius, correus, sessions i cookies
+
 ## 1. Punt de partida: què afegirem a l'aplicació
 
 Fins ara les etiquetes tenen **tota la informació** (producte, lot, codi de barres...), però no tenen **foto**: la vista pinta un marcador amb la inicial del producte. I tampoc podem traure-les de l'aplicació: no hi ha manera de tindre l'etiqueta com un document. En este bloc tanquem el projecte afegint quatre peces:
@@ -150,6 +152,8 @@ Si preferixes veure la foto **sencera** (amb franges buides als costats), canvia
 6. A phpMyAdmin, la columna `photo_path` de la fila nova val `labels/tomaques.jpg`. L'arxiu existix a `storage/app/public/labels/` dins del projecte.
 7. Crea una altra etiqueta **sense** triar foto: es guarda i mostra la inicial.
 8. Edita la primera, tria una altra imatge i guarda: la foto **no canvia**. Ho arreglem al punt 5.
+
+
 ## 3. La trampa: una pujada que «funciona»
 
 Ja tenim la foto: es puja, es guarda i es veu. Era una tasca ben acotada i la IA l'ha resolta a la primera. Però que funcione amb una foto normal no vol dir que estiga ben fet: no li hem dit **què** ha d'acceptar, i no ho ha previst.
